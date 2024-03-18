@@ -1,80 +1,113 @@
-import shutil
-from openpyxl import load_workbook
-import openpyxl
-from openpyxl.styles import PatternFill
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from io import BytesIO
+import tkinter.simpledialog as simpledialog
+from colorama import init, Fore, Style
+import os
+
+init()
 
 bgError = '#FF0000'
 
-def loadExcel ():
+outputResult = 0
+totalErrores = 0
+
+def loadExcel():
+    global outputResult
+    outputResult = 0
+    global totalErrores
+    totalErrores = 0
     global fileRoute
     fileRoute = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx;*.xls")])
     if fileRoute:
         global df
         df = pd.read_excel(fileRoute, sheet_name=0, header=1)
+    else:
+        print("El archivo no se cargó")
 
 def setBase(base):
     loadExcel()
+    print("Validando, por favor espere...")
     chooseBase(base)
-    
-def validarTelefono ():
-    for index, fila in df.iterrows():
-        # Agrega el valor de la celda en la columna A a la lista
-        cellTelefono = fila['Telefono']
-        # Agrega el valor convertido a la lista de valores enteros
-        if len(str(cellTelefono).strip()) != 7 and len(str(cellTelefono).strip()) != 10:
-            df['Telefono'] = df['Telefono'].astype('object')
-            df.at[index, 'Telefono'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
-            # cellTelefono.fill = bgError
-            # cellFicha = df.cell(cellTelefono.row, 2)
-            # cellFicha.fill = bgError
-    
-    return True
+    preguntaDescarga()
 
-def validarNoManzana ():
+##------------------------------------------------------------------------------------    
+##---------------------------------VALIDADOR------------------------------------------
+##------------------------------------------------------------------------------------
+def validarTelefono():
+    global outputResult
+    global totalErrores
+    outputResult = 0
+    for index, fila in df.iterrows():
+        cellTelefono = fila['Telefono']
+        if len(str(cellTelefono).strip()) != 7 and len(str(cellTelefono).strip()) != 10:
+            outputResult += 1
+            totalErrores += 1
+            print("Error en teléfono encontrado")
+            #df.at[index, 'Telefono'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
+    print("Total errores en teléfono:" + str(outputResult))
+
+def validarNoManzana():
+    global outputResult
+    global totalErrores
+    outputResult = 0
     for index, fila in df.iterrows():
         cellManzana = fila['.Manzana de cuidado.']
-        nroManzana = fila['.Nro Manzana.']        
+        nroManzana = fila['.Nro Manzana.']
+        if cellManzana == "SI" and pd.isnull(nroManzana):
+            outputResult += 1
+            totalErrores += 1
+            print("Error en manzana del cuidado encontrado")
+    print("Total errores en manzana del cuidado:" + str(outputResult))
 
-        if cellManzana == "SI" and nroManzana is None:    
-            print("Error en manzana")        
-            # nroManzana.fill = bgError
-            # cellFicha = df.cell(cellManzana.row, 2)
-            # cellFicha.fill = bgError
-
-    return True
+##------------------------------------------------------------------------------------
+##------------------------------------------------------------------------------------
 
 def sc():
     validarTelefono()
     validarNoManzana()
-    
+    print("\x1b[31mTotal errores "+ str(totalErrores) +"\x1b[0m")
+
 def chooseBase(base):
-    swicth = {
-        "sesiones_colectivas":sc
+    switch = {
+        "sesiones_colectivas": sc
     }
-
-    ejexute_validator = swicth.get(base)
-    ejexute_validator()
-    saveFile()
-
+    execute_validator = switch.get(base)
+    execute_validator()
 
 def saveFile():
     try:
         file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
-        if not file_path:
-            return
-        if not file_path.endswith('.xlsx'):
-            file_path += '.xlsx'
-        file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
-        workbook_nuevo = openpyxl.Workbook()
-        workbook_nuevo.save(file_path_modificado)
-        
-        messagebox.showinfo("Archivo guardado", "El archivo ha sido guardado correctamente.")
+        if file_path:
+            file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
+            with pd.ExcelWriter(file_path_modificado, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+            print("El archivo ha sido guardado correctamente!")
+            
+            # Preguntar al usuario si desea abrir el archivo guardado
+            open_file = messagebox.askquestion("Abrir Archivo", "¿Desea abrir el archivo guardado?")
+            if open_file == 'yes':
+                os.startfile(file_path_modificado)  # Abre el archivo guardado
     except Exception as e:
         messagebox.showerror("Error", f"No se pudo guardar el archivo: {str(e)}")
 
-    # bio.seek(0)
-    # workbook = bio.read()
+def preguntaDescarga():
+    try:
+        respuesta = messagebox.askquestion("Abrir Archivo", "¿Guardar el archivo generado?")
+        if respuesta == "yes":
+            cadenaGuardar = "Guardando archivo..."
+            print(cadenaGuardar)
+            print(cargandoSave(cadenaGuardar))
+            saveFile()
+        else:
+            print("Tu archivo no será descargado")
+    except Exception as e:
+        print(f"No se pudo guardar el archivo: {str(e)}")
+
+def cargandoSave(cadena):
+    if cadena:
+        # Borra el último carácter usando slicing
+        nueva_cadena = cadena[:-3]
+        return nueva_cadena
+    else:
+        return cadena
