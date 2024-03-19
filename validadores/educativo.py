@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 import pandas as pd
 import tkinter.simpledialog as simpledialog
 from colorama import init, Fore, Style
+import os
 
 init()
 
@@ -66,7 +67,7 @@ def validar_pagina1_sesiones():
                 celdas_pintadas_rojo += 1
         
         # Mostrar la cantidad de celdas pintadas de rojo
-        print(f"Total errores {celdas_pintadas_rojo}.")
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
@@ -75,23 +76,28 @@ def saveFile():
     try:
         file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
         file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
-        workbook.save(file_path_modificado)
         
+        # Guardar el libro de trabajo original con los cambios realizados
+        workbook.save(file_path)
+        # Guardar el archivo modificado con el nombre específico para errores
+        workbook.save(file_path_modificado)
         print("Archivo guardado", "El archivo ha sido guardado correctamente.")
+        # Preguntar al usuario si desea abrir el archivo guardado
+        open_file = messagebox.askquestion("Abrir Archivo", "¿Desea abrir el archivo guardado?")
+        if open_file == 'yes':
+            os.startfile(file_path_modificado)  # Abre el archivo guardado
     except Exception as e:
         print("Error", f"No se pudo guardar el archivo: {str(e)}")
 
+
 def preguntaDescarga():
     try:
-        respuesta = simpledialog.askstring("Descargar archivo", "¿Desea descargar el archivo generado? (Y/N):")
-        if respuesta:
-            respuesta = respuesta.upper()
-            if respuesta == "Y":
-                print("Guardando archivo")
-                saveFile()
-            elif respuesta == "N":
-                print("Tu archivo no será descargado")
-            else:
-                print("Respuesta no válida. Por favor, responda con 'Y' para descargar o 'N' para no descargar.")
+        respuesta = messagebox.askquestion("Abrir Archivo", "¿Guardar el archivo generado?")
+        if respuesta == "yes":
+            cadenaGuardar = "Guardando archivo..."
+            print(cadenaGuardar)
+            saveFile()
+        else:
+            print("Tu archivo no será descargado")
     except Exception as e:
         print(f"No se pudo guardar el archivo: {str(e)}")
