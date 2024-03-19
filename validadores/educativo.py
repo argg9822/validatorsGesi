@@ -76,7 +76,7 @@ def saveFile():
         file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
         file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
         workbook.save(file_path_modificado)
-        
+        print("Archivo guardado", "El archivo ha sido gusdfado correctamente.")
         print("Archivo guardado", "El archivo ha sido guardado correctamente.")
     except Exception as e:
         print("Error", f"No se pudo guardar el archivo: {str(e)}")
