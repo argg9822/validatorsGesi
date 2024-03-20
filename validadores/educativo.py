@@ -50,9 +50,7 @@ def validar_pagina1_sesiones():
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
 
-        # Configuración de tqdm
-        # Configuración de tqdm
-      
+        # Configuración de tqdm     
         
         for i in range(2, ultima_fila + 1):
             
@@ -68,27 +66,31 @@ def validar_pagina1_sesiones():
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
             # Barrio
+                
             if not sheet.cell(row=i, column=22).value or not regex.match(sheet.cell(row=i, column=22).value):
                 sheet.cell(row=i, column=22).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
+            # Rural
+            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 43).value == " " : 
+                sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                celdas_pintadas_rojo += 1
 
-            #print(sheet.cell(i, 42).value)
+            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 44).value == " " : 
+                sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                celdas_pintadas_rojo += 1
                 
-            
 
-            # if sheet.cell(i, 17).value == "2- Rural" and len(sheet.cell(i, 43).value.strip()) < 1 and len(sheet.cell(i, 44).value.strip()) < 1: 
-                
-            #     sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     celdas_pintadas_rojo += 1
-
-            # if sheet.cell(i, 24).value == "SI" and sheet.cell(i, 25).value.strip() == " ":
-            #     sheet.cell(i, 25).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     sheet.cell(i, 24).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-            #     sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+            if sheet.cell(i, 24).value == "SI" and sheet.cell(i, 25).value.strip() == " ":
+                sheet.cell(i, 25).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 24).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
 
                
         # Mostrar la cantidad de celdas pintadas de rojo
