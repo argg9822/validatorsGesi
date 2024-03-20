@@ -121,7 +121,6 @@ def saveFile():
     except Exception as e:
         print("Error", f"No se pudo guardar el archivo: {str(e)}")
 
-
 def preguntaDescarga():
     try:
         respuesta = messagebox.askquestion("Abrir Archivo", "¿Guardar el archivo generado?")
