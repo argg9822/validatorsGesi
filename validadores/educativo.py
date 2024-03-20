@@ -98,7 +98,6 @@ def validar_pagina1_sesiones():
                 sheet.cell(i, 24).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
 
-               
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
