@@ -65,9 +65,8 @@ def validar_pagina1_sesiones():
                 sheet.cell(row=i, column=11).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
-                
-            # Barrio
-                
+
+            # Barrio  
             if not sheet.cell(row=i, column=22).value or not regex.match(sheet.cell(row=i, column=22).value):
                 sheet.cell(row=i, column=22).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
