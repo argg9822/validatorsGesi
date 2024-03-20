@@ -18,7 +18,7 @@ def loadExcel():
     global totalErrores
     totalErrores = 0
     global fileRoute
-    fileRoute = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx;*.xls")])
+    fileRoute = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx;*.xls;*.csv")])
     if fileRoute:
         global df
         df = pd.read_excel(fileRoute, sheet_name=0, header=1)
@@ -44,7 +44,7 @@ def validarTelefono():
             outputResult += 1
             totalErrores += 1
             print("Error en teléfono encontrado")
-            #df.at[index, 'Telefono'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
+            df.at[index, 'Telefono'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
     print("Total errores en teléfono:" + str(outputResult))
 
 def validarNoManzana():
