@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 import tkinter.simpledialog as simpledialog
 from colorama import init, Fore, Style
 import os
+import numpy as np
 
 init()
 
@@ -21,7 +22,10 @@ def loadExcel():
     fileRoute = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx;*.xls;*.csv")])
     if fileRoute:
         global df
-        df = pd.read_excel(fileRoute, sheet_name=0, header=1)
+        if fileRoute.endswith(".csv"):
+            df = pd.read_csv(fileRoute, header=1, encoding="latin1", delimiter=";")
+        else:
+            df = pd.read_excel(fileRoute, sheet_name=0, header=1)
     else:
         print("El archivo no se cargó")
 
@@ -34,18 +38,28 @@ def setBase(base):
 ##------------------------------------------------------------------------------------    
 ##---------------------------------VALIDADOR------------------------------------------
 ##------------------------------------------------------------------------------------
+
 def validarTelefono():
     global outputResult
     global totalErrores
     outputResult = 0
     for index, fila in df.iterrows():
-        cellTelefono = fila['Telefono']
-        if len(str(cellTelefono).strip()) != 7 and len(str(cellTelefono).strip()) != 10:
+        if pd.notna(fila['.Teléfono.']):
+            cellTelefono = int(fila['.Teléfono.'])
+        else:
+            cellTelefono = np.nan
+
+        if not pd.notna(cellTelefono) and (len(str(cellTelefono).strip()) != 7 and len(str(cellTelefono).strip()) != 10):
             outputResult += 1
             totalErrores += 1
-            print("Error en teléfono encontrado")
-            df.at[index, 'Telefono'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
+            df.at[index, '.Teléfono.'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
+        else:
+
+            df.at[index, '.Teléfono.'] = cellTelefono
+
+
     print("Total errores en teléfono:" + str(outputResult))
+
 
 def validarNoManzana():
     global outputResult
