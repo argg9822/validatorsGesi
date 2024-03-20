@@ -90,6 +90,9 @@ def buildGUI():
     marco_principal = tk.Frame(root, bg=bgColor, padx="0")
     marco_principal.pack(expand=True, fill="both")
 
+   
+    
+
     # Marco para el menú en la parte izquierda (10% del ancho)
     global marco_menu 
     marco_menu = tk.Frame(marco_principal, bg=bgColor)
@@ -114,6 +117,7 @@ def buildGUI():
 
     texto_terminal = tk.Text(marco_resultado, bg="#002657", fg="white")
     texto_terminal.pack(side="bottom", expand=True, fill="both")
+   
 
     # Botones entornos
     entornos = ["Hogar", "Laboral", "Educativo", "Comunitario", "Institucional"]
@@ -124,7 +128,7 @@ def buildGUI():
 
     # Llamar a la función imprimirResultado después de configurar los botones
     imprimirResultado(texto_terminal)
-    print("\x1b[31m!Bienvenido¡\x1b[0m")
+    print("\x1b[31m!Bienvenido¡")
 
     root.mainloop()
 
@@ -132,6 +136,14 @@ def imprimirResultado(text_widget):
     class TerminalRedirect:
         def __init__(self, text_widget):
             self.text_widget = text_widget
+            self.text_widget.tag_configure("red", foreground="red")
+            self.text_widget.tag_configure("green", foreground="green")
+            self.text_widget.tag_configure("yellow", foreground="yellow")
+            self.text_widget.tag_configure("blue", foreground="blue")
+            self.text_widget.tag_configure("magenta", foreground="magenta")
+            self.text_widget.tag_configure("cyan", foreground="cyan")
+            self.text_widget.tag_configure("white", foreground="white")
+            self.text_widget.tag_configure("black", foreground="black")
 
         def write(self, message):
             start_index = 0
@@ -157,11 +169,12 @@ def imprimirResultado(text_widget):
                 '34': 'blue', '35': 'magenta', '36': 'cyan', '37': 'white'
             }
             color = color_map.get(color_code, 'black')
-            self.text_widget.tag_add('color', 'end - 1c')
             self.text_widget.tag_config('color', foreground=color)
 
     # Redirigir la salida estándar al widget texto_terminal
+    
     sys.stdout = TerminalRedirect(text_widget)
     sys.stderr = TerminalRedirect(text_widget)
+
 
 buildGUI()
