@@ -74,9 +74,6 @@ def validar_pagina1_sesiones():
                 celdas_pintadas_rojo += 1
 
             #print(sheet.cell(i, 42).value)
-                
-            
-
             # if sheet.cell(i, 17).value == "2- Rural" and len(sheet.cell(i, 43).value.strip()) < 1 and len(sheet.cell(i, 44).value.strip()) < 1: 
                 
             #     sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
