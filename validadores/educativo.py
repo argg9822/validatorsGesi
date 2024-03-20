@@ -100,6 +100,7 @@ def validar_pagina1_sesiones():
 
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        #modificacin
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
