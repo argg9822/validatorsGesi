@@ -71,21 +71,21 @@ def validar_pagina1_sesiones():
                 sheet.cell(row=i, column=22).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
-            # Rural
-            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 43).value == " " : 
-                sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                celdas_pintadas_rojo += 1
 
-            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 44).value == " " : 
+        
+            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 43).value == " ": 
                 sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
-                
+            
+            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 44).value == " ": 
+                sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                celdas_pintadas_rojo += 1
 
             if sheet.cell(i, 24).value == "SI" and sheet.cell(i, 25).value.strip() == " ":
                 sheet.cell(i, 25).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
