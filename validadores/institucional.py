@@ -43,6 +43,7 @@ def validarTelefono():
     global outputResult
     global totalErrores
     outputResult = 0
+    totalErrores = 0
     for index, fila in df.iterrows():
         if pd.notna(fila['.Teléfono.']):
             cellTelefono = int(fila['.Teléfono.'])
