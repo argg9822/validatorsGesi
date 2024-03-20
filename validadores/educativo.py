@@ -72,6 +72,12 @@ def validar_pagina1_sesiones():
                 sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                 celdas_pintadas_rojo += 1
 
+            if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 42).value == " ": 
+                sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                celdas_pintadas_rojo += 1
         
             if sheet.cell(i, 17).value == "2- Rural" and sheet.cell(i, 43).value == " ": 
                 sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
