@@ -9,6 +9,8 @@ import pandas as pd
 import tkinter.simpledialog as simpledialog
 from colorama import init, Fore, Style
 import os
+from tqdm import tqdm
+import time
 
 init()
 
@@ -38,34 +40,62 @@ def setBase(base):
 
 def validar_pagina1_sesiones():
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
-    patternTel = re.compile(r'^\d{7}(\d{3})?$')
+    regex_telefono = re.compile("^\d{7}(\d{3})?$")
     try:
         for row in sheet.iter_rows():
             for cell in row:
                 if cell.value and '`' in cell.value:
-                    cell.value = cell.value.replace('`', '')
+                    cell.value = cell.value.replace('`','')
         
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
+
+        # Configuración de tqdm
+        # Configuración de tqdm
+        with tqdm(total=ultima_fila - 1, desc='Procesando') as pbar:
         
-        for i in range(2, ultima_fila + 1):
-            # Tipo institución
-            if len(sheet.cell(i, 9).value.strip()) > 0 and len(sheet.cell(i, 10).value.strip()) > 0:
-                sheet.cell(row=i, column=9).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(row=i, column=10).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                celdas_pintadas_rojo += 1
-            # Nombre institución
-            if not sheet.cell(row=i, column=11).value:
-                sheet.cell(row=i, column=11).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                celdas_pintadas_rojo += 1
-            # Barrio
-            if not sheet.cell(row=i, column=22).value or not regex.match(sheet.cell(row=i, column=22).value):
-                sheet.cell(row=i, column=22).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                celdas_pintadas_rojo += 1
-        
+            for i in range(2, ultima_fila + 1):
+                
+                # Tipo institución
+                if len(sheet.cell(i, 9).value.strip()) > 0 and len(sheet.cell(i, 10).value.strip()) > 0:
+                    sheet.cell(row=i, column=9).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    sheet.cell(row=i, column=10).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    celdas_pintadas_rojo += 1
+                # Nombre institución
+                if not sheet.cell(row=i, column=11).value:
+                    sheet.cell(row=i, column=11).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    celdas_pintadas_rojo += 1
+                # Barrio
+                if not sheet.cell(row=i, column=22).value or not regex.match(sheet.cell(row=i, column=22).value):
+                    sheet.cell(row=i, column=22).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    celdas_pintadas_rojo += 1
+
+                #print(sheet.cell(i, 42).value)
+                
+    
+                # if sheet.cell(i, 17).value == "2- Rural" and len(sheet.cell(i, 43).value.strip()) < 1 and len(sheet.cell(i, 44).value.strip()) < 1: 
+                    
+                #     sheet.cell(i, 17).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     sheet.cell(i, 42).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     sheet.cell(i, 43).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     celdas_pintadas_rojo += 1
+
+                # if sheet.cell(i, 24).value == "SI" and sheet.cell(i, 25).value.strip() == " ":
+                #     sheet.cell(i, 25).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     sheet.cell(i, 24).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                #     sheet.cell(i, 3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+
+               
+
+                
+                pbar.update(1)
+
+        # Cerrar la barra de progreso
+        pbar.close()
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
