@@ -10,10 +10,11 @@ init()
 
 fontTitle = ("Helvetica", 30, "bold")
 fontTexts = ("Helvetica", 15)
-principalColor = "#041857"
-bgColor = "#020C2A"
+bgColor = "#001B36"
 themeColor = "#F15025"
-secondColor = "#647095"
+secondColor = "#000D1C"
+neonBlue = "#00FFFF"
+neonPink = "#DA00A5"
 secondColorRgba =(60, 110, 113, 0.5)
 secondColorHex = '#%02x%02x%02x' % secondColorRgba[:3]
 fontLetter = "#ffffff"
@@ -103,24 +104,27 @@ def buildGUI():
     global marco_botones_bases
     marco_botones_bases = tk.Frame(marco_principal, bg=secondColor, pady="10", padx="10", height=altura_marco_btnBases)
     marco_botones_bases.pack(side="right", expand=True, fill="x")
-    marco_botones_bases.place(relx=0.6, rely=0, relwidth=0.82, relheight=0.3, anchor="n")
+    marco_botones_bases.place(relx=0.6, rely=0, relwidth=0.75, relheight=0.3, anchor="n")
 
-    preview_message = tk.Message(marco_botones_bases, text="Por favor seleccione un entorno", fg="white", bg=secondColor, font=fontTexts, borderwidth=2, relief="solid", highlightbackground=themeColor)
+    preview_message = tk.Message(marco_botones_bases, text="Por favor seleccione un entorno", fg="white", bg=secondColor, font=fontTexts)
     preview_message.pack(fill="both", expand=True, anchor="center", padx="20", pady="20")
 
     marco_resultado = tk.Frame(marco_principal, bg=secondColor, pady="0")
     marco_resultado.pack(side="bottom", expand=True, fill="x")
-    marco_resultado.place(relx=0.6, rely=1, relwidth=0.82, relheight=0.7, anchor="s")
+    marco_resultado.place(relx=0.6, rely=1, relwidth=0.75, relheight=0.7, anchor="s")
 
-    texto_terminal = tk.Text(marco_resultado, bg="#002657", fg="white")
-    texto_terminal.pack(side="bottom", expand=True, fill="both")
+    texto_terminal = tk.Text(marco_resultado, bg=bgColor, fg="white", borderwidth=0, relief="solid")
+    texto_terminal.pack(side="bottom", expand=True, fill="both", pady="5")
 
     # Botones entornos
     entornos = ["Hogar", "Laboral", "Educativo", "Comunitario", "Institucional"]
 
     for entorno in entornos:
-        btn_entorno = tk.Button(marco_botones_entornos, text=entorno,  width="20", height="3", borderwidth=2, highlightbackground="white", bg=bgColor, fg="white", command=mostrarBases(entorno))
-        btn_entorno.pack(pady=20)
+        border_buttons_entornos = tk.Frame(marco_botones_entornos, bg=neonBlue, pady="0")
+        border_buttons_entornos.pack(pady=20)
+        btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="20", height="1", borderwidth=4, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno))
+        btn_entorno.pack(pady=1, padx=1)
+        btn_entorno.config(highlightcolor = "red", highlightbackground="red")
 
     # Llamar a la función imprimirResultado después de configurar los botones
     imprimirResultado(texto_terminal)
@@ -152,13 +156,9 @@ def imprimirResultado(text_widget):
             self.text_widget.see(tk.END)  # Desplazar hacia abajo para mostrar el texto más reciente
 
         def apply_color(self, color_code):
-            color_map = {
-                '31': 'red', '32': 'green', '33': 'yellow',
-                '34': 'blue', '35': 'magenta', '36': 'cyan', '37': 'white'
-            }
-            color = color_map.get(color_code, 'black')
             self.text_widget.tag_add('color', 'end - 1c')
-            self.text_widget.tag_config('color', foreground=color)
+            self.text_widget.tag_config('color', foreground="white", background='')
+
 
     # Redirigir la salida estándar al widget texto_terminal
     sys.stdout = TerminalRedirect(text_widget)

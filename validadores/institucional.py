@@ -58,7 +58,6 @@ def validarTelefono():
                 cellTelefono.fill = bgError
                 outputResult += 1
                 totalErrores += 1
-                cellTelefono.fill = bgError
     
     print("Total errores en teléfono:", outputResult)
     
