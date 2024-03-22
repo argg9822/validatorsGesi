@@ -1,3 +1,4 @@
+from openpyxl import load_workbook
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -5,11 +6,12 @@ import tkinter.simpledialog as simpledialog
 from colorama import init, Fore, Style
 import os
 import numpy as np
+from openpyxl.styles import PatternFill
 
 init()
 
-bgError = '#FF0000'
-
+bgError = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                
 outputResult = 0
 totalErrores = 0
 
@@ -25,16 +27,21 @@ def loadExcel():
         if fileRoute.endswith(".csv"):
             df = pd.read_csv(fileRoute, header=1, encoding="latin1", delimiter=";")
         else:
-            df = pd.read_excel(fileRoute, sheet_name=0, header=1)
+            workbook = load_workbook(fileRoute)
+            global sheet
+            sheet = workbook.active
+            data = sheet.values
+            cols = next(data)[1:]  # Obtener los encabezados de las columnas (ignorar la primera columna)
+            #df = pd.DataFrame(data, columns=cols)
     else:
         print("El archivo no se cargó")
-
 def setBase(base):
     loadExcel()
     print("Validando, por favor espere...")
     chooseBase(base)
     preguntaDescarga()
-
+    
+    
 ##------------------------------------------------------------------------------------    
 ##---------------------------------VALIDADOR------------------------------------------
 ##------------------------------------------------------------------------------------
@@ -43,24 +50,18 @@ def validarTelefono():
     global outputResult
     global totalErrores
     outputResult = 0
-    totalErrores = 0
-    for index, fila in df.iterrows():
-        if pd.notna(fila['.Teléfono.']):
-            cellTelefono = int(fila['.Teléfono.'])
-        else:
-            cellTelefono = np.nan
-
-        if not pd.notna(cellTelefono) and (len(str(cellTelefono).strip()) != 7 and len(str(cellTelefono).strip()) != 10):
-            outputResult += 1
-            totalErrores += 1
-            df.at[index, '.Teléfono.'] = '<span style="color: {};">{}</span>'.format(bgError, cellTelefono)
-        else:
-
-            df.at[index, '.Teléfono.'] = cellTelefono
-
-
-    print("Total errores en teléfono:" + str(outputResult))
-
+    totalErrores = 0        
+    
+    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column):
+        for cellTelefono in row:
+            if cellTelefono.column == '.Teléfono.' and len(str(cellTelefono.value).strip()) not in [7, 10]:
+                cellTelefono.fill = bgError
+                outputResult += 1
+                totalErrores += 1
+                cellTelefono.fill = bgError
+    
+    print("Total errores en teléfono:", outputResult)
+    
 
 def validarNoManzana():
     global outputResult
@@ -79,8 +80,8 @@ def validarNoManzana():
 ##------------------------------------------------------------------------------------
 
 def sc():
+    #validarNoManzana()
     validarTelefono()
-    validarNoManzana()
     print("\x1b[31mTotal errores "+ str(totalErrores) +"\x1b[0m")
 
 def chooseBase(base):
