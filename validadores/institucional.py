@@ -60,7 +60,6 @@ def validarTelefono():
                 totalErrores += 1
     
     print("Total errores en teléfono:", outputResult)
-    
 
 def validarNoManzana():
     global outputResult

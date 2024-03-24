@@ -120,8 +120,7 @@ def buildGUI():
         border_buttons_entornos.pack(pady="19")
 
         btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="25", height="1", borderwidth=0, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno), font=fontButtonsEntornos)
-        btn_entorno.pack(pady=1, padx=1, ipady=5)
-        btn_entorno.config(highlightcolor = "red", highlightbackground="red")
+        btn_entorno.pack(pady=1, padx=1, ipady=5)        
         
     logoGesiApp = ImageTk.PhotoImage(imgLogo)
     label_logo = tk.Label(marco_botones_entornos, bg=secondColor, image=logoGesiApp, width=capa_2_botones_entornos.winfo_width() * 0.06)
@@ -148,10 +147,12 @@ def buildGUI():
     marco_botones_bases.pack(side="top", expand=True, fill="x")
     marco_botones_bases.place(relx=0.05, rely=0.22, relwidth=0.9, relheight=0.41)
 
+    container_init_text = tk.Frame(marco_botones_bases, bg=neonBlue)
+    container_init_text.pack(fill="both", expand=True, pady=15, padx=20)
     initial_text = "Por favor seleccione un entorno para continuar"
-    preview_message = tk.Message(marco_botones_bases, text=initial_text, fg="white", bg="red", font=fontTexts, highlightbackground=neonBlue)
-    preview_message.pack(fill="both", expand=True, pady=25, padx=30)
-
+    preview_message = tk.Label(container_init_text, text=initial_text, fg="white", bg=secondColor, font=fontTexts)
+    preview_message.pack(fill="both", expand=True, pady=1, padx=1)
+    print(tk.TkVersion)
     marco_resultado = tk.Frame(container_right, bg=bgColor)
     marco_resultado.pack(side="bottom", expand=True, fill="x")
     marco_resultado.place(relx=0.05, rely=0.65, relwidth=0.9, relheight=0.3)
@@ -161,7 +162,7 @@ def buildGUI():
 
     # Llamar a la función imprimirResultado después de configurar los botones
     imprimirResultado(texto_terminal)
-    print("\x1b[31m!Bienvenido¡\x1b[0m")
+    print("\x1b[31m¡Bienvenido!\x1b[0m")
 
     root.mainloop()
 
