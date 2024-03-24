@@ -5,6 +5,7 @@ import subprocess
 from validadores import institucional, educativo
 import sys
 from colorama import init, Fore, Style
+from PIL import Image, ImageTk
 
 init()
 
@@ -18,13 +19,14 @@ neonPink = "#DA00A5"
 secondColorRgba =(60, 110, 113, 0.5)
 secondColorHex = '#%02x%02x%02x' % secondColorRgba[:3]
 fontLetter = "#ffffff"
+imgLogo = Image.open("img/logo.png")
 
 # Función para calcular las dimensiones de la ventana
 def calcular_dimensiones_ventana(root):
     ancho_pantalla = root.winfo_screenwidth()
     alto_pantalla = root.winfo_screenheight()
-    ancho_ventana = int(ancho_pantalla * 0.6)
-    alto_ventana = int(alto_pantalla * 0.6)
+    ancho_ventana = int(ancho_pantalla * 0.72)
+    alto_ventana = int(alto_pantalla * 0.75)
     x = (ancho_pantalla - ancho_ventana) // 2
     y = (alto_pantalla - alto_ventana) // 2
     root.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
@@ -58,19 +60,28 @@ def mostrarBases(entorno):
             element.destroy()
 
         found = False
+        bordes = []
         botones = []
         for key, value in bases.items():
             if key == entorno.lower():
                 found = True
                 for v in value:
-                    btn_bases = tk.Button(marco_botones_bases, text=v,  width="20", height="2", borderwidth=2, highlightbackground="white", bg=bgColor, fg="white", command=ejecutarValidadorEntornos(entorno.lower(), v))
+                    border_buttons_bases = tk.Frame(marco_botones_bases, bg=neonPink)
+                    border_buttons_bases.grid(column=1, row=1, pady=5)
+                    bordes.append(border_buttons_bases)
+                    
+                    btn_bases = tk.Button(border_buttons_bases, text=v,  width="25", height="1", borderwidth=0, highlightbackground="white", bg=bgColor, fg="white", command=ejecutarValidadorEntornos(entorno.lower(), v))                    
+                    btn_bases.grid(row=0, column=0, padx=2, pady=2, ipady=5)
                     botones.append(btn_bases)
-
-                for index, boton in enumerate(botones):
-                    row = index // 5
-                    col = index % 5
-                    boton.grid(row=row, column=col, padx="5", pady=5, ipadx="2")
+                    
+                for index, borde in enumerate(bordes):
+                    row = index // 3
+                    col = index % 3
+                    padLeft = 30 if index in [0,3,6,9,12] else 30
+                    padTop = 25 if index in [0,1,2] else 5
+                    borde.grid(row=row, column=col, padx=(padLeft, 5), pady=(padTop, 5))
                 break
+            
         if not found:
             print("No match found.")
     return callback
@@ -82,49 +93,71 @@ def buildGUI():
 
     # Calcular las dimensiones de la ventana
     calcular_dimensiones_ventana(root)
-
-    # Título en la parte superior
-    titulo_label = tk.Label(root, text="Validador GesiApp", font=fontTitle, bg=bgColor, fg=fontLetter, pady="20")
-    titulo_label.pack(side="top", fill="x")
-
+    
     # Marco principal
-    marco_principal = tk.Frame(root, bg=bgColor, padx="0")
+    marco_principal = tk.Frame(root, padx="0")
     marco_principal.pack(expand=True, fill="both")
-
+    
     # Marco para el menú en la parte izquierda (10% del ancho)
     global marco_menu 
-    marco_menu = tk.Frame(marco_principal, bg=bgColor)
-    marco_menu.pack(side="left", fill="y", pady=(0, 30))
-
+    marco_menu = tk.Frame(marco_principal)
+    marco_menu.pack(side="left", fill="y")
+    
     # Marco para los botones en la parte derecha (90% del ancho)
-    marco_botones_entornos = tk.Frame(marco_menu, bg=secondColor, width=root.winfo_width() * 0.3, padx="30", pady="10")
-    marco_botones_entornos.pack(side="left", expand=True, fill="y")
-
-    altura_marco_btnBases = int(marco_principal.winfo_height() * 0.20)
-    global marco_botones_bases
-    marco_botones_bases = tk.Frame(marco_principal, bg=secondColor, pady="10", padx="10", height=altura_marco_btnBases)
-    marco_botones_bases.pack(side="right", expand=True, fill="x")
-    marco_botones_bases.place(relx=0.6, rely=0, relwidth=0.75, relheight=0.3, anchor="n")
-
-    preview_message = tk.Message(marco_botones_bases, text="Por favor seleccione un entorno", fg="white", bg=secondColor, font=fontTexts)
-    preview_message.pack(fill="both", expand=True, anchor="center", padx="20", pady="20")
-
-    marco_resultado = tk.Frame(marco_principal, bg=secondColor, pady="0")
-    marco_resultado.pack(side="bottom", expand=True, fill="x")
-    marco_resultado.place(relx=0.6, rely=1, relwidth=0.75, relheight=0.7, anchor="s")
-
-    texto_terminal = tk.Text(marco_resultado, bg=bgColor, fg="white", borderwidth=0, relief="solid")
-    texto_terminal.pack(side="bottom", expand=True, fill="both", pady="5")
-
+    capa_2_botones_entornos = tk.Frame(marco_menu, bg=secondColor, width=root.winfo_width() * 0.4, padx=40)
+    capa_2_botones_entornos.pack(side="left", expand=True, fill="y")
+    
+    marco_botones_entornos = tk.Frame(capa_2_botones_entornos, bg=secondColor)
+    marco_botones_entornos.pack(side="bottom", pady=(0, 40))
+    
+    fontButtonsEntornos = ('Helvetica', 10, 'bold')
+    
     # Botones entornos
     entornos = ["Hogar", "Laboral", "Educativo", "Comunitario", "Institucional"]
 
     for entorno in entornos:
         border_buttons_entornos = tk.Frame(marco_botones_entornos, bg=neonBlue, pady="0")
-        border_buttons_entornos.pack(pady=20)
-        btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="20", height="1", borderwidth=4, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno))
-        btn_entorno.pack(pady=1, padx=1)
+        border_buttons_entornos.pack(pady="19")
+
+        btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="25", height="1", borderwidth=0, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno), font=fontButtonsEntornos)
+        btn_entorno.pack(pady=1, padx=1, ipady=5)
         btn_entorno.config(highlightcolor = "red", highlightbackground="red")
+        
+    logoGesiApp = ImageTk.PhotoImage(imgLogo)
+    label_logo = tk.Label(marco_botones_entornos, bg=secondColor, image=logoGesiApp, width=capa_2_botones_entornos.winfo_width() * 0.06)
+    label_logo.pack(side="bottom", pady=(20, 0))
+    
+    # #Contenedor de la parte derecha
+    container_right = tk.Frame(marco_principal, width=marco_principal.winfo_width() * 0.6, bg=bgColor)
+    container_right.pack(side="right", fill="both", expand=True)
+    
+    # #Container título
+    container_title = tk.Label(container_right, bg=bgColor)
+    container_title.pack(pady=(30, 0))
+    
+    # Título en la parte superior
+    title_label = tk.Label(container_title, text="VALIDADOR", font=fontTitle, fg=fontLetter, bg=bgColor)
+    title_label.pack()
+    
+    font_sub_title = ('Helvetica', 16)
+    sub_label = tk.Label(container_title, text="GesiApp", font=font_sub_title, fg=neonBlue, bg=bgColor)
+    sub_label.pack()
+
+    global marco_botones_bases
+    marco_botones_bases = tk.Frame(container_right, bg=secondColor)
+    marco_botones_bases.pack(side="top", expand=True, fill="x")
+    marco_botones_bases.place(relx=0.05, rely=0.22, relwidth=0.9, relheight=0.41)
+
+    initial_text = "Por favor seleccione un entorno para continuar"
+    preview_message = tk.Message(marco_botones_bases, text=initial_text, fg="white", bg="red", font=fontTexts, highlightbackground=neonBlue)
+    preview_message.pack(fill="both", expand=True, pady=25, padx=30)
+
+    marco_resultado = tk.Frame(container_right, bg=bgColor)
+    marco_resultado.pack(side="bottom", expand=True, fill="x")
+    marco_resultado.place(relx=0.05, rely=0.65, relwidth=0.9, relheight=0.3)
+
+    texto_terminal = tk.Text(marco_resultado, bg=bgColor, fg="white", borderwidth=0, relief="solid")
+    texto_terminal.pack(side="bottom", expand=True, fill="both", pady="5")
 
     # Llamar a la función imprimirResultado después de configurar los botones
     imprimirResultado(texto_terminal)
@@ -158,7 +191,6 @@ def imprimirResultado(text_widget):
         def apply_color(self, color_code):
             self.text_widget.tag_add('color', 'end - 1c')
             self.text_widget.tag_config('color', foreground="white", background='')
-
 
     # Redirigir la salida estándar al widget texto_terminal
     sys.stdout = TerminalRedirect(text_widget)
