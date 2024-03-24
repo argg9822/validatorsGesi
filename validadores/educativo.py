@@ -130,7 +130,7 @@ def validar_pagina1_sesiones(sheet):
                 cell_value = sheet.cell(row=i, column=col_num).value
                 if isinstance(cell_value, (int, float)) and cell_value > 250:
                     sheet.cell(row=i, column=col_num).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                    sheet.cell(row=i, column=3).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                    sheet.cell(row=i, column=2).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
                     celdas_pintadas_rojo += 1
         
         # Mostrar la cantidad de celdas pintadas de rojo
@@ -234,17 +234,17 @@ def validar_pagina3_sesiones(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
             
-            # if sheet.cell(i, 11).value == "1- Hombre" and sheet.cell(i, 12).value != "1- Masculino" :
-            #     celdas_pintadas_rojo += 1
-            #     colum["column"] = {11, 12, 2}
-            #     colum["row"] = i
-            #     pintar(colum, sheet)
+            if sheet.cell(i, 11).value == "1- Hombre" and sheet.cell(i, 12).value != "1- Masculino" :
+                celdas_pintadas_rojo += 1
+                colum["column"] = {11, 12, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
                 
-            # if sheet.cell(i, 11).value == "3- Intersexual" and sheet.cell(i, 12).value != "3- Transgénero" :
-            #     celdas_pintadas_rojo += 1
-            #     colum["column"] = {11, 12, 2}
-            #     colum["row"] = i
-            #     pintar(colum, sheet)
+            if sheet.cell(i, 11).value == "3- Intersexual" and sheet.cell(i, 12).value != "3- Transgénero" :
+                celdas_pintadas_rojo += 1
+                colum["column"] = {11, 12, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
         
         #validador de campos por la edad 
         for i in range(2, ultima_fila + 1):
@@ -270,10 +270,11 @@ def validar_pagina3_sesiones(sheet):
             if (sheet.cell(i, 10).value != tipodocumento and sheet.cell(i, 10).value != "8- Menor sin ID" and \
                 sheet.cell(i, 10).value != "7- Adulto sin ID.") and sheet.cell(i, 16).value == Nacionalidad :
                 celdas_pintadas_rojo += 1
-                colum["column"] = {10, 18, 14, 2}
+                colum["column"] = {10, 16, 14, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
                 
+          
             if sheet.cell(i,10).value == tipodocumento and sheet.cell(i,16).value != Nacionalidad:
                 celdas_pintadas_rojo += 1
                 colum["column"] = {10, 16, 2}
@@ -286,7 +287,7 @@ def validar_pagina3_sesiones(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
                 
-
+            # estado civil
             if edad <= 13 and sheet.cell(i,13).value != "6- No aplica":
                 celdas_pintadas_rojo += 1
                 colum["column"] = {13, 2}
@@ -313,7 +314,7 @@ def validar_pagina3_sesiones(sheet):
                 sheet.cell(i, 10).value not in ["8- Menor sin ID.", "7- Adulto sin ID.", "13- PPT Permiso por Protección Temporal", "5- NUIP"] and 
                 edad < 35):
                 celdas_pintadas_rojo += 1
-                colum["column"] = {8, 2}
+                colum["column"] = {9, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
         
@@ -327,7 +328,7 @@ def validar_pagina3_sesiones(sheet):
                     
         for i in range(2, ultima_fila + 1):          
             if sheet.cell(i, 16).value != "COL" and \
-                sheet.cell(i, 10).value in ["2- RC", "3- TI", "1- CC", "8- Menor sin ID.", "7- Adulto sin ID."]:
+                sheet.cell(i, 10).value in ["2- RC", "3- TI", "1- CC"]:
                     celdas_pintadas_rojo += 1
                     colum["column"] = {16, 10, 2}
                     colum["row"] = i
@@ -338,9 +339,7 @@ def validar_pagina3_sesiones(sheet):
                 colum["column"] = {8, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
-                         
-            
-                
+                                 
                     
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
