@@ -339,6 +339,7 @@ def validar_pagina3_sesiones(sheet):
                 colum["column"] = {8, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
+                
                                  
                     
         # Mostrar la cantidad de celdas pintadas de rojo
