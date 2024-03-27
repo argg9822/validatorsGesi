@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
 import tkinter.font as font
 import subprocess
 from validadores import institucional, educativo
