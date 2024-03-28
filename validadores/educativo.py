@@ -457,7 +457,6 @@ def Valetnia(sheet, etnia):
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
     columns = list(etnia["etnia"])
-    print(columns[0])
     for i in range(2, ultima_fila + 1):
             # Tipo institución
             if sheet.cell(i, columns[0]).value != "6- Ninguno" and sheet.cell(i, columns[1]).value == "-1" :
