@@ -1,18 +1,15 @@
-import datetime
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import PatternFill
 from openpyxl import load_workbook, Workbook
 import pandas as pd
 from tkinter import filedialog, messagebox
-import tkinter.simpledialog as simpledialog
 import os
-import csv
 
 ##------------------------------------------------------------------------------------    
 ##---------------------CARGUE Y LECTURA DEL ARCHIVO EXCEL-----------------------------
 ##------------------------------------------------------------------------------------
 def setBase(base):
-    print(f"Validar {base}")
+    print(f"Validar >>>{base.upper()}<<<")
     loadFilesFromFolder()
     chooseBase(base)
     saveFile()
@@ -80,7 +77,7 @@ def sc():
         data = sheet.values
         cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
         global df
-        print(f"------------Validación página {index+1}------------")
+        print(f"-------------------Página {index+1}-------------------")
         if index == 0:
             df = pd.DataFrame(data, columns=cols)
             totalErroresPg_1 = sc_pg1()
@@ -88,39 +85,32 @@ def sc():
         if index == 1:
             df = pd.DataFrame(data, columns=cols)
             totalErroresPg_2 = sc_pg2()
+            
+        if index == 2:
+            df = pd.DataFrame(data, columns=cols)
+            totalErroresPg_3 = sc_pg3()
         
-    cantErrSc = totalErroresPg_1+totalErroresPg_2
+    cantErrSc = totalErroresPg_1+totalErroresPg_2+totalErroresPg_3
     print(f"TOTAL ERRORES EN SESIONES COLECTIVAS: {(cantErrSc)}")
-
-def sc_pg1():
-    requiredFieldsPg1 = ['.Nombre de la institución / Establecimiento / Equipo étnico.',
-                   '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio.', '.Teléfono.',
-                   '.Barrio priorizado.', '.Tipo de Institución.']
-    catnErroresPg_1 = (requiredFields(requiredFieldsPg1) + validarNoManzana() + validarTelefono())
-    return catnErroresPg_1
-
-def sc_pg2():
-    requiredFieldsPg2 = ['.Componente.', '.Línea operativa.', '.Dimensión.', 
-                         '.Temática.', '.Número sesión.', '.Fecha.', '.Nombre profesional 1.']
-    catnErroresPg_2 = requiredFields(requiredFieldsPg2)+sesionDate()
-    return catnErroresPg_2
-
+    
 def hcb():
     print("Entrando a validar HCB")
     
 ##------------------------------------------------------------------------------------    
-##---------------------------------VALIDADOR------------------------------------------
+##---------------------------------VALIDATOR------------------------------------------
 ##------------------------------------------------------------------------------------
 
-#----------------------------------FUNCIONES GENERALES--------------------------------
-def setBgError(index, columnName):    
-    bgError = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-    
+#----------------------------------GENERAL FUNCTIONS----------------------------------
+bgError = 'FFFF0000'
+bgSecError = '005FFF'
+def setBgError(index, columnName, color):    
+    bgError = PatternFill(start_color=color, end_color=color, fill_type='solid')
     cell = sheet.cell(row=index+2, column=df.columns.get_loc(columnName)+1)
     cell.fill = bgError
     
+    bgErrorFicha = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
     cellFicha = sheet.cell(row=index+2, column=df.columns.get_loc('Ficha_fic')+1)
-    cellFicha.fill = bgError
+    cellFicha.fill = bgErrorFicha
 
 def validarTelefono():
     columnName = '.Teléfono.'
@@ -130,10 +120,10 @@ def validarTelefono():
             cellTelefono = int(fila[columnName]) if pd.notna(fila[columnName]) else fila[columnName]
             if len(str(cellTelefono).strip()) not in [7, 10] and pd.notna(cellTelefono):
                 cantErroresTel += 1                
-                setBgError(index, columnName)
+                setBgError(index, columnName, bgError)
     else:
         print("No se encuentra la columna Teléfono")
-    print(f"Total errores en teléfono: {cantErroresTel}")
+    print(f"Teléfonos con longitud incorrecta: {cantErroresTel}")
     return cantErroresTel
 
 def validarNoManzana():
@@ -147,13 +137,13 @@ def validarNoManzana():
             nroManzana = fila[columnNameNroManzana]
             if cellManzana == "SI" and pd.isna(nroManzana):                
                 totalErrApple += 1
-                setBgError(index, columnNameNroManzana)
+                setBgError(index, columnNameNroManzana,bgError)
     else:
         print("No se encuentra la columna manzana del cuidado")
-    print(f"Total errores en manzana del cuidado: {totalErrApple}")
+    print(f"Errores en manzana del cuidado: {totalErrApple}")
     return totalErrApple
 
-def requiredFields(arrayFields):
+def required_fields(arrayFields):
     totalEmptyFields = 0
     
     for field in arrayFields:
@@ -162,27 +152,115 @@ def requiredFields(arrayFields):
                 cellField = fila[field]
                 if pd.isna(cellField):
                     totalEmptyFields += 1
-                    setBgError(j, field)
+                    setBgError(j, field, bgError)
         else:
-            print('No se encontró la columna')
+            print(f'No se encontró la columna {field}')
     
     print(f"Campos obligatorios vacíos: {totalEmptyFields}")
     return totalEmptyFields
+
+def len_num_doc(columNameTypeDoc, columnNameNumDoc):
+    totalErrLenDoc = 0
+    # Verificar la existencia de las columnas requeridas
+    if columNameTypeDoc not in df.columns or columnNameNumDoc not in df.columns:
+        raise ValueError(f'Las columnas {columNameTypeDoc} y/o {columnNameNumDoc} no se encuentran.')
+    
+    #Filtrar filas que no están vacías
+    fill_rows = df[pd.notna(df[columNameTypeDoc]) & pd.notna(df[columnNameNumDoc])]
+    errors = fill_rows[(fill_rows[columNameTypeDoc].isin([61,60])) & 
+                            (fill_rows[columnNameNumDoc].astype(str).str.len() != 10)]
+    
+    totalErrLenDoc = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameNumDoc, bgError)
+        
+    print(f'Números de documento con longitud incorrecta: {totalErrLenDoc}')
+    return totalErrLenDoc
+
+def age_vs_typedoc(columnNameTypeDoc, columnNameAge):
+    totalTypeDocErr = 0
+    # Verificar la existencia de las columnas requeridas
+    if columnNameTypeDoc not in df.columns or columnNameAge not in df.columns:
+        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameAge} no se encuentran')
+    
+    #Filtrar filas que no están vacías
+    fill_rows = df[pd.notna(df[columnNameTypeDoc]) & pd.notna(df[columnNameAge])]
+    errors = fill_rows[((fill_rows[columnNameAge] < 7) & 
+                              (~fill_rows[columnNameTypeDoc].isin([60, 66, 64, 2482, 1638, 1640, 1639]))) |
+                         ((fill_rows[columnNameAge] > 7) & (fill_rows[columnNameAge] < 18) &
+                              (~fill_rows[columnNameTypeDoc].isin([61, 66, 64, 2482, 1640, 1639, 2482]))) |
+                         (fill_rows[columnNameAge] >= 18) &
+                              (~fill_rows[columnNameTypeDoc].isin([59, 62, 64, 65, 1637, 1638, 1640, 1639, 2482]))]
+    #Cantidad de errores
+    totalTypeDocErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameTypeDoc, bgSecError)
+        setBgError(index, columnNameAge, bgSecError)
+        
+    print(f'Tipos de documento que no corresponden con la edad: {totalTypeDocErr}')
+    return totalTypeDocErr
+
+def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):
+    totalNacErr = 0
+    #Verificar existencia de las columnas
+    if columnNameNac not in df.columns or columnNameTypeDoc not in df.columns:
+        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameNac} no se encuentran')
+    
+    #Filtrar las filas no vacías
+    fill_rows = df[pd.notna(df[columnNameTypeDoc]) & pd.notna(df[columnNameNac])]
+    errors = fill_rows[(fill_rows[columnNameTypeDoc].isin([59, 60, 61])) &
+                            (fill_rows[columnNameNac] != 'Colombia') | 
+                       (~fill_rows[columnNameTypeDoc].isin([59, 60, 61])) &
+                            (fill_rows[columnNameNac] == 'Colombia')]
+    
+    totalNacErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameNac, bgSecError)
+        setBgError(index, columnNameTypeDoc, bgSecError)
+        
+    print(f'Nacionalidad que no corresponde con el tipo de documento: {totalNacErr}')
+    return totalNacErr
+
+#-----------------------------------SESIONES PÁGINA 1---------------------------------
+def sc_pg1():
+    requiredFieldsPg1 = ['.Nombre de la institución / Establecimiento / Equipo étnico.',
+                   '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio.', '.Teléfono.',
+                   '.Barrio priorizado.', '.Tipo de Institución.']
+    catnErroresPg_1 = (required_fields(requiredFieldsPg1) + validarNoManzana() + validarTelefono())
+    return catnErroresPg_1
 #-----------------------------------SESIONES PÁGINA 2---------------------------------
-def sesionDate():
+def sc_pg2():
+    requiredFieldsPg2 = ['.Componente.', '.Línea operativa.', '.Dimensión.', 
+                         '.Temática.', '.Número sesión.', '.Fecha.', '.Nombre profesional 1.']
+    cantErroresPg_2 = required_fields(requiredFieldsPg2)+sesion_date()
+    return cantErroresPg_2
+
+def sesion_date():
     totalErrDate = 0
     for index, fila in df.iterrows():
         columnNameDate = '.Fecha.'
         cellDateSesion = fila[columnNameDate]
         cellDateSesionInter = fila['Fecha_intervencion']
         
-        if pd.notna(cellDateSesion):
-            if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
-                setBgError(index, columnNameDate)
-                totalErrDate += 1
+        if columnNameDate in df.columns: 
+            if pd.notna(cellDateSesion):
+                if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
+                    setBgError(index, columnNameDate, bgError)
+                    totalErrDate += 1
+        else:
+            print(f'No se encontró la columna {columnNameDate}')
+    print(f'Fechas de sesión incorrectas: {totalErrDate}')
     return totalErrDate
-        
-    
+
+#-----------------------------------SESIONES PÁGINA 3---------------------------------
+def sc_pg3():
+    requiredFieldsPg3 = ['..OMS..', '..FINDRISC..', '..EPOC..', '.Sesiones.', 'IdTipoDocumento',
+                         'Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
+                         'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion']
+    cantErroresPg_3 = required_fields(requiredFieldsPg3)+len_num_doc('IdTipoDocumento', 'Documento')
+    +age_vs_typedoc('IdTipoDocumento', 'Edad')+nac_vs_typedoc('IdTipoDocumento', 'IdNacionalidad')
+    return cantErroresPg_3
+
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
 
