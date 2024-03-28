@@ -21,6 +21,7 @@ colum = {"column": set(), "row": 0}
 celTexto = {"ColumText": set()}
 Genero = {"Genero": set()}
 etniaVal = {"etniaVal": set()}
+afiliacion = {"afiliacion": set()}
 
 
 def loadExcel():
@@ -363,7 +364,6 @@ def PrevencionEmbarazo():
         prevencionPag1(sheet) 
         
 def prevencionPag1(sheet):
-    regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     NumeroDocumento = re.compile("^\d{10}$")
     try:
         remplazarComillas(sheet)  
@@ -442,6 +442,9 @@ def prevencionPag1(sheet):
         etniaVal["etnia"]= {21, 22}
         celdas_pintadas_rojo += Valetnia(sheet, etniaVal)
         
+        afiliacion["afiliacion"]= {24, 25}
+        celdas_pintadas_rojo += Valiafiliacion(sheet, afiliacion)
+        
        # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
@@ -452,7 +455,22 @@ def prevencionPag1(sheet):
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+def Valiafiliacion(sheet, afiliacion):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    columns = list(afiliacion["afiliacion"])
+    for i in range(2, ultima_fila + 1):
+            # Tipo institución
+            if sheet.cell(i, columns[0]).value != "5- No asegurado" and sheet.cell(i, columns[1]).value == "-1" :
+                celdas_pintadas_rojo += 1
+                colum["column"] = {columns[0], columns[1], 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+           
+    return  celdas_pintadas_rojo 
+    
+    
+    
 def Valetnia(sheet, etnia):
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
@@ -530,7 +548,8 @@ def remplazarComillas(sheet):
                     cell.number_format = numbers.FORMAT_DATE_XLSX15
                 # Verifica si el valor es texto
                 else:
-                    cell.number_format = numbers.FORMAT_TEXT        
+                    cell.number_format = numbers.FORMAT_TEXT      
+                      
 # Función para calcular la edad
 def calcular_edad(fecha_nacimiento, fecha_intervencion):
     try :
