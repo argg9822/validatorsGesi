@@ -21,6 +21,11 @@ colum = {"column": set(), "row": 0}
 celTexto = {"ColumText": set()}
 Genero = {"Genero": set()}
 etniaVal = {"etniaVal": set()}
+afiliacion = {"afiliacion": set()}
+CeldasVacias = {"vacias": set()}
+placas = {"placas": set()}
+Tel = {"Tel": set()}
+
 
 
 def loadExcel():
@@ -124,20 +129,9 @@ def validar_pagina1_sesiones(sheet):
                 colum["column"] = {10, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
-                
-            # Verifica si las celdas contienen números almacenados como texto y convierte a valor numérico si es necesario
-            for col_num in [26, 31, 35]:
-                cell_value = sheet.cell(row=i, column=col_num).value
-                if isinstance(cell_value, str) and cell_value.isdigit():
-                    sheet.cell(row=i, column=col_num).value = float(cell_value)
-
-            # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-            for col_num in [26, 31, 35]:
-                cell_value = sheet.cell(row=i, column=col_num).value
-                if isinstance(cell_value, (int, float)) and cell_value > 250:
-                    sheet.cell(row=i, column=col_num).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                    sheet.cell(row=i, column=2).fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-                    celdas_pintadas_rojo += 1
+                         
+            placas["placas"] = {26, 31, 35}
+            celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#numeros de direcciones
         
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
@@ -361,9 +355,13 @@ def PrevencionEmbarazo():
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
         print("Validando la página 1...")
         prevencionPag1(sheet) 
+    
+    if num_paginas >= 2 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        prevencionPag2(sheet)
         
 def prevencionPag1(sheet):
-    regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     NumeroDocumento = re.compile("^\d{10}$")
     try:
         remplazarComillas(sheet)  
@@ -433,7 +431,7 @@ def prevencionPag1(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
                 
-        celTexto["ColumText"] = {10, 11, 12, 13, 51}      
+        celTexto["ColumText"] = {10, 11, 12, 13, 51, 123, 125}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
         Genero["Genero"]= {15, 16}
@@ -442,17 +440,201 @@ def prevencionPag1(sheet):
         etniaVal["etnia"]= {21, 22}
         celdas_pintadas_rojo += Valetnia(sheet, etniaVal)
         
+        afiliacion["afiliacion"]= {24, 25}
+        celdas_pintadas_rojo += Valiafiliacion(sheet, afiliacion)
+        
+        CeldasVacias["vacias"] = {41, 10 , 12, 9, 18,  24, 42, 43, 46, 53, 73, 76, 78, 79, 80, 81, 90, 105, 106, 108, 109, 110, 111, 112, 113, 115, 116, 118, 120, 122, 123, 124, 125}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)#columnas requeridas
+        
+        placas["placas"] = {55, 60, 64}
+        celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+        
+        Tel["Tel"] = {73}
+        celdas_pintadas_rojo += ValidarTel(sheet, Tel)#columnas requeridas telefono
+        
+        #validar si Gestante 
+        for i in range(2, ultima_fila + 1):
+            if sheet.cell(i, 83).value == "SI" :
+                if sheet.cell(i,84).value == " ":
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {83, 84, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                                    
+                for col_num in {89, 91, 92, 93}:
+                    cell_value = sheet.cell(row=i, column=col_num).value
+                    if cell_value == " ":
+                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        colum["column"] = {col_num, 2}
+                        colum["row"] = i
+                        pintar(colum, sheet)
+                
+                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
+                    cell_value = sheet.cell(row=i, column=col_num).value
+                    if cell_value != " ":
+                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        colum["column"] = {col_num, 2}
+                        colum["row"] = i
+                        pintar(colum, sheet)
+                
+            elif sheet.cell(i, 85).value == "SI" :
+                if sheet.cell(i,86).value == " ":
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {85, 86, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                                    
+                for col_num in {89, 91, 92, 93}:
+                    cell_value = sheet.cell(row=i, column=col_num).value
+                    if cell_value != " ":
+                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        colum["column"] = {col_num, 2}
+                        colum["row"] = i
+                        pintar(colum, sheet)
+                
+                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
+                    cell_value = sheet.cell(row=i, column=col_num).value
+                    if cell_value == " ":
+                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        colum["column"] = {col_num, 2}
+                        colum["row"] = i
+                        pintar(colum, sheet)
+                        
+            elif sheet.cell(i, 87).value == "Gestante" :
+                if sheet.cell(i,88).value == " ":
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {87, 88, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                
+                
+                    for col_num in {89, 91, 92, 93}:
+                        cell_value = sheet.cell(row=i, column=col_num).value
+                        if cell_value != " ":
+                            celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                            colum["column"] = {col_num, 2}
+                            colum["row"] = i
+                            pintar(colum, sheet)
+                
+                    for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
+                        cell_value = sheet.cell(row=i, column=col_num).value
+                        if cell_value != " ":
+                            
+                            celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                            colum["column"] = {col_num, 2}
+                            colum["row"] = i
+                            pintar(colum, sheet)
+            else:
+                for col_num in {89, 91, 92, 93}:
+                    celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                    colum["column"] = {col_num, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                
+                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:                        
+                    celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                    colum["column"] = {col_num, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+            
+        for i in range(2, ultima_fila +1):
+            if sheet.cell(i,120).value == "SI" and sheet.cell(i,121).value == " ":
+                celdas_pintadas_rojo += 1
+                colum["column"] = {120, 121, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
        # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
    
+def prevencionPag2():
+    try:
+        remplazarComillas(sheet)  
+        ultima_fila = sheet.max_row
+        celdas_pintadas_rojo = 0
+    
+     # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
     
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+def ValidarTel(sheet, tel):
+    patternTel = re.compile(r'^\d{7}(\d{3})?$')
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    Num_celTexto = len(Tel["Tel"])
+    columns = list(Tel["Tel"])
+    
+    for a in range(Num_celTexto):
+        for i in range(2, ultima_fila + 1):
+            # Verifica la condición para el cuarto conjunto de celdas (teléfono)
+            telefono = str(sheet.cell(i, columns[a]).value)
+            if not patternTel.match(telefono):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {columns[a], 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+    return celdas_pintadas_rojo
+                
+def numeroDirecciones(sheet, placas):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    
+    columns = list(placas["placas"])
+    for i in range(2, ultima_fila + 1):
+        # Verifica cada columna en el conjunto de columnas especificadas
+        for col_num in columns:
+            cell_value = sheet.cell(row=i, column=col_num).value
+            if isinstance(cell_value, str) and cell_value.isdigit():
+                sheet.cell(row=i, column=col_num).value = float(cell_value)
+                
+        for col_num in columns:
+            cell_value = sheet.cell(row=i, column=col_num).value
+            if isinstance(cell_value, (int, float)) and cell_value > 250:
+                print(cell_value)
+                celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                colum["column"] = {col_num, 2}
+                colum["row"] = i
+                pintar(colum, sheet) 
+            
+    return celdas_pintadas_rojo     
 
+def validarVacias(sheet, CeldasVacias):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    Num_celTexto = len(CeldasVacias["vacias"])
+    columns = list(CeldasVacias["vacias"])
+    for a in range(Num_celTexto):
+        for i in range(2, ultima_fila + 1):
+            if sheet.cell(row=i, column=columns[a]).value == " " :  
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {columns[a], 2}
+                    colum["row"] = i
+                    pintar(colum, sheet) 
+    return  celdas_pintadas_rojo
+    
+def Valiafiliacion(sheet, afiliacion):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    columns = list(afiliacion["afiliacion"])
+    for i in range(2, ultima_fila + 1):
+            # Tipo institución
+            if sheet.cell(i, columns[0]).value == "5- No asegurado" and not "no asegurado" in str(sheet.cell(i, columns[1]).value).lower():
+                celdas_pintadas_rojo += 1
+                colum["column"] = {columns[0], columns[1], 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+           
+    return  celdas_pintadas_rojo 
+       
 def Valetnia(sheet, etnia):
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
@@ -530,7 +712,8 @@ def remplazarComillas(sheet):
                     cell.number_format = numbers.FORMAT_DATE_XLSX15
                 # Verifica si el valor es texto
                 else:
-                    cell.number_format = numbers.FORMAT_TEXT        
+                    cell.number_format = numbers.FORMAT_TEXT      
+                      
 # Función para calcular la edad
 def calcular_edad(fecha_nacimiento, fecha_intervencion):
     try :
