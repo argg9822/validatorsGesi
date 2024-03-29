@@ -355,6 +355,11 @@ def PrevencionEmbarazo():
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
         print("Validando la página 1...")
         prevencionPag1(sheet) 
+    
+    if num_paginas >= 2 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        prevencionPag2(sheet)
         
 def prevencionPag1(sheet):
     NumeroDocumento = re.compile("^\d{10}$")
@@ -426,7 +431,7 @@ def prevencionPag1(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
                 
-        celTexto["ColumText"] = {10, 11, 12, 13, 51}      
+        celTexto["ColumText"] = {10, 11, 12, 13, 51, 123, 125}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
         Genero["Genero"]= {15, 16}
@@ -545,6 +550,17 @@ def prevencionPag1(sheet):
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
    
+def prevencionPag2():
+    try:
+        remplazarComillas(sheet)  
+        ultima_fila = sheet.max_row
+        celdas_pintadas_rojo = 0
+    
+     # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
     
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
