@@ -4,6 +4,7 @@ from openpyxl import load_workbook, Workbook
 import pandas as pd
 from tkinter import filedialog, messagebox
 import os
+import re
 
 ##------------------------------------------------------------------------------------    
 ##---------------------CARGUE Y LECTURA DEL ARCHIVO EXCEL-----------------------------
@@ -89,12 +90,26 @@ def sc():
         if index == 2:
             df = pd.DataFrame(data, columns=cols)
             totalErroresPg_3 = sc_pg3()
+            print("-----------------------------------------------")
         
     cantErrSc = totalErroresPg_1+totalErroresPg_2+totalErroresPg_3
     print(f"TOTAL ERRORES EN SESIONES COLECTIVAS: {(cantErrSc)}")
     
 def hcb():
-    print("Entrando a validar HCB")
+    for index, sheet_name in enumerate(workbook.sheetnames):
+        global sheet
+        sheet = workbook[sheet_name]
+        data = sheet.values
+        cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
+        global df
+        print(f"-------------------Página {index+1}-------------------")
+        if index == 1:
+            df = pd.DataFrame(data, columns=cols)
+            totalErroresPg_2 = hcb_pg2()
+            print("-----------------------------------------------")
+            
+    cantErrHcb = totalErroresPg_2
+    print(f"TOTAL ERRORES EN HCB: {(cantErrHcb)}")
     
 ##------------------------------------------------------------------------------------    
 ##---------------------------------VALIDATOR------------------------------------------
@@ -200,8 +215,7 @@ def age_vs_typedoc(columnNameTypeDoc, columnNameAge):
     print(f'Tipos de documento que no corresponden con la edad: {totalTypeDocErr}')
     return totalTypeDocErr
 
-def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):
-    totalNacErr = 0
+def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):    
     #Verificar existencia de las columnas
     if columnNameNac not in df.columns or columnNameTypeDoc not in df.columns:
         raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameNac} no se encuentran')
@@ -221,6 +235,67 @@ def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):
     print(f'Nacionalidad que no corresponde con el tipo de documento: {totalNacErr}')
     return totalNacErr
 
+def gen_vs_sex(columnNameSex, columnNameGen):
+    if columnNameGen not in df.columns or columnNameSex not in df.columns:
+        raise ValueError(f"Las columnas {columnNameGen} y/o {columnNameSex} no se encuentran")
+    
+    fill_rows = df[pd.notna(df[columnNameGen]) & pd.notna(df[columnNameSex])]
+    errors = fill_rows[(fill_rows[columnNameSex] == '1- Hombre') & (fill_rows[columnNameGen] == '2- Femenino') |
+                       (fill_rows[columnNameSex] == '2- Mujer') & (fill_rows[columnNameGen] == '1- Masculino')]
+    
+    totalGenErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameGen, bgSecError)
+        setBgError(index, columnNameSex, bgSecError)
+    print(f'Errores en sexo y/o género: {totalGenErr}')
+    return totalGenErr
+
+def age_vs_maritalStatus(columnNameAge, columnNameMarital):
+    if columnNameAge not in df.columns or columnNameMarital not in df.columns:
+        raise ValueError(f"Las columnas {columnNameAge} y/o {columnNameMarital} no se encuentran")
+
+    fill_rows = df[pd.notna(df[columnNameAge]) & pd.notna(df[columnNameMarital])]
+    errors = fill_rows[(fill_rows[columnNameAge] < 14) & (fill_rows[columnNameMarital] != '6- No aplica') |
+                       (fill_rows[columnNameAge] >= 14) & (fill_rows[columnNameMarital] == '6- No aplica')]
+    
+    totalErrMarital = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameMarital, bgError)
+    
+    print(f'Estado civil no concuerda con la edad: {totalErrMarital}')
+    return totalErrMarital
+
+def nac_vs_pdi(columnNameNac, columnNamePdi):
+    if columnNameNac not in df.columns or columnNamePdi not in df.columns:
+        raise ValueError(f'Las columnas {columnNameNac} y/o {columnNamePdi} no se encuentran')
+    
+    fill_rows = df[pd.notna(df[columnNameNac]) & pd.notna(df[columnNamePdi])]
+    
+    pattern = re.compile(r'\bMigrante\b', flags=re.IGNORECASE)# Expresión regular
+    errors = fill_rows[(fill_rows[columnNameNac] == 'Colombia') & fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x)))) |
+                       (fill_rows[columnNameNac] != 'Colombia') & ~fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x))))]
+
+    totalErrNacPdi = len(errors)
+    
+    for index in errors.index:
+        setBgError(index, columnNamePdi, bgError)
+    
+    print(f'Errores en población diferencial: {totalErrNacPdi}')
+    return totalErrNacPdi
+
+def et_vs_lang(columnNameEt, columNameLang):
+    if columnNameEt not in df.columns or columNameLang not in df.columns:
+        raise ValueError(f'Las columnas {columnNameEt} y/o {columNameLang} no se encuentran')
+    
+    fill_rows = df[pd.notna(df[columnNameEt]) & pd.notna(df[columNameLang])]
+    errors = fill_rows[(fill_rows[columnNameEt] != '6- Ninguno') & (fill_rows[columNameLang] == -1)]
+    totalErrEt = len(errors)
+    
+    for index in errors.index:
+        setBgError(index, columNameLang, bgError)
+    
+    print(f'Errores en habla español: {totalErrEt}')
+    return totalErrEt
 #-----------------------------------SESIONES PÁGINA 1---------------------------------
 def sc_pg1():
     requiredFieldsPg1 = ['.Nombre de la institución / Establecimiento / Equipo étnico.',
@@ -254,13 +329,27 @@ def sesion_date():
 
 #-----------------------------------SESIONES PÁGINA 3---------------------------------
 def sc_pg3():
-    requiredFieldsPg3 = ['..OMS..', '..FINDRISC..', '..EPOC..', '.Sesiones.', 'IdTipoDocumento',
+    reqFieldsPg3 = ['..OMS..', '..FINDRISC..', '..EPOC..', '.Sesiones.', 'IdTipoDocumento',
                          'Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
                          'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion']
-    cantErroresPg_3 = required_fields(requiredFieldsPg3)+len_num_doc('IdTipoDocumento', 'Documento')
-    +age_vs_typedoc('IdTipoDocumento', 'Edad')+nac_vs_typedoc('IdTipoDocumento', 'IdNacionalidad')
+    
+    cantErroresPg_3 = required_fields(reqFieldsPg3)+len_num_doc(reqFieldsPg3[4], reqFieldsPg3[5])
+    +age_vs_typedoc(reqFieldsPg3[4], 'Edad')+nac_vs_typedoc(reqFieldsPg3[4], reqFieldsPg3[8])
+    +gen_vs_sex(reqFieldsPg3[9], reqFieldsPg3[10])+age_vs_maritalStatus('Edad',reqFieldsPg3[11])
+    +nac_vs_pdi(reqFieldsPg3[8], reqFieldsPg3[14])+et_vs_lang(reqFieldsPg3[13], 'HablaEspaniol')
     return cantErroresPg_3
 
+
+#-------------------------------------HCB PÁGINA 2-----------------------------------
+def hcb_pg2():
+    reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
+                    'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion',
+                    'IdAfiliacionSGSSS', 'NombreEAPB', 'IdNivelEducativo', 'Ocupacion']
+    cantErroresPg_2 = required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
+    +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
+    +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Edad',reqFieldsPg2[7])
+    +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
+    return cantErroresPg_2
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
 
@@ -286,6 +375,7 @@ def saveFile():
             print("Error", f"No se pudo guardar el archivo: {str(e)}")
     else:
             print("Tu archivo no se guardará")
+            
 #En prueba para los tres puntos cargando
 def cargandoSave(cadena):
     if cadena:
