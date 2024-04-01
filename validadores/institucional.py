@@ -1,5 +1,5 @@
 from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.styles import PatternFill
+from openpyxl.styles import PatternFill, Font
 from openpyxl import load_workbook, Workbook
 import pandas as pd
 from tkinter import filedialog, messagebox
@@ -104,6 +104,8 @@ def hcb():
         cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
         global df
         df = pd.DataFrame(data, columns=cols)
+        global df_modified
+        df_modified = list_pages()
         print(f"-------------------Página {index+1}-------------------")
         if index == 0:
             totalErroresPg_1 = hcb_pg1()
@@ -123,6 +125,8 @@ def mv():
         cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
         global df
         df = pd.DataFrame(data, columns=cols)
+        global df_modified
+        df_modified = list_pages()
         print(f"-------------------Página {index+1}-------------------")
         if index == 1:
             totalErroresPg_2 = mv_pg2()
@@ -145,7 +149,12 @@ def setBgError(index, columnName, color):
     bgErrorFicha = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
     cellFicha = sheet.cell(row=index+2, column=df_modified.columns.get_loc('Ficha_fic')+1)
     cellFicha.fill = bgErrorFicha
-
+    
+    bgUsr = PatternFill(start_color='00ba4a', end_color='00ba4a', fill_type='solid')
+    cellUsr = sheet.cell(row=index+2, column=df_modified.columns.get_loc('Red_fic')+1)
+    cellUsr.fill = bgUsr
+    cellUsr.font = Font(bold=True)
+    
 def validarTelefono(columnName):
     cantErroresTel = 0
     if columnName in df_modified.columns:
@@ -581,7 +590,6 @@ def mv_pg2():
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
-
 
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
