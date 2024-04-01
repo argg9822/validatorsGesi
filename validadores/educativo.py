@@ -25,6 +25,8 @@ afiliacion = {"afiliacion": set()}
 CeldasVacias = {"vacias": set()}
 placas = {"placas": set()}
 Tel = {"Tel": set()}
+Manzana = {"Manzana": set()}
+
 
 
 
@@ -40,8 +42,6 @@ def loadExcel():
     global sheet
     sheet = workbook.active
     
-
-
 def setBase(base):
     loadExcel()
     chooseBase(base)
@@ -50,7 +50,8 @@ def setBase(base):
 def chooseBase(base):
     switch = {
         "sesiones_colectivas": SesionesCoelctivas,
-        "prevencion_embarazo": PrevencionEmbarazo
+        "prevencion_embarazo": PrevencionEmbarazo,
+        "higiene_manos": higieneManos
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -77,7 +78,30 @@ def SesionesCoelctivas():
         sheet = workbook[workbook.sheetnames[2]]  # Acceder a la página 2
         print("Validando la página 3...")
         validar_pagina3_sesiones(sheet)
-
+def PrevencionEmbarazo(): 
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        prevencionPag1(sheet) 
+    
+    if num_paginas >= 2 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        prevencionPag2(sheet)
+def higieneManos():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        hm_pag1(sheet) 
+    
 def validar_pagina1_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
@@ -344,23 +368,7 @@ def validar_pagina3_sesiones(sheet):
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
     except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")
-   
-def PrevencionEmbarazo(): 
-    # Páginas del archivo Excel cargado
-    num_paginas = len(workbook.sheetnames)
-    print(f"El archivo Excel tiene {num_paginas} páginas.")
-    # Primero, validar la página 1
-    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
-        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
-        print("Validando la página 1...")
-        prevencionPag1(sheet) 
-    
-    if num_paginas >= 2 and workbook.sheetnames[0] in workbook.sheetnames:
-        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
-        print("Validando la página 1...")
-        prevencionPag2(sheet)
-        
+        print("Error", f"Se produjo un error: {str(e)}") 
 def prevencionPag1(sheet):
     NumeroDocumento = re.compile("^\d{10}$")
     try:
@@ -548,9 +556,8 @@ def prevencionPag1(sheet):
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
     except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")
-   
-def prevencionPag2():
+        print("Error", f"Se produjo un error: {str(e)}") 
+def prevencionPag2():# pendiente por completar 
     try:
         remplazarComillas(sheet)  
         ultima_fila = sheet.max_row
@@ -561,10 +568,54 @@ def prevencionPag2():
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
-    
+def hm_pag1(sheet):
+    try:
+        remplazarComillas(sheet)  
+        ultima_fila = sheet.max_row
+        celdas_pintadas_rojo = 0
+        #validar celdas vacias 
+        CeldasVacias["vacias"] = {11 ,13, 21, 27, 33, 37}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)#columnas requeridas
+        #validacion de texto que no contenga caracteres especiales 
+        celTexto["ColumText"] = {13, 21,}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        #numeros de direccion
+        placas["placas"] = {27, 33, 37}
+        celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+        # validar telefonos
+        Tel["Tel"] = {47, 48}
+        celdas_pintadas_rojo += ValidarTel(sheet, Tel)#columnas requeridas telefono
+        # validar manzana del cuidado 
+        Manzana["Manzana"] = {23, 24}
+        celdas_pintadas_rojo += ValidarTel(sheet, Manzana)#columnas requeridas telefono
+        
+        # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+        
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+def manzanaPriorizada(sheet, Manzana):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    columns = list(Manzana["Manzana"])
+    
+    for i in range(2, ultima_fila + 1):
+        cell_value_0 = sheet.cell(i, columns[0]).value
+        cell_value_1 = sheet.cell(i, columns[1]).value
+        # Verificar las condiciones combinadas
+        if (cell_value_0 == "Si" and cell_value_1 == " ") or (cell_value_0 == "No" and cell_value_1 != " "):
+            celdas_pintadas_rojo += 1
+            colum["column"] = {columns[0], columns[1], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+    
+    return celdas_pintadas_rojo
+    
 def ValidarTel(sheet, tel):
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
     celdas_pintadas_rojo = 0
@@ -575,13 +626,22 @@ def ValidarTel(sheet, tel):
     for a in range(Num_celTexto):
         for i in range(2, ultima_fila + 1):
             # Verifica la condición para el cuarto conjunto de celdas (teléfono)
-            telefono = str(sheet.cell(i, columns[a]).value)
-            if not patternTel.match(telefono):
-                celdas_pintadas_rojo += 1
-                colum["column"] = {columns[a], 2}
-                colum["row"] = i
-                pintar(colum, sheet)
-                
+            if a == 0 :
+                telefono = str(sheet.cell(i, columns[a]).value)
+                if not patternTel.match(telefono):
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {columns[a], 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+            else:
+                telefono = str(sheet.cell(i, columns[a]).value)
+                print(Num_celTexto) 
+                if sheet.cell(i, columns[a]).value != " " and not patternTel.match(telefono):
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {columns[a], 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+        
     return celdas_pintadas_rojo
                 
 def numeroDirecciones(sheet, placas):
