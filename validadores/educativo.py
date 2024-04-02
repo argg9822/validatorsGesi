@@ -13,10 +13,8 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import numbers
 import datetime
 #validadores educativo 
-
 init()
-
-# Declarar el objeto colum inicialmente
+# Declarar el objeto colum inicialmente para almacenar variables para las funciones
 colum = {"column": set(), "row": 0}
 celTexto = {"ColumText": set()}
 Genero = {"Genero": set()}
@@ -28,10 +26,13 @@ Tel = {"Tel": set()}
 Manzana = {"Manzana": set()}
 rural = {"rural": set()}
 
-
-
-
-
+    
+def setBase(base):
+    loadExcel()
+    chooseBase(base)
+    preguntaDescarga()
+    
+# llamar o cargar archivo excel
 def loadExcel():
     # Abrir el archivo Excel
     global file_path
@@ -52,16 +53,13 @@ def loadExcel():
     # Retornar los encabezados y la hoja de cálculo
     return headers, sheet
     
-def setBase(base):
-    loadExcel()
-    chooseBase(base)
-    preguntaDescarga()
-    
 def chooseBase(base):
     switch = {
         "sesiones_colectivas": SesionesCoelctivas,
         "prevencion_embarazo": PrevencionEmbarazo,
-        "higiene_manos": higieneManos
+        "higiene_manos": higieneManos,
+        "pretest": pretest,
+        "jornadas": jornadas, 
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -98,9 +96,9 @@ def PrevencionEmbarazo():
         print("Validando la página 1...")
         prevencionPag1(sheet) 
     
-    if num_paginas >= 2 and workbook.sheetnames[0] in workbook.sheetnames:
+    if num_paginas >= 2 and workbook.sheetnames[1] in workbook.sheetnames:
         sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
-        print("Validando la página 1...")
+        print("Validando la página 2...")
         prevencionPag2(sheet)
 def higieneManos():
     # Páginas del archivo Excel cargado
@@ -111,7 +109,51 @@ def higieneManos():
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
         print("Validando la página 1...")
         hm_pag1(sheet) 
+        
+    if num_paginas >= 2 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        hm_pag2(sheet) 
+        
+    if num_paginas >= 3 and workbook.sheetnames[2] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[2]]  # Acceder a la página 1
+        print("Validando la página 3...")
+        hm_pag3(sheet) 
+def pretest():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        pretest_Pag1(sheet) 
+        
+    if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        pretest_Pag2(sheet) 
     
+def jornadas():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        jornadas_Pag1(sheet) 
+        
+    if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        jornadas_Pag2(sheet) 
+
+
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#/////////////////////////////////sESIONES COLECTIVAS////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 def validar_pagina1_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
@@ -379,7 +421,11 @@ def validar_pagina3_sesiones(sheet):
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}") 
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#/////////////////////////////////PREVENCION EMBARAZO////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 def prevencionPag1(sheet):
+    
     NumeroDocumento = re.compile("^\d{10}$")
     try:
         remplazarComillas(sheet)  
@@ -567,18 +613,21 @@ def prevencionPag1(sheet):
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}") 
-def prevencionPag2():# pendiente por completar 
+def prevencionPag2(sheet):
     try:
         remplazarComillas(sheet)  
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
-    
-     # Mostrar la cantidad de celdas pintadas de rojo
+
+        # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
-        
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#/////////////////////////////////HIGIENE DE MANOS///////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 def hm_pag1(sheet):
     try:
         remplazarComillas(sheet)  
@@ -592,7 +641,6 @@ def hm_pag1(sheet):
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
         # VALIDACION SI ES RURAL O URBANA
-        
         for i in range(2, ultima_fila +1):
             if sheet.cell(i,16).value == "1- Urbana":
                 #numeros de direccion
@@ -601,7 +649,6 @@ def hm_pag1(sheet):
             else:
                 rural["rural"] = {43, 45, 46}
                 celdas_pintadas_rojo += Val_Rural(sheet, rural)#columnas requeridas
-                
                 
         # validar telefonos
         Tel["Tel"] = {47, 48}
@@ -615,11 +662,263 @@ def hm_pag1(sheet):
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
+def hm_pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
         
+        celdas_pintadas_rojo = 0 
+        #validar celdas vacias 
+        CeldasVacias["vacias"] = {8, 10, 13, 17 }
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        #validacion de texto que no contenga caracteres especiales 
+        celTexto["ColumText"] = {8, 9, 10, 11}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        Var_edad = { # seleccionar la columna donde se encuentra cada campo 
+            "F_Intervencion": 3,
+            "F_nacimiento": 16,
+            "T_Doc": 12,
+            "Nac": 14,
+            "No_doc": 13,
+            "est_civil": 0, # colocar 0 si no tiene la columna de estado civil 
+            "Nacionalidad": "Colombia" # cambiar si es necesariio ya que puede solo aparecer "COl"
+        }
+
+        celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
+        
+        # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")     
+def hm_pag3(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        
+        CeldasVacias["vacias"] = {8, 10}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {8}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#//////////////////////Formato pre test y post test docentes jardines infantiles/////////////////////////////////////
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+def pretest_Pag1(sheet):
+    
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {12, 13}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {12, 13}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 10).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento) and sheet.cell(i, 9).value not in ["8- Menor sin ID.", "7- Adulto sin ID.", "13- PPT Permiso por Protección Temporal", "5- NUIP"]:
+                celdas_pintadas_rojo += 1
+                colum["column"] = {10, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+    
+def pretest_Pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {19, 20}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 21).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {21, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+                
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////JORNADAS/////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+def jornadas_Pag1(sheet):
+    try:
+        remplazarComillas(sheet) 
+        patternTel = re.compile(r'^\d{7}(\d{3})?$')
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        
+        CeldasVacias["vacias"] = {8, 9, 11, 12, 14, 16, 17, 18, 1, 20, 21, 23, 30, 34, 43, 45}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        
+        celTexto["ColumText"] = {19}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+           # VALIDACION SI ES RURAL O URBANA
+        for i in range(2, ultima_fila +1):
+            if sheet.cell(i,14).value == "1- Urbana":
+                #numeros de direccion
+                placas["placas"] = {24, 30, 34}
+                celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+            else:
+                rural["rural"] = {40, 41, 42}
+                celdas_pintadas_rojo += Val_Rural(sheet, rural)#columnas requeridas
+        
+            # Verifica la condición para el cuarto conjunto de celdas (teléfono)
+            telefono = str(sheet.cell(i, 43).value)
+            if not patternTel.match(telefono):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {43, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
+def jornadas_Pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 9, 10, 14, 21, 22, 23, 25}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        for i in range(2, ultima_fila + 1):
+            if sheet.cell(i, 8).value < sheet.cell(i,3).value: 
+                celdas_pintadas_rojo += 1
+                colum["column"] = {8, 3, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+            cell_value = sheet.cell(row=i, column=12).value
+            if isinstance(cell_value, str) and cell_value.isdigit():
+                sheet.cell(row=i, column=12).value = float(cell_value)
+                
+            cell_value = sheet.cell(row=i, column=12).value
+            if isinstance(cell_value, (int, float)) and cell_value < 20:
+                celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                colum["column"] = {12, 2}
+                colum["row"] = i
+                pintar(colum, sheet) 
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#//////////////////////////////////////////FUNCIONES A UTILIZAR//////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+def Docuemento(sheet, Var_edad ):
+    print(Var_edad["F_Intervencion"])
+    
+    ultima_fila = sheet.max_row
+    celdas_pintadas_rojo = 0 
+    NumeroDocumento = re.compile("^\d{10}$")
+        #validador de campos por la edad 
+        
+    for i in range(2, ultima_fila + 1):
+        FechaIntervencion = sheet.cell(i, Var_edad["F_Intervencion"]).value
+        FechaNacimiento = sheet.cell(i, Var_edad["F_nacimiento"]).value
+        FechaNacimiento = FechaNacimiento.replace('/', '-')  # Reemplazar '/' por '-'
+        FechaNacimiento_format = FechaNacimiento.replace('`', '')  
+        FechaIntervencion_format = FechaIntervencion.replace('`', '')             
+        edad = calcular_edad(FechaNacimiento_format, FechaIntervencion_format)
+        
+        if edad >= 0 and edad <= 6 :
+            tipodocumento = "2- RC"
+            Nacionalidad = Var_edad["Nacionalidad"]
+            
+        if edad >= 7 and edad <= 17 :
+            tipodocumento = "3- TI"
+            Nacionalidad = Var_edad["Nacionalidad"]
+            
+        if edad >= 18:
+            tipodocumento = "1- CC"
+            Nacionalidad = Var_edad["Nacionalidad"]
+            
+        if (sheet.cell(i, Var_edad["T_Doc"]).value != tipodocumento and sheet.cell(i, Var_edad["T_Doc"]).value != "8- Menor sin ID." and \
+            sheet.cell(i, Var_edad["T_Doc"]).value != "7- Adulto sin ID.") and sheet.cell(i, Var_edad["Nac"]).value == Nacionalidad :
+            celdas_pintadas_rojo += 1
+            colum["column"] = {Var_edad["T_Doc"], Var_edad["Nac"], Var_edad["F_nacimiento"], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+            
+        if sheet.cell(i,Var_edad["T_Doc"]).value == tipodocumento and sheet.cell(i,Var_edad["Nac"]).value != Nacionalidad:
+            celdas_pintadas_rojo += 1
+            colum["column"] = {Var_edad["T_Doc"], Var_edad["Nac"], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+            
+        if edad > 100:
+            celdas_pintadas_rojo += 1
+            colum["column"] = {Var_edad["T_Doc"], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+            
+        # estado civil
+        if Var_edad["est_civil"] != 0:
+            if edad <= 13 and sheet.cell(i,Var_edad["est_civil"]).value != "6- No aplica":
+                celdas_pintadas_rojo += 1
+                colum["column"] = {Var_edad["est_civil"], 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+            
+        numeroDocumento = sheet.cell(i, Var_edad["No_doc"]).value
+        # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+        if (not NumeroDocumento.match(numeroDocumento) and 
+            sheet.cell(i, Var_edad["T_Doc"]).value not in ["8- Menor sin ID.", "7- Adulto sin ID.", "13- PPT Permiso por Protección Temporal", "5- NUIP"] and 
+            edad < 35):
+            celdas_pintadas_rojo += 1
+            colum["column"] = {Var_edad["No_doc"], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+            
+        if len(numeroDocumento) < 5: 
+            celdas_pintadas_rojo += 1
+            colum["column"] = {Var_edad["No_doc"], 2}
+            colum["row"] = i
+            pintar(colum, sheet)
+            
+            
+    return celdas_pintadas_rojo     
 
 def Val_Rural(sheet, rural):
     celdas_pintadas_rojo = 0
@@ -632,8 +931,6 @@ def Val_Rural(sheet, rural):
     #/////////////////////////// ingresar si las cordenadas son correctas 
      
     return celdas_pintadas_rojo
-    
-    
     
 def manzanaPriorizada(sheet, Manzana):
     celdas_pintadas_rojo = 0
@@ -666,7 +963,7 @@ def ValidarTel(sheet, Tel):
             # Verifica la condición para el cuarto conjunto de celdas (teléfono)
             if a == 0:
                 telefono = str(sheet.cell(i, columns[1]).value)
-                if  sheet.cell(i, columns[1]).value == " " or not patternTel.match(telefono):
+                if  sheet.cell(i, columns[1]).value == " " or not patternTel.match(telefono) or (telefono and (telefono.isdigit() and int(telefono) == 0 or all(char == '0' for char in telefono))):
                     celdas_pintadas_rojo += 1
                     colum["column"] = {columns[1], 2}
                     colum["row"] = i
@@ -674,7 +971,7 @@ def ValidarTel(sheet, Tel):
             
             if a == 1 :
                 telefono = str(sheet.cell(i, columns[0]).value)
-                if sheet.cell(i, columns[0]).value != " " and not patternTel.match(telefono):
+                if sheet.cell(i, columns[0]).value != " " and not patternTel.match(telefono) or (telefono and (telefono.isdigit() and int(telefono) == 0 or all(char == '0' for char in telefono))):
                     celdas_pintadas_rojo += 1
                     colum["column"] = {columns[0], 2}
                     colum["row"] = i
@@ -698,7 +995,6 @@ def numeroDirecciones(sheet, placas):
         for col_num in columns:
             cell_value = sheet.cell(row=i, column=col_num).value
             if isinstance(cell_value, (int, float)) and cell_value > 250:
-                print(cell_value)
                 celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
                 colum["column"] = {col_num, 2}
                 colum["row"] = i
