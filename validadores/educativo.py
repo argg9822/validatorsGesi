@@ -26,6 +26,8 @@ CeldasVacias = {"vacias": set()}
 placas = {"placas": set()}
 Tel = {"Tel": set()}
 Manzana = {"Manzana": set()}
+rural = {"rural": set()}
+
 
 
 
@@ -588,9 +590,19 @@ def hm_pag1(sheet):
         #validacion de texto que no contenga caracteres especiales 
         celTexto["ColumText"] = {13, 21,}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
-        #numeros de direccion
-        placas["placas"] = {27, 33, 37}
-        celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+        
+        # VALIDACION SI ES RURAL O URBANA
+        
+        for i in range(2, ultima_fila +1):
+            if sheet.cell(i,16).value == "1- Urbana":
+                #numeros de direccion
+                placas["placas"] = {27, 33, 37}
+                celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+            else:
+                rural["rural"] = {43, 45, 46}
+                celdas_pintadas_rojo += Val_Rural(sheet, rural)#columnas requeridas
+                
+                
         # validar telefonos
         Tel["Tel"] = {47, 48}
         celdas_pintadas_rojo += ValidarTel(sheet, Tel)#columnas requeridas telefono
@@ -608,16 +620,33 @@ def hm_pag1(sheet):
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+def Val_Rural(sheet, rural):
+    celdas_pintadas_rojo = 0
+    ultima_fila = sheet.max_row
+    columns = list(rural["rural"])
+    print(columns)
+    CeldasVacias["vacias"] = {columns}
+    celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)#columnas requeridas
+    
+    #/////////////////////////// ingresar si las cordenadas son correctas 
+     
+    return celdas_pintadas_rojo
+    
+    
+    
 def manzanaPriorizada(sheet, Manzana):
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
     columns = list(Manzana["Manzana"])
-    
+    print(columns)
     for i in range(2, ultima_fila + 1):
         cell_value_0 = sheet.cell(i, columns[0]).value
+        
         cell_value_1 = sheet.cell(i, columns[1]).value
+        
         # Verificar las condiciones combinadas
-        if (cell_value_0 == "Si" and cell_value_1 == " ") or (cell_value_0 == "No" and cell_value_1 != " "):
+        if (cell_value_1 == "Si" and cell_value_0 == " ") or (cell_value_1 == "No" and cell_value_0 != " "):
             celdas_pintadas_rojo += 1
             colum["column"] = {columns[0], columns[1], 2}
             colum["row"] = i
@@ -645,7 +674,7 @@ def ValidarTel(sheet, Tel):
             
             if a == 1 :
                 telefono = str(sheet.cell(i, columns[0]).value)
-                if sheet.cell(i, columns[0]).value != " " or not patternTel.match(telefono):
+                if sheet.cell(i, columns[0]).value != " " and not patternTel.match(telefono):
                     celdas_pintadas_rojo += 1
                     colum["column"] = {columns[0], 2}
                     colum["row"] = i
