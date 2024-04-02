@@ -430,7 +430,7 @@ def validate_only_text_inst_barr(*columnsName):
         print(f'Texto mal escrito: {totalErrText}')
     return totalErrText
 
-def validate_only_number(*columnsName):
+def validate_only_number(columnsName=[]):
     totalErrNumber = 0
     pattern =re.compile(r'^[^0-9]+$')
     for columnName in columnsName:
@@ -511,7 +511,7 @@ def sc_pg1():
 def sc_pg2():
     requiredFieldsPg2 = ['.Componente.', '.Línea operativa.', '.Dimensión.', 
                          '.Temática.', '.Número sesión.', '.Fecha.', '.Nombre profesional 1.']
-    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+sesion_date()+validate_only_number('.Número sesión.'))
+    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+sesion_date()+validate_only_number(['.Número sesión.']))
     if cantErroresPg_2 == 0:
         print('Sin errores en la segunda página')
     return cantErroresPg_2
@@ -548,7 +548,7 @@ def sc_pg3():
         print('Sin errores en la tercera página')
     return cantErroresPg_3
 
-#-------------------------------------HCB PÁGINA 2-----------------------------------
+#-------------------------------------HCB PÁGINA 1-----------------------------------
 def hcb_pg1():
     reqFieldsPg1 = ['.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio.', '.Manzana de cuidado.', '.Barrio priorizado.', 
                     '.Estrato.', '.Nombre de la Asociación de madres comunitarias:.', '.Nombre del HCB.',
@@ -562,23 +562,71 @@ def hcb_pg1():
                         '.Las áreas habitacionales de la vivienda están separadas entre sí (baño, cocinas y habitaciones).',
                         '.Preparación de alimentos con leña.','.La vivienda tiene iluminación y ventilación adecuada.',
                         '.Se fuma en la vivienda.','.Las condiciones físicas y locativas del baño son adecuadas.']
-    cantErrorsPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1Sec2, 2, 1)+validarTelefono(reqFieldsPg1[9]))
+    
+    addressComponents = {
+        'columnNameZone': '.Zona.',
+        'columnNameAx1': '..Tipo de vía..',
+        'columnNameNumber':'..Número..',
+        'columnNameAx2':'..Número..',
+        'columnNamePlate':'..Placa..',
+        'columnNameTrail':'.Vereda.',
+        'columnNameX':'..Coordenadas X..',
+        'columnNameY':'..Coordenadas Y..'
+    }
+    
+    columnsNamesNumbers = ['..Número..', '..Placa..', '.Estrato.', '..Perros..', '..Gatos..', '..Otros..', 
+                           '..Perros...1','..Gatos...1', '..Perros...2', '..Gatos...2', '..Caracterización...56',
+                           '..Evaluación...56', '..Caracterización...57', '..Evaluación...57', '..Caracterización...58',
+                           '..Evaluación...58', '..Caracterización...59','..Evaluación...59','..Caracterización...60',
+                           '..Evaluación...60', '..Caracterización...61', '..Evaluación...61','..Caracterización...62',
+                           '..Evaluación...62','..Caracterización...63', '..Evaluación...63']
+    
+    cantErrorsPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1Sec2, 2, 1)+validarTelefono(reqFieldsPg1[9])
+                      +validate_address(addressComponents)+validate_only_number(columnsNamesNumbers))
     if cantErrorsPg_1 == 0:
         print("Sin errores en la primera página")
     return cantErrorsPg_1
-    
+
+#-------------------------------------HCB PÁGINA 2-----------------------------------
 def hcb_pg2():
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
                     'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion',
                     'IdAfiliacionSGSSS', 'NombreEAPB', 'IdNivelEducativo', 'Ocupacion']
+    #Campos de alertas
+    fieldsAlerts = ['.Alerta nutricional.', '.Condición crónica.', '.Enfermedad Transmisible y ETV.', '.Alertas psicosociales.',
+                    '.Alerta Salud Bucal.']
+    
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
                        +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[8],reqFieldsPg2[7])
-                       +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol'))
+                       +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
+                       +validate_alerts_hcb(fieldsAlerts))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
 
+#Formato de las alertas
+def validate_alerts_hcb(columnsNames=[]):
+    pattern = re.compile(r'^[^\d,]*\d(?:,\d+)*\d?[^\d,]*$')
+    cantErrAlerts = 0
+    for columnName in columnsNames:
+        if columnName not in df_modified.columns:
+            raise ValueError(f"No se encuentra la columna: {columnName}")
+        
+        #Obtener nombre de la siguiente columna
+        columnIndexAlert = df_modified.columns.get_loc(columnName) + 1 #Indice de la columna principal más uno
+        columnNameAlert = df_modified.columns[columnIndexAlert] if columnIndexAlert < len(df_modified.columns) else None #Nombre de la siguiente columna
+        
+        fill_rows = df_modified[pd.notna(df_modified[columnNameAlert])]
+        errors = fill_rows[fill_rows[columnNameAlert].apply(lambda x: bool(pattern.search(str(x))))]
+        cantErrAlerts += len(errors)
+        for index in errors.index:
+            setBgError(index, columnNameAlert, bgError)
+    
+    if cantErrAlerts > 0:
+        print(f'Errores en alertas: {cantErrAlerts}')
+        
+    return cantErrAlerts
 #------------------------------MASCOTA VERDE PÁGINA 2---------------------------------
 def mv_pg2():
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
