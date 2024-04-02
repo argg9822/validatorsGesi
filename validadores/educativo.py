@@ -36,11 +36,19 @@ def loadExcel():
     file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
     if not file_path:
         return
-
+    
     global workbook
     workbook = openpyxl.load_workbook(file_path)
     global sheet
     sheet = workbook.active
+    
+    # Leer los encabezados de la primera fila
+    headers = []
+    for cell in sheet[1]:
+        headers.append(cell.value)
+    
+    # Retornar los encabezados y la hoja de cálculo
+    return headers, sheet
     
 def setBase(base):
     loadExcel()
@@ -568,6 +576,7 @@ def prevencionPag2():# pendiente por completar
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
+        
 def hm_pag1(sheet):
     try:
         remplazarComillas(sheet)  
@@ -587,7 +596,7 @@ def hm_pag1(sheet):
         celdas_pintadas_rojo += ValidarTel(sheet, Tel)#columnas requeridas telefono
         # validar manzana del cuidado 
         Manzana["Manzana"] = {23, 24}
-        celdas_pintadas_rojo += ValidarTel(sheet, Manzana)#columnas requeridas telefono
+        celdas_pintadas_rojo += manzanaPriorizada(sheet, Manzana)#columnas requeridas telefono
         
         # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
@@ -616,7 +625,7 @@ def manzanaPriorizada(sheet, Manzana):
     
     return celdas_pintadas_rojo
     
-def ValidarTel(sheet, tel):
+def ValidarTel(sheet, Tel):
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
@@ -626,19 +635,19 @@ def ValidarTel(sheet, tel):
     for a in range(Num_celTexto):
         for i in range(2, ultima_fila + 1):
             # Verifica la condición para el cuarto conjunto de celdas (teléfono)
-            if a == 0 :
-                telefono = str(sheet.cell(i, columns[a]).value)
-                if not patternTel.match(telefono):
+            if a == 0:
+                telefono = str(sheet.cell(i, columns[1]).value)
+                if  sheet.cell(i, columns[1]).value == " " or not patternTel.match(telefono):
                     celdas_pintadas_rojo += 1
-                    colum["column"] = {columns[a], 2}
+                    colum["column"] = {columns[1], 2}
                     colum["row"] = i
                     pintar(colum, sheet)
-            else:
-                telefono = str(sheet.cell(i, columns[a]).value)
-                print(Num_celTexto) 
-                if sheet.cell(i, columns[a]).value != " " and not patternTel.match(telefono):
+            
+            if a == 1 :
+                telefono = str(sheet.cell(i, columns[0]).value)
+                if sheet.cell(i, columns[0]).value != " " or not patternTel.match(telefono):
                     celdas_pintadas_rojo += 1
-                    colum["column"] = {columns[a], 2}
+                    colum["column"] = {columns[0], 2}
                     colum["row"] = i
                     pintar(colum, sheet)
         
@@ -649,6 +658,7 @@ def numeroDirecciones(sheet, placas):
     ultima_fila = sheet.max_row
     
     columns = list(placas["placas"])
+    
     for i in range(2, ultima_fila + 1):
         # Verifica cada columna en el conjunto de columnas especificadas
         for col_num in columns:
@@ -758,22 +768,27 @@ def validarCeldasTexto(sheet, celTexto):
 
 # funcio para remplazar comillas
 def remplazarComillas(sheet):
-    for row in sheet.iter_rows():
-        for cell in row:
-            if cell.value and '`' in cell.value:
-                # Elimina las comillas
-                cell.value = cell.value.replace('`', '')
+    try :
+        for row in sheet.iter_rows():
+            for cell in row:
+                if cell.value and '`' in cell.value:
+                    # Elimina las comillas
+                    cell.value = cell.value.replace('`', '')
 
-                # Verifica si el valor es un número
-                if isinstance(cell.value, (int, float)):
-                    cell.number_format = numbers.FORMAT_NUMBER
-                # Verifica si el valor es una fecha
-                elif isinstance(cell.value, datetime.date):
-                    cell.number_format = numbers.FORMAT_DATE_XLSX15
-                # Verifica si el valor es texto
-                else:
-                    cell.number_format = numbers.FORMAT_TEXT      
-                      
+                    # Verifica si el valor es un número
+                    if isinstance(cell.value, (int, float)):
+                        cell.number_format = numbers.FORMAT_NUMBER
+                    # Verifica si el valor es una fecha
+                    elif isinstance(cell.value, datetime.date):
+                        cell.number_format = numbers.FORMAT_DATE_XLSX15
+                    # Verifica si el valor es texto
+                    else:
+                        cell.number_format = numbers.FORMAT_TEXT      
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+        
+        
+              
 # Función para calcular la edad
 def calcular_edad(fecha_nacimiento, fecha_intervencion):
     try :
