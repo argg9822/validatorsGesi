@@ -59,6 +59,7 @@ def chooseBase(base):
         "prevencion_embarazo": PrevencionEmbarazo,
         "higiene_manos": higieneManos,
         "pretest": pretest,
+        "jornadas": jornadas, 
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -133,7 +134,20 @@ def pretest():
         print("Validando la página 2...")
         pretest_Pag2(sheet) 
     
-
+def jornadas():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        jornadas_Pag1(sheet) 
+        
+    if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        jornadas_Pag2(sheet) 
 
 
 
@@ -752,7 +766,82 @@ def pretest_Pag2(sheet):
         
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
-    
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////JORNADAS/////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+def jornadas_Pag1(sheet):
+    try:
+        remplazarComillas(sheet) 
+        patternTel = re.compile(r'^\d{7}(\d{3})?$')
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        
+        CeldasVacias["vacias"] = {8, 9, 11, 12, 14, 16, 17, 18, 1, 20, 21, 23, 30, 34, 43, 45}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        
+        celTexto["ColumText"] = {19}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+           # VALIDACION SI ES RURAL O URBANA
+        for i in range(2, ultima_fila +1):
+            if sheet.cell(i,14).value == "1- Urbana":
+                #numeros de direccion
+                placas["placas"] = {24, 30, 34}
+                celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
+            else:
+                rural["rural"] = {40, 41, 42}
+                celdas_pintadas_rojo += Val_Rural(sheet, rural)#columnas requeridas
+        
+            # Verifica la condición para el cuarto conjunto de celdas (teléfono)
+            telefono = str(sheet.cell(i, 43).value)
+            if not patternTel.match(telefono):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {43, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
+def jornadas_Pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 9, 10, 14, 21, 22, 23, 25}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        for i in range(2, ultima_fila + 1):
+            if sheet.cell(i, 8).value < sheet.cell(i,3).value: 
+                celdas_pintadas_rojo += 1
+                colum["column"] = {8, 3, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+            cell_value = sheet.cell(row=i, column=12).value
+            if isinstance(cell_value, str) and cell_value.isdigit():
+                sheet.cell(row=i, column=12).value = float(cell_value)
+                
+            cell_value = sheet.cell(row=i, column=12).value
+            if isinstance(cell_value, (int, float)) and cell_value < 20:
+                celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                colum["column"] = {12, 2}
+                colum["row"] = i
+                pintar(colum, sheet) 
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////FUNCIONES A UTILIZAR//////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -831,7 +920,6 @@ def Docuemento(sheet, Var_edad ):
             
     return celdas_pintadas_rojo     
 
-
 def Val_Rural(sheet, rural):
     celdas_pintadas_rojo = 0
     ultima_fila = sheet.max_row
@@ -843,8 +931,6 @@ def Val_Rural(sheet, rural):
     #/////////////////////////// ingresar si las cordenadas son correctas 
      
     return celdas_pintadas_rojo
-    
-    
     
 def manzanaPriorizada(sheet, Manzana):
     celdas_pintadas_rojo = 0
@@ -909,7 +995,6 @@ def numeroDirecciones(sheet, placas):
         for col_num in columns:
             cell_value = sheet.cell(row=i, column=col_num).value
             if isinstance(cell_value, (int, float)) and cell_value > 250:
-                print(cell_value)
                 celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
                 colum["column"] = {col_num, 2}
                 colum["row"] = i
