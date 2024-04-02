@@ -60,6 +60,7 @@ def chooseBase(base):
         "higiene_manos": higieneManos,
         "pretest": pretest,
         "jornadas": jornadas, 
+        "autocuidado": autocuidado
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -149,7 +150,20 @@ def jornadas():
         print("Validando la página 2...")
         jornadas_Pag2(sheet) 
 
-
+def autocuidado():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        Auto_Pag1(sheet) 
+        
+    if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        Auto_Pag2(sheet) 
 
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////////sESIONES COLECTIVAS////////////////////////////////////////////////////////////////
@@ -766,7 +780,8 @@ def pretest_Pag2(sheet):
         
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
-
+ 
+ 
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////JORNADAS/////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
@@ -842,6 +857,70 @@ def jornadas_Pag2(sheet):
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
 
+
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////AUTOCUIDADO//////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+def Auto_Pag1(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 10, 13}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {8, 9, 10, 11}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 13).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento) and sheet.cell(i, 12).value not in ["8- Menor sin ID.", "7- Adulto sin ID.", "13- PPT Permiso por Protección Temporal", "5- NUIP"]:
+                celdas_pintadas_rojo += 1
+                colum["column"] = {13, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+   
+def Auto_Pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 9, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 26, 27, 28, 29}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        
+        
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 8).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {8, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+            if sheet.cell(i,9).value < sheet.cell(i,3).value or sheet.cell(i,9).value > sheet.cell(i,3).value :
+                celdas_pintadas_rojo += 1
+                colum["column"] = {9, 3, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+                
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+   
+   
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////FUNCIONES A UTILIZAR//////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
