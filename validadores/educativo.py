@@ -57,7 +57,8 @@ def chooseBase(base):
     switch = {
         "sesiones_colectivas": SesionesCoelctivas,
         "prevencion_embarazo": PrevencionEmbarazo,
-        "higiene_manos": higieneManos
+        "higiene_manos": higieneManos,
+        "pretest": pretest,
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -117,6 +118,25 @@ def higieneManos():
         sheet = workbook[workbook.sheetnames[2]]  # Acceder a la página 1
         print("Validando la página 3...")
         hm_pag3(sheet) 
+def pretest():
+    # Páginas del archivo Excel cargado
+    num_paginas = len(workbook.sheetnames)
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    # Primero, validar la página 1
+    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        pretest_Pag1(sheet) 
+        
+    if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
+        sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
+        print("Validando la página 2...")
+        pretest_Pag2(sheet) 
+    
+
+
+
+
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////////sESIONES COLECTIVAS////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
@@ -662,11 +682,71 @@ def hm_pag3(sheet):
         remplazarComillas(sheet) 
         celdas_pintadas_rojo = 0 
         
+        CeldasVacias["vacias"] = {8, 10}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {8}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#//////////////////////Formato pre test y post test docentes jardines infantiles/////////////////////////////////////
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+
+def pretest_Pag1(sheet):
+    
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
         CeldasVacias["vacias"] = {12, 13}
         celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
         celTexto["ColumText"] = {12, 13}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 10).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento) and sheet.cell(i, 9).value not in ["8- Menor sin ID.", "7- Adulto sin ID.", "13- PPT Permiso por Protección Temporal", "5- NUIP"]:
+                celdas_pintadas_rojo += 1
+                colum["column"] = {10, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+        
+         # Mostrar la cantidad de celdas pintadas de rojo
+        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        
+    except Exception as e:
+        print("Error", f"Se produjo un error: {str(e)}")
+    
+def pretest_Pag2(sheet):
+    try:
+        remplazarComillas(sheet) 
+        celdas_pintadas_rojo = 0 
+        ultima_fila = sheet.max_row
+        CeldasVacias["vacias"] = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {19, 20}      
+        celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
+        
+        NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        for i in range(2, ultima_fila + 1):
+            numeroDocumento = sheet.cell(i, 21).value
+            # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
+            if not NumeroDocumento.match(numeroDocumento):
+                celdas_pintadas_rojo += 1
+                colum["column"] = {21, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
+                
          # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
         
