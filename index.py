@@ -151,7 +151,7 @@ def buildGUI():
     initial_text = "Por favor seleccione un entorno para continuar"
     preview_message = tk.Label(container_init_text, text=initial_text, fg="white", bg=secondColor, font=fontTexts)
     preview_message.pack(fill="both", expand=True, pady=1, padx=1)
-    print(tk.TkVersion)
+        
     marco_resultado = tk.Frame(container_right, bg=bgColor)
     marco_resultado.pack(side="bottom", expand=True, fill="x")
     marco_resultado.place(relx=0.05, rely=0.65, relwidth=0.9, relheight=0.3)
