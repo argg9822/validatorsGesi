@@ -224,7 +224,8 @@ def difference_dates(date_interv, date2):
     return result
 
 def calculate_age(birth_date, intervention_date):
-    return (pd.to_datetime(intervention_date) - pd.to_datetime(birth_date)).days // 365.25
+    age = (pd.to_datetime(intervention_date) - pd.to_datetime(birth_date)).days // 365.25
+    return round(age)
 
 def type_institution(columnNameType, columnNameOther):
     totalErrTypeInst = 0
@@ -257,142 +258,27 @@ def list_pages():
             cell = sheet.cell(row=idx+2, column=df.columns.get_loc('Red_fic')+1)
             cell.value = i + 1
     return df
-##------------------------------------------------------------------------------------    
-##-----------------------------POBLATIONAL FUNCTIONS----------------------------------
-##------------------------------------------------------------------------------------
 
-def len_num_doc(columNameTypeDoc, columnNameNumDoc):
-    totalErrLenDoc = 0
-    # Verificar la existencia de las columnas requeridas
-    if columNameTypeDoc not in df_modified.columns or columnNameNumDoc not in df_modified.columns:
-        raise ValueError(f'Las columnas {columNameTypeDoc} y/o {columnNameNumDoc} no se encuentran.')
-    
-    #Filtrar filas que no están vacías
-    fill_rows = df_modified[pd.notna(df_modified[columNameTypeDoc]) & pd.notna(df_modified[columnNameNumDoc])]
-    errors = fill_rows[(fill_rows[columNameTypeDoc].isin([61,60])) & 
-                            (fill_rows[columnNameNumDoc].astype(str).str.len() != 10)]
-    
-    totalErrLenDoc = len(errors)
-    for index in errors.index:
-        setBgError(index, columnNameNumDoc, bgError)
+#Validar que el campo contenga sólo números
+def validate_only_number(columnsName=[]):
+    totalErrNumber = 0
+    pattern =re.compile(r'^[^0-9]+$')
+    for columnName in columnsName:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
         
-    if totalErrLenDoc > 0:
-        print(f'Números de documento con longitud incorrecta: {totalErrLenDoc}')
-    return totalErrLenDoc
-
-def age_vs_typedoc(columnNameTypeDoc, columnNameAge):
-    totalTypeDocErr = 0
-    # Verificar la existencia de las columnas requeridas
-    if columnNameTypeDoc not in df_modified.columns or columnNameAge not in df_modified.columns:
-        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameAge} no se encuentran')
-    
-    #Filtrar filas que no están vacías
-    fill_rows = df_modified[pd.notna(df_modified[columnNameTypeDoc]) & pd.notna(df_modified[columnNameAge])]
-    errors = fill_rows[((fill_rows[columnNameAge] < 7) & 
-                              (~fill_rows[columnNameTypeDoc].isin([60, 66, 64, 2482, 1638, 1640, 1639]))) |
-                         ((fill_rows[columnNameAge] > 7) & (fill_rows[columnNameAge] < 18) &
-                              (~fill_rows[columnNameTypeDoc].isin([61, 66, 64, 2482, 1640, 1639, 2482]))) |
-                         (fill_rows[columnNameAge] >= 18) &
-                              (~fill_rows[columnNameTypeDoc].isin([59, 62, 64, 65, 1637, 1638, 1640, 1639, 2482]))]
-    #Cantidad de errores
-    totalTypeDocErr = len(errors)
-    for index in errors.index:
-        setBgError(index, columnNameTypeDoc, bgSecError)
-        setBgError(index, columnNameAge, bgSecError)
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        errors = fill_rows[fill_rows[columnName].apply(lambda x: bool(pattern.search(str(x))))]
         
-    if totalTypeDocErr > 0:
-        print(f'Tipos de documento que no corresponden con la edad: {totalTypeDocErr}')
-    return totalTypeDocErr
-
-def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):    
-    #Verificar existencia de las columnas
-    if columnNameNac not in df_modified.columns or columnNameTypeDoc not in df_modified.columns:
-        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameNac} no se encuentran')
-    
-    #Filtrar las filas no vacías
-    fill_rows = df_modified[pd.notna(df_modified[columnNameTypeDoc]) & pd.notna(df_modified[columnNameNac])]
-    errors = fill_rows[(fill_rows[columnNameTypeDoc].isin([59, 60, 61])) &
-                            (fill_rows[columnNameNac] != 'Colombia') | 
-                       (~fill_rows[columnNameTypeDoc].isin([59, 60, 61, 66, 63])) &
-                            (fill_rows[columnNameNac] == 'Colombia')]
-    
-    totalNacErr = len(errors)
-    for index in errors.index:
-        setBgError(index, columnNameNac, bgSecError)
-        setBgError(index, columnNameTypeDoc, bgSecError)
+        totalErrNumber += len(errors)
+        for index in errors.index:
+            setBgError(index, columnName, bgError)
         
-    if totalNacErr>0:
-        print(f'Nacionalidad que no corresponde con el tipo de documento: {totalNacErr}')
-    return totalNacErr
+    if totalErrNumber > 0:
+        print(f'Números con símbolos y/o caracteres: {totalErrNumber}')
+    return totalErrNumber
 
-def gen_vs_sex(columnNameSex, columnNameGen):
-    if columnNameGen not in df_modified.columns or columnNameSex not in df_modified.columns:
-        raise ValueError(f"Las columnas {columnNameGen} y/o {columnNameSex} no se encuentran")
-    
-    fill_rows = df_modified[pd.notna(df_modified[columnNameGen]) & pd.notna(df_modified[columnNameSex])]
-    errors = fill_rows[(fill_rows[columnNameSex] == '1- Hombre') & (fill_rows[columnNameGen] == '2- Femenino') |
-                       (fill_rows[columnNameSex] == '2- Mujer') & (fill_rows[columnNameGen] == '1- Masculino')]
-    
-    totalGenErr = len(errors)
-    for index in errors.index:
-        setBgError(index, columnNameGen, bgSecError)
-        setBgError(index, columnNameSex, bgSecError)
-    
-    if totalGenErr > 0:
-        print(f'Errores en sexo y/o género: {totalGenErr}')
-    return totalGenErr
-
-def age_vs_maritalStatus(columnNameInterventionDate, columnNameBirthDay, columnNameMarital):
-    if columnNameBirthDay not in df_modified.columns or columnNameMarital not in df_modified.columns or columnNameInterventionDate not in df_modified.columns:
-        raise ValueError(f"Las columnas {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameMarital} no se encuentran")
-
-    fill_rows = df_modified[pd.notna(df_modified[columnNameBirthDay]) & pd.notna(df_modified[columnNameMarital])]
-    fill_rows['Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
-    errors = fill_rows[(fill_rows['Edad'] < 14.0) & (fill_rows[columnNameMarital] != '6- No aplica') |
-                       (fill_rows['Edad'] >= 14.0) & (fill_rows[columnNameMarital] == '6- No aplica')]
-    
-    totalErrMarital = len(errors)
-    for index in errors.index:
-        setBgError(index, columnNameMarital, bgError)
-    
-    if totalErrMarital > 0:
-        print(f'Estado civil no concuerda con la edad: {totalErrMarital}')
-    return totalErrMarital
-
-def nac_vs_pdi(columnNameNac, columnNamePdi):
-    if columnNameNac not in df_modified.columns or columnNamePdi not in df_modified.columns:
-        raise ValueError(f'Las columnas {columnNameNac} y/o {columnNamePdi} no se encuentran')
-    
-    fill_rows = df_modified[pd.notna(df_modified[columnNameNac]) & pd.notna(df_modified[columnNamePdi])]
-    
-    pattern = re.compile(r'\bMigrante\b', flags=re.IGNORECASE)# Expresión regular
-    errors = fill_rows[(fill_rows[columnNameNac] == 'Colombia') & (fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x))))) |
-                       (fill_rows[columnNameNac] != 'Colombia') & (~fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x)))))]
-
-    totalErrNacPdi = len(errors)
-    
-    for index in errors.index:
-        setBgError(index, columnNamePdi, bgError)
-    
-    if totalErrNacPdi > 0:
-        print(f'Errores en población diferencial: {totalErrNacPdi}')
-    return totalErrNacPdi
-
-def et_vs_lang(columnNameEt, columNameLang):
-    if columnNameEt not in df_modified.columns or columNameLang not in df_modified.columns:
-        raise ValueError(f'Las columnas {columnNameEt} y/o {columNameLang} no se encuentran')
-    
-    fill_rows = df_modified[pd.notna(df_modified[columnNameEt]) & pd.notna(df_modified[columNameLang])]
-    errors = fill_rows[(fill_rows[columnNameEt] != '6- Ninguno') & (fill_rows[columNameLang] == -1)]
-    totalErrEt = len(errors)
-    
-    for index in errors.index:
-        setBgError(index, columNameLang, bgError)
-    
-    if totalErrEt > 0:
-        print(f'Errores en habla español: {totalErrEt}')
-    return totalErrEt
-
+#Validar que el campo contenga sólo texto
 def validate_only_text(*columnsName):
     totalErrText = 0
     pattern =re.compile(r'^[^0-9.,:]+$')
@@ -411,6 +297,7 @@ def validate_only_text(*columnsName):
         print(f'Texto mal escrito: {totalErrText}')
     return totalErrText
 
+#Validar que el campo institución y barrio no contenga caracteres extraños
 def validate_only_text_inst_barr(*columnsName):
     totalErrText = 0
     pattern =re.compile(r'^[^,:;|/()=$%&*-_]+$')
@@ -429,24 +316,6 @@ def validate_only_text_inst_barr(*columnsName):
     if totalErrText > 0:
         print(f'Texto mal escrito: {totalErrText}')
     return totalErrText
-
-def validate_only_number(columnsName=[]):
-    totalErrNumber = 0
-    pattern =re.compile(r'^[^0-9]+$')
-    for columnName in columnsName:
-        if columnName not in df_modified.columns:
-            raise ValueError(f'La columna {columnName} no se encuentra')
-        
-        fill_rows = df_modified[pd.notna(df_modified[columnName])]
-        errors = fill_rows[fill_rows[columnName].apply(lambda x: bool(pattern.search(str(x))))]
-        
-        totalErrNumber += len(errors)
-        for index in errors.index:
-            setBgError(index, columnName, bgError)
-        
-    if totalErrNumber > 0:
-        print(f'Números con símbolos y/o caracteres: {totalErrNumber}')
-    return totalErrNumber
 
 def validate_address(addressComponents):
     totalErrAddress = 0
@@ -483,6 +352,189 @@ def validate_address(addressComponents):
     if totalErrAddress > 0:
         print(f'Errores en dirección: {totalErrAddress}')
     return totalErrAddress
+##------------------------------------------------------------------------------------    
+##-----------------------------POBLATIONAL FUNCTIONS----------------------------------
+##------------------------------------------------------------------------------------
+
+#Poblacional - longitud Nro documento
+def len_num_doc(columNameTypeDoc, columnNameNumDoc):
+    totalErrLenDoc = 0
+    # Verificar la existencia de las columnas requeridas
+    if columNameTypeDoc not in df_modified.columns or columnNameNumDoc not in df_modified.columns:
+        raise ValueError(f'Las columnas {columNameTypeDoc} y/o {columnNameNumDoc} no se encuentran.')
+    
+    #Filtrar filas que no están vacías
+    fill_rows = df_modified[pd.notna(df_modified[columNameTypeDoc]) & pd.notna(df_modified[columnNameNumDoc])]
+    errors = fill_rows[(fill_rows[columNameTypeDoc].isin([61,60])) & 
+                            (fill_rows[columnNameNumDoc].astype(str).str.len() != 10)]
+    
+    totalErrLenDoc = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameNumDoc, bgError)
+        
+    if totalErrLenDoc > 0:
+        print(f'Números de documento con longitud incorrecta: {totalErrLenDoc}')
+    return totalErrLenDoc
+
+#Poblacional edad y tipo de documento
+def age_vs_typedoc(columnNameTypeDoc, columnNameAge):
+    totalTypeDocErr = 0
+    # Verificar la existencia de las columnas requeridas
+    if columnNameTypeDoc not in df_modified.columns or columnNameAge not in df_modified.columns:
+        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameAge} no se encuentran')
+    
+    #Filtrar filas que no están vacías
+    fill_rows = df_modified[pd.notna(df_modified[columnNameTypeDoc]) & pd.notna(df_modified[columnNameAge])]
+    errors = fill_rows[((fill_rows[columnNameAge] < 7) & 
+                              (~fill_rows[columnNameTypeDoc].isin([60, 66, 64, 2482, 1638, 1640, 1639]))) |
+                         ((fill_rows[columnNameAge] > 7) & (fill_rows[columnNameAge] < 18) &
+                              (~fill_rows[columnNameTypeDoc].isin([61, 66, 64, 2482, 1640, 1639, 2482]))) |
+                         (fill_rows[columnNameAge] >= 18) &
+                              (~fill_rows[columnNameTypeDoc].isin([59, 62, 64, 65, 1637, 1638, 1640, 1639, 2482]))]
+    #Cantidad de errores
+    totalTypeDocErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameTypeDoc, bgSecError)
+        setBgError(index, columnNameAge, bgSecError)
+        
+    if totalTypeDocErr > 0:
+        print(f'Tipos de documento que no corresponden con la edad: {totalTypeDocErr}')
+    return totalTypeDocErr
+
+#Poblacional - Nacionalidad y tipo de documento
+def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):    
+    #Verificar existencia de las columnas
+    if columnNameNac not in df_modified.columns or columnNameTypeDoc not in df_modified.columns:
+        raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameNac} no se encuentran')
+    
+    #Filtrar las filas no vacías
+    fill_rows = df_modified[pd.notna(df_modified[columnNameTypeDoc]) & pd.notna(df_modified[columnNameNac])]
+    errors = fill_rows[(fill_rows[columnNameTypeDoc].isin([59, 60, 61])) &
+                            (fill_rows[columnNameNac] != 'Colombia') | 
+                       (~fill_rows[columnNameTypeDoc].isin([59, 60, 61, 66, 63])) &
+                            (fill_rows[columnNameNac] == 'Colombia')]
+    
+    totalNacErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameNac, bgSecError)
+        setBgError(index, columnNameTypeDoc, bgSecError)
+        
+    if totalNacErr>0:
+        print(f'Nacionalidad que no corresponde con el tipo de documento: {totalNacErr}')
+    return totalNacErr
+
+#Poblacional - Sexo y género
+def gen_vs_sex(columnNameSex, columnNameGen):
+    if columnNameGen not in df_modified.columns or columnNameSex not in df_modified.columns:
+        raise ValueError(f"Las columnas {columnNameGen} y/o {columnNameSex} no se encuentran")
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameGen]) & pd.notna(df_modified[columnNameSex])]
+    errors = fill_rows[(fill_rows[columnNameSex] == '1- Hombre') & (fill_rows[columnNameGen] == '2- Femenino') |
+                       (fill_rows[columnNameSex] == '2- Mujer') & (fill_rows[columnNameGen] == '1- Masculino')]
+    
+    totalGenErr = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameGen, bgSecError)
+        setBgError(index, columnNameSex, bgSecError)
+    
+    if totalGenErr > 0:
+        print(f'Errores en sexo y/o género: {totalGenErr}')
+    return totalGenErr
+
+#Poblacional - edad y estado civil
+def age_vs_maritalStatus(columnNameInterventionDate, columnNameBirthDay, columnNameMarital):
+    if columnNameBirthDay not in df_modified.columns or columnNameMarital not in df_modified.columns or columnNameInterventionDate not in df_modified.columns:
+        raise ValueError(f"Las columnas {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameMarital} no se encuentran")
+
+    fill_rows = df_modified[pd.notna(df_modified[columnNameBirthDay]) & pd.notna(df_modified[columnNameMarital])]
+    fill_rows['Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
+    errors = fill_rows[(fill_rows['Edad'] < 14.0) & (fill_rows[columnNameMarital] != '6- No aplica') |
+                       (fill_rows['Edad'] >= 14.0) & (fill_rows[columnNameMarital] == '6- No aplica')]
+    
+    totalErrMarital = len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameMarital, bgError)
+    
+    if totalErrMarital > 0:
+        print(f'Estado civil no concuerda con la edad: {totalErrMarital}')
+    return totalErrMarital
+
+#Poblacional - nacionalidad y población diferencial
+def nac_vs_pdi(columnNameNac, columnNamePdi):
+    if columnNameNac not in df_modified.columns or columnNamePdi not in df_modified.columns:
+        raise ValueError(f'Las columnas {columnNameNac} y/o {columnNamePdi} no se encuentran')
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameNac]) & pd.notna(df_modified[columnNamePdi])]
+    
+    pattern = re.compile(r'\bMigrante\b', flags=re.IGNORECASE)# Expresión regular
+    errors = fill_rows[(fill_rows[columnNameNac] == 'Colombia') & (fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x))))) |
+                       (fill_rows[columnNameNac] != 'Colombia') & (~fill_rows[columnNamePdi].apply(lambda x: bool(pattern.search(str(x)))))]
+
+    totalErrNacPdi = len(errors)
+    
+    for index in errors.index:
+        setBgError(index, columnNamePdi, bgError)
+    
+    if totalErrNacPdi > 0:
+        print(f'Errores en población diferencial: {totalErrNacPdi}')
+    return totalErrNacPdi
+
+#Poblacional - Habla español
+def et_vs_lang(columnNameEt, columNameLang):
+    if columnNameEt not in df_modified.columns or columNameLang not in df_modified.columns:
+        raise ValueError(f'Las columnas {columnNameEt} y/o {columNameLang} no se encuentran')
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameEt]) & pd.notna(df_modified[columNameLang])]
+    errors = fill_rows[(fill_rows[columnNameEt] != '6- Ninguno') & (fill_rows[columNameLang] == -1)]
+    totalErrEt = len(errors)
+    
+    for index in errors.index:
+        setBgError(index, columNameLang, bgError)
+    
+    if totalErrEt > 0:
+        print(f'Errores en habla español: {totalErrEt}')
+    return totalErrEt
+
+#Poblacional - EAPB
+def afiliacion_eapb(columnNameTipo, columnNameEPS):
+    cantErrAfiliacion = 0
+    
+    if columnNameEPS not in df_modified.columns or columnNameTipo not in df_modified.columns:
+        raise ValueError(f'La(s) columna(s) {columnNameEPS} y/o {columnNameTipo}, no se encuentra(n)')
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameEPS]) & pd.notna(df_modified[columnNameTipo])]
+    errors = fill_rows[fill_rows[columnNameTipo].isin([0]) | fill_rows[columnNameEPS].isin([0]) |
+                       ((fill_rows[columnNameTipo] == 135) & (fill_rows[columnNameEPS].str.strip() != 'NO ASEGURADO'))]
+    
+    cantErrAfiliacion += len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameEPS, bgSecError)
+        setBgError(index, columnNameTipo, bgSecError)
+    
+    if cantErrAfiliacion > 0:
+        print(f'Errores en afiliación EAPB: {cantErrAfiliacion}')
+    
+    return cantErrAfiliacion
+
+#Poblacional - validar ocupación
+def ocupacion_hcb(columnNameBirthDay, columnNameInterventionDate, columnNameOccupation):
+    cantErrOcupacion = 0
+    if columnNameBirthDay not in df_modified.columns or columnNameInterventionDate not in df_modified.columns or columnNameOccupation not in df_modified.columns:
+        raise ValueError(f"La(s) columna(s) {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameOccupation} no se encuentra(n)")
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameBirthDay]) & pd.notna(df_modified[columnNameOccupation])]
+    pattern = re.compile(r'\ No Aplica\b', flags=re.IGNORECASE)# Expresión regular
+    fill_rows['Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
+    errors = fill_rows[(fill_rows['Edad'] >= 18) & fill_rows[columnNameOccupation].apply(lambda x: bool(pattern.search(str(x)))) |
+                       (fill_rows['Edad'] < 7) & (fill_rows[columnNameOccupation] != '12- No aplica | ')]
+    
+    cantErrOcupacion += len(errors)
+    for index in errors.index:
+        setBgError(index, columnNameOccupation, bgError)
+        
+    if cantErrOcupacion > 0:
+        print(f'Errores en ocupación: {cantErrOcupacion}')
+    return cantErrOcupacion
     
 #-----------------------------------SESIONES PÁGINA 1---------------------------------
 def sc_pg1():
@@ -589,25 +641,28 @@ def hcb_pg1():
 
 #-------------------------------------HCB PÁGINA 2-----------------------------------
 def hcb_pg2():
+    #Campos requeridos
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
                     'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion',
                     'IdAfiliacionSGSSS', 'NombreEAPB', 'IdNivelEducativo', 'Ocupacion']
     #Campos de alertas
-    fieldsAlerts = ['.Alerta nutricional.', '.Condición crónica.', '.Enfermedad Transmisible y ETV.', '.Alertas psicosociales.',
-                    '.Alerta Salud Bucal.']
+    fieldsAlerts = ['.Enfermedad Transmisible y ETV.', '.Condición crónica.', '.Alerta nutricional.', '.Alertas psicosociales.',
+                    '.Alerta Salud Bucal.', '.Alerta infancia.', '.Alertas en mujeres.', '.Alertas discapacidad - Limitaciones para la actividad.']
     
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
                        +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
-                       +validate_alerts_hcb(fieldsAlerts))
+                       +validate_alerts_hcb(fieldsAlerts)+tamizajes_vs_peso_hcb()+salud_bucal_hcb()
+                       +afiliacion_eapb(reqFieldsPg2[11], reqFieldsPg2[12])+validate_only_text(reqFieldsPg2[2], reqFieldsPg2[3], 'SegundoNombre', 'SegundoApellido')
+                       +sb_clasificacion_hcb()+ocupacion_hcb(reqFieldsPg2[8], 'Fecha_intervencion', reqFieldsPg2[14]))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
 
 #Formato de las alertas
 def validate_alerts_hcb(columnsNames=[]):
-    pattern = re.compile(r'^[^\d,]*\d(?:,\d+)*\d?[^\d,]*$')
+    pattern = re.compile(r'^[^,]*\d(?:,\d+)*\d?[^\d,]*$')
     cantErrAlerts = 0
     for columnName in columnsNames:
         if columnName not in df_modified.columns:
@@ -616,17 +671,95 @@ def validate_alerts_hcb(columnsNames=[]):
         #Obtener nombre de la siguiente columna
         columnIndexAlert = df_modified.columns.get_loc(columnName) + 1 #Indice de la columna principal más uno
         columnNameAlert = df_modified.columns[columnIndexAlert] if columnIndexAlert < len(df_modified.columns) else None #Nombre de la siguiente columna
-        
         fill_rows = df_modified[pd.notna(df_modified[columnNameAlert])]
-        errors = fill_rows[fill_rows[columnNameAlert].apply(lambda x: bool(pattern.search(str(x))))]
-        cantErrAlerts += len(errors)
-        for index in errors.index:
-            setBgError(index, columnNameAlert, bgError)
-    
+        for index, value in fill_rows[columnNameAlert].items():
+            value_str = "{:.0f}".format(value) if not isinstance(value, str) else value
+            if not pattern.match(str(value_str)):    
+                cantErrAlerts += 1
+                setBgError(index, columnNameAlert, bgError)
+                
     if cantErrAlerts > 0:
         print(f'Errores en alertas: {cantErrAlerts}')
-        
     return cantErrAlerts
+
+#Validar campos de tamizajes con datos de peso, talla e IMC
+def tamizajes_vs_peso_hcb():
+    cantErrTam = 0
+    colunmNameTamizajes = ['..Tamizaje OMS..','..Tamizaje FINDRISC..','..Tamizaje EPOC..']
+    columnNamePti = ['..Peso Caracterización<br><br>..', '..Talla Caracterización<br><br>..','..Desvia. Están./IMC/Percentil Fen. Caracterización..']
+    
+    def find_errors(columnsNamesMain = [], columnNameSecond=[]):
+        for columnName in columnsNamesMain:
+            if columnName not in df_modified.columns:
+                raise ValueError(f"La columna {columnName} no se encuentra")
+            
+            fill_rows = df_modified[pd.notna(df_modified[columnName])]
+            errors = fill_rows[(pd.notna(fill_rows[columnName]) & (pd.isna(fill_rows[columnNameSecond[0]]) |
+                                                                pd.isna(fill_rows[columnNameSecond[1]]) |
+                                                                pd.isna(fill_rows[columnNameSecond[2]])))]
+            for index in errors.index:
+                setBgError(index, columnNameSecond[0], bgError)
+                setBgError(index, columnNameSecond[1], bgError)
+                setBgError(index, columnNameSecond[2], bgError)
+                
+            return len(errors)
+        
+    cantErrTam = find_errors(colunmNameTamizajes,columnNamePti) + find_errors(columnNamePti,colunmNameTamizajes)
+    
+    if cantErrTam > 0:
+        print(f"Errores en tamizajes: {cantErrTam}")
+    return cantErrTam
+
+#Validar campo de priorizado salud bucal vs alerta salud bucal
+def salud_bucal_hcb():
+    cantErrSb = 0
+    columnsNames = ['..Caracterización - Clasificación..', '..Caracterización - Alertas..', '..Priorizado para acompañamiento familiar..']
+    
+    for columnName in columnsNames:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+        
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        if columnName != '..Priorizado para acompañamiento familiar..':
+            errors = fill_rows[(pd.notna(fill_rows[columnName]) & pd.isna(fill_rows[columnsNames[2]])) |
+                               (pd.notna(fill_rows[columnsNames[2]]) & pd.isna(fill_rows[columnName]))]
+            cantErrSb += len(errors)
+            for index in errors.index:
+                setBgError(index, columnsNames[0], bgSecError)
+                setBgError(index, columnsNames[1], bgSecError)
+                setBgError(index, columnsNames[2], bgSecError)
+                
+        elif columnName == '..Priorizado para acompañamiento familiar..':
+            errors = fill_rows[~fill_rows[columnsNames].isin(['SI', 'NO']).any(axis=1)]
+            cantErrSb += len(errors)
+            for index in errors.index:
+                setBgError(index, columnName, bgSecError)
+    
+    if cantErrSb > 0:
+        print(f'Errores en salud bucal: {cantErrSb}')
+    return cantErrSb
+
+#Validar formato clasificación
+def sb_clasificacion_hcb():
+    cantErrClas = 0
+    columnsNames = ['..Caracterización - Clasificación..', '..Evaluación - Clasificación..']
+
+    for columnName in columnsNames:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+        
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        errors = fill_rows[~fill_rows[columnName].astype(str).str.endswith('%')]
+        
+        cantErrClas += len(errors)
+        
+        for index in errors.index:
+            setBgError(index, columnName, bgError)
+            
+    if cantErrClas > 0:
+        print(f'Campo de clasificación a los que les falta signo "%"')
+    return cantErrClas
+
 #------------------------------MASCOTA VERDE PÁGINA 2---------------------------------
 def mv_pg2():
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
@@ -638,7 +771,6 @@ def mv_pg2():
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
-
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
 
