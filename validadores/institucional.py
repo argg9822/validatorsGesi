@@ -63,8 +63,8 @@ def chooseBase(base):
     switch = {
         "sesiones_colectivas": sc,
         "hcb": hcb,
-        "mascota_verde": mv
-        
+        "mascota_verde": mv,
+        "persona_mayor": pm
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -135,6 +135,26 @@ def mv():
     cantErrMv = totalErroresPg_2
     print(f">>TOTAL ERRORES EN MASCOTA VERDE: {(cantErrMv)}")
 
+def pm():
+    for index, sheet_name in enumerate(workbook.sheetnames):
+        global sheet
+        sheet = workbook[sheet_name]
+        data = sheet.values
+        cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
+        global df
+        df = pd.DataFrame(data, columns=cols)
+        global df_modified
+        df_modified = list_pages()
+        print(f"-------------------Página {index+1}-------------------")
+        if index == 0:
+            totalErroresPg_1 = pm_pg1()
+        if index == 1:
+            totalErroresPg_2 = pm_pg2()
+            print("----------------------------------------------")
+            
+    cantErrPm = (totalErroresPg_1+totalErroresPg_2)
+    print(f">>TOTAL ERRORES EN PERSONA MAYOR: {(cantErrPm)}")
+
 ##------------------------------------------------------------------------------------    
 ##------------------------------GENERAL FUNCTIONS-------------------------------------
 ##------------------------------------------------------------------------------------
@@ -155,16 +175,17 @@ def setBgError(index, columnName, color):
     cellUsr.fill = bgUsr
     cellUsr.font = Font(bold=True)
     
-def validarTelefono(columnName):
+def validarTelefono(*columnsNames):
     cantErroresTel = 0
-    if columnName in df_modified.columns:
-        for index, fila in df_modified.iterrows():   
-            cellTelefono = int(fila[columnName]) if pd.notna(fila[columnName]) else fila[columnName]
-            if len(str(cellTelefono).strip()) not in [7, 10] and pd.notna(cellTelefono):
-                cantErroresTel += 1                
-                setBgError(index, columnName, bgError)
-    else:
-        print("No se encuentra la columna Teléfono")
+    for columnName in columnsNames:
+        if columnName in df_modified.columns:
+            for index, fila in df_modified.iterrows():   
+                cellTelefono = int(fila[columnName]) if pd.notna(fila[columnName]) else fila[columnName]
+                if len(str(cellTelefono).strip()) not in [7, 10] and pd.notna(cellTelefono):
+                    cantErroresTel += 1                
+                    setBgError(index, columnName, bgError)
+        else:
+            print("No se encuentra la columna Teléfono")
         
     if cantErroresTel > 0:
         print(f"Teléfonos con longitud incorrecta: {cantErroresTel}")
@@ -217,6 +238,26 @@ def required_fields(arrayFields=[], type=1, cantNextColumn=1):
             
     if totalEmptyFields > 0:
         print(f"Campos obligatorios vacíos: {totalEmptyFields}")
+    return totalEmptyFields
+
+#Campos requeridos (validar página siguiente)
+def required_fields_next_column(columnsNames = []):
+    totalEmptyFields = 0
+    
+    for columnName in columnsNames:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+        
+        columnIndex = df_modified.columns.get_loc(columnName) + 1 #Indice de la columna principal más uno
+        columnNameNext = df_modified.columns[columnIndex] if columnIndex < len(df_modified.columns) else None #Nombre de la siguiente columna
+        
+        errors = df_modified[pd.isna(df_modified[columnNameNext])]
+        totalEmptyFields += len(errors)
+        for index in errors.index:
+            setBgError(index, columnNameNext, bgError)
+
+    if totalEmptyFields > 0:
+        print(f'Campos de alerta vacíos: {totalEmptyFields}')
     return totalEmptyFields
 
 def difference_dates(date_interv, date2):   
@@ -517,7 +558,7 @@ def afiliacion_eapb(columnNameTipo, columnNameEPS):
     return cantErrAfiliacion
 
 #Poblacional - validar ocupación
-def ocupacion_hcb(columnNameBirthDay, columnNameInterventionDate, columnNameOccupation):
+def ocupacion(columnNameBirthDay, columnNameInterventionDate, columnNameOccupation):
     cantErrOcupacion = 0
     if columnNameBirthDay not in df_modified.columns or columnNameInterventionDate not in df_modified.columns or columnNameOccupation not in df_modified.columns:
         raise ValueError(f"La(s) columna(s) {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameOccupation} no se encuentra(n)")
@@ -535,7 +576,27 @@ def ocupacion_hcb(columnNameBirthDay, columnNameInterventionDate, columnNameOccu
     if cantErrOcupacion > 0:
         print(f'Errores en ocupación: {cantErrOcupacion}')
     return cantErrOcupacion
+
+def discapacidad_categoria(columnNamePDI, columnNameCategoria):
+    cantErrDisc = 0
+    if columnNamePDI not in df_modified.columns or columnNameCategoria not in df_modified.columns:
+        raise ValueError(f"La(s) columna(s) {columnNamePDI} y/o {columnNameCategoria} no se encuentra(n)")
     
+    pattern = re.compile(r'\Discapacidad\b', flags=re.IGNORECASE)# Expresión regular
+    fill_rows = df_modified[pd.notna(df_modified[columnNamePDI]) | pd.notna(df_modified[columnNamePDI])]
+    errors = fill_rows[(fill_rows[columnNamePDI].apply(lambda x: bool(pattern.search(str(x)))) & pd.isna(fill_rows[columnNameCategoria])) |
+                       (pd.notna(fill_rows[columnNameCategoria]) & ~fill_rows[columnNamePDI].apply(lambda x: bool(pattern.search(str(x)))))]
+    
+    cantErrDisc = len(errors)
+
+    for index in errors.index:
+        setBgError(index, columnNameCategoria, bgSecError)
+        setBgError(index, columnNamePDI, bgSecError)
+
+    if cantErrDisc > 0:
+        print(f"Errores en categoría de la discapacidad: {cantErrDisc}")
+
+    return cantErrDisc
 #-----------------------------------SESIONES PÁGINA 1---------------------------------
 def sc_pg1():
     requiredFieldsPg1 = ['.Nombre de la institución / Establecimiento / Equipo étnico.',
@@ -655,7 +716,7 @@ def hcb_pg2():
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
                        +validate_alerts_hcb(fieldsAlerts)+tamizajes_vs_peso_hcb()+salud_bucal_hcb()
                        +afiliacion_eapb(reqFieldsPg2[11], reqFieldsPg2[12])+validate_only_text(reqFieldsPg2[2], reqFieldsPg2[3], 'SegundoNombre', 'SegundoApellido')
-                       +sb_clasificacion_hcb()+ocupacion_hcb(reqFieldsPg2[8], 'Fecha_intervencion', reqFieldsPg2[14]))
+                       +sb_clasificacion_hcb()+ocupacion(reqFieldsPg2[8], 'Fecha_intervencion', reqFieldsPg2[14]))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
@@ -768,6 +829,49 @@ def mv_pg2():
                        +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion', reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol'))
+    if cantErroresPg_2 == 0:
+        print("Sin errores en la segunda página")
+    return cantErroresPg_2
+
+#------------------------------PERSONA MAYOR PÁGINA 1---------------------------------
+def pm_pg1():
+    reqFieldsPg1 = ['.Nombre de la institución.', '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio priorizado.', '.Manzana del cuidado.',
+                    '.Teléfono1.', '.Correo1.', '.Primer nombre.', '.Primer apellido.', '.Tipo documento.', '.Documento.', '.Total de personas adultas en la institución(Hombres).',
+                    '.Total de personas adultas en la institución(Mujeres).', '.Total de personas mayores en la institución(Hombres).', '.Total de personas mayores en la institución(Mujeres).',
+                    '.Número de personas que requieren controles de salud periódicos para el manejo y seguimiento a diagnósticos y tratamiento.', '.Cuantas de ellas asisten a los servicios de salud.',
+                    '..Permanecen solos en casa (Abandono de la red familiar)..', '..Necesitan cuidados especiales..', '..Pacientes crónicos..', '..Situación económica de la familia..',
+                    '..Personas en condición de vulnerabilidad (Habitante de calle, VCA)..', '..Voluntad propia..']
+    
+    reqFieldspg1_next = ['.¿Cuenta con plataforma estratégica (visión, misión, objetivos/principios, valores, políticas)?.', '.¿Cuenta con proceso de administración de información?.',
+                         '.¿Maneja formato de ingreso al usuario?.', '.¿Maneja formato de egreso del usuario?.', '.Realiza seguimiento periódico de historias clínicas.',
+                         '.¿Cuenta con registro de actividades y acciones realizadas con los usuarios?.', '.¿Cuenta con registro de las actividades realizadas con los familiares de las personas institucionalizadas?.',
+                         '.¿Cuenta con un programa de atención integral para el Desarrollo Humano?.', '.¿Existen planes de atención individuales orientados a fortalecer capacidades y habilidades de las personas mayores?.',
+                         '.¿Implementa prácticas promocionales para la salud y realiza registro de las mismas?.', '.¿Cuenta con la guía de buen trato?.', '.¿Desarrolla actividades de promoción del buen trato?.',
+                         '.¿Desarrolla actividades de prevención del maltrato?.', '.¿Desarrollan actividades colectivas (participación, encuentros)?.', '.¿Desarrollan formación del talento humano en bienestar de ellos y de las personas mayores?.',
+                         '.¿El personal de enfermería se encuentra capacitado para prestar servicios integrales y de calidad acorde a las condiciones de salud de la población?.',
+                         '.¿Cuenta con protocolo de aislamiento?.', '.¿En la institución se dispone de un lugar específico de aislamiento?.', '.¿Se cuenta con protocolo de limpieza y desinfección al ingreso de la institución?.',
+                         '.¿Durante el desarrollo de actividades en la institución, se conserva el distanciamiento social?.', '.¿Implementan técnica de lavado de manos por lo menos cada tres horas?.',
+                         '.¿Todas las personas que se encuentran en la institución utilizan tapabocas?.', '.¿Se cuenta con ruta sanitaria activa en la institución?.']
+    cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields_next_column(reqFieldspg1_next)+validarTelefono(reqFieldsPg1[6], '.Teléfono2.')+validarNoManzana(reqFieldsPg1[5],'.Numero de manzana.'))
+
+    if cantErroresPg_1 == 0:
+        print("Sin errores en la primera página")
+    return cantErroresPg_1
+
+#------------------------------PERSONA MAYOR PÁGINA 2---------------------------------
+def pm_pg2():
+    reqFieldsPg2 = ['.Persona en abandono.', 'IdTipoDocumento', 'Documento', 'PrimerNombre',
+                    'PrimerApellido', 'IdNacionalidad', 'IdSexo', 'IdGenero', 'IdEstadoCivil',
+                    'FechaNacimiento', 'IdEtnia', 'IdAfiliacionSGSSS', 'NombreEAPB', 'IdNivelEducativo',
+                    'PoblacionDiferencialInclusion']
+    
+    reqFieldspg2_next = ['.Condición crónica.', '.Enfermedad transmisible y ETV.', '.Alerta nutricional.', '.Alerta Psicosociales.', '.Alerta salud oral.']
+
+    cantErroresPg_2 = (required_fields(reqFieldsPg2)+age_vs_typedoc(reqFieldsPg2[1], 'Edad')+nac_vs_typedoc(reqFieldsPg2[1],reqFieldsPg2[5])
+                       +gen_vs_sex(reqFieldsPg2[6], reqFieldsPg2[7])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[9],reqFieldsPg2[8])
+                       +nac_vs_pdi(reqFieldsPg2[5], reqFieldsPg2[14])+et_vs_lang(reqFieldsPg2[10], 'HablaEspaniol')
+                       +discapacidad_categoria(reqFieldsPg2[14], 'CategoriasDiscapacidad')+required_fields_next_column(reqFieldspg2_next)
+                       +validate_only_text(reqFieldsPg2[3], 'SegundoNombre', reqFieldsPg2[4], 'SegundoApellido'))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
