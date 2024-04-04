@@ -748,9 +748,9 @@ def hm_pag3(sheet):
         remplazarComillas(sheet) 
         celdas_pintadas_rojo = 0 
         
-        CeldasVacias["vacias"] = {8, 10}
-        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
-        celTexto["ColumText"] = {8}      
+        # CeldasVacias["vacias"] = {8, 10}
+        # celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
+        celTexto["ColumText"] = {12,13}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
         
@@ -935,14 +935,16 @@ def Auto_Pag2(sheet):
         
         
         NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
+        adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
         for i in range(2, ultima_fila + 1):
             numeroDocumento = sheet.cell(i, 8).value
             # Verifica si el número de documento cumple con el patrón y satisface las condiciones adicionales
             if not NumeroDocumento.match(numeroDocumento):
-                celdas_pintadas_rojo += 1
-                colum["column"] = {8, 2}
-                colum["row"] = i
-                pintar(colum, sheet)
+                if not adulto_menor_sin_id.match(numeroDocumento):
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {8, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
                 
             if sheet.cell(i,9).value < sheet.cell(i,3).value or sheet.cell(i,9).value > sheet.cell(i,3).value :
                 celdas_pintadas_rojo += 1
