@@ -1,3 +1,4 @@
+import datetime
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import PatternFill, Font
 from openpyxl import load_workbook, Workbook
@@ -175,7 +176,7 @@ def setBgError(index, columnName, color):
     cellUsr.fill = bgUsr
     cellUsr.font = Font(bold=True)
     
-def validarTelefono(*columnsNames):
+def validar_telefono(*columnsNames):
     cantErroresTel = 0
     for columnName in columnsNames:
         if columnName in df_modified.columns:
@@ -190,6 +191,25 @@ def validarTelefono(*columnsNames):
     if cantErroresTel > 0:
         print(f"Teléfonos con longitud incorrecta: {cantErroresTel}")
     return cantErroresTel
+
+def validate_email(*columnsNames):
+    cantErrorsEmail = 0
+    pattern = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    for columnName in columnsNames:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+        
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        errors = fill_rows[~fill_rows[columnName].apply(lambda x: bool(pattern.search(str(x))))]
+        
+        cantErrorsEmail += len(errors)
+        for index in errors.index:
+            setBgError(index, columnName, bgError)
+        
+    if cantErrorsEmail > 0:
+        print(f'Correos con formato incorrecto: {cantErrorsEmail}')
+    return cantErrorsEmail
+
 
 def validarNoManzana(columnNameManzana, columnNameNroManzana):
     totalErrApple = 0
@@ -263,6 +283,22 @@ def required_fields_next_column(columnsNames = []):
 def difference_dates(date_interv, date2):   
     result = pd.to_datetime(date_interv) - pd.to_datetime(date2)
     return result
+
+def comparar_fechas(columnNameDateInter, columnNameDate):
+    totalErrDate = 0
+    for index, fila in df_modified.iterrows():
+        cellDateSesion = fila[columnNameDate]
+        cellDateSesionInter = fila[columnNameDateInter]
+        if columnNameDate in df_modified.columns: 
+            if pd.notna(cellDateSesion):
+                if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
+                    setBgError(index, columnNameDate, bgError)
+                    totalErrDate += 1
+        else:
+            print(f'No se encontró la columna {columnNameDate}')
+    if totalErrDate > 0:
+        print(f'Fechas menor que la de intervención: {totalErrDate}')
+    return totalErrDate
 
 def calculate_age(birth_date, intervention_date):
     age = (pd.to_datetime(intervention_date) - pd.to_datetime(birth_date)).days // 365.25
@@ -488,7 +524,7 @@ def age_vs_maritalStatus(columnNameInterventionDate, columnNameBirthDay, columnN
         raise ValueError(f"Las columnas {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameMarital} no se encuentran")
 
     fill_rows = df_modified[pd.notna(df_modified[columnNameBirthDay]) & pd.notna(df_modified[columnNameMarital])]
-    fill_rows['Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
+    fill_rows.loc[:,'Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
     errors = fill_rows[(fill_rows['Edad'] < 14.0) & (fill_rows[columnNameMarital] != '6- No aplica') |
                        (fill_rows['Edad'] >= 14.0) & (fill_rows[columnNameMarital] == '6- No aplica')]
     
@@ -613,10 +649,11 @@ def sc_pg1():
         'columnNameX':'.Coordenadas X.',
         'columnNameY':'.Coordenadas Y.'
     }
-     
-    catnErroresPg_1 = (required_fields(requiredFieldsPg1) + validarNoManzana(requiredFieldsPg1[8], '.Nro Manzana.') + validarTelefono(requiredFieldsPg1[5])
+    
+    columnsNames_only_numbers = ['.Número.', '.Eje generador.', '.Placa.', '.Teléfono.']
+    catnErroresPg_1 = (required_fields(requiredFieldsPg1) + validarNoManzana(requiredFieldsPg1[8], '.Nro Manzana.') + validar_telefono(requiredFieldsPg1[5])
                        +validate_only_text_inst_barr(requiredFieldsPg1[0], requiredFieldsPg1[4])
-                       +validate_address(addressComponents))+type_institution(requiredFieldsPg1[7], '.Otra. ¿Cual? (Tipo de Institución).')
+                       +validate_address(addressComponents)+type_institution(requiredFieldsPg1[7], '.Otra. ¿Cual? (Tipo de Institución).')+validate_only_number(columnsNames_only_numbers))
     if catnErroresPg_1 == 0:
         print('Sin errores en la primera página')
     return catnErroresPg_1
@@ -624,27 +661,10 @@ def sc_pg1():
 def sc_pg2():
     requiredFieldsPg2 = ['.Componente.', '.Línea operativa.', '.Dimensión.', 
                          '.Temática.', '.Número sesión.', '.Fecha.', '.Nombre profesional 1.']
-    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+sesion_date()+validate_only_number(['.Número sesión.']))
+    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+comparar_fechas('Fecha_intervencion', '.Fecha.')+validate_only_number(['.Número sesión.']))
     if cantErroresPg_2 == 0:
         print('Sin errores en la segunda página')
     return cantErroresPg_2
-
-def sesion_date():
-    totalErrDate = 0
-    for index, fila in df_modified.iterrows():
-        columnNameDate = '.Fecha.'
-        cellDateSesion = fila[columnNameDate]
-        cellDateSesionInter = fila['Fecha_intervencion']
-        if columnNameDate in df_modified.columns: 
-            if pd.notna(cellDateSesion):
-                if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
-                    setBgError(index, columnNameDate, bgError)
-                    totalErrDate += 1
-        else:
-            print(f'No se encontró la columna {columnNameDate}')
-    if totalErrDate > 0:
-        print(f'Fechas de sesión incorrectas: {totalErrDate}')
-    return totalErrDate
 
 #-----------------------------------SESIONES PÁGINA 3---------------------------------
 def sc_pg3():
@@ -687,15 +707,15 @@ def hcb_pg1():
         'columnNameY':'..Coordenadas Y..'
     }
     
-    columnsNamesNumbers = ['..Número..', '..Placa..', '.Estrato.', '..Perros..', '..Gatos..', '..Otros..', 
+    columnsNames_only_numbers = ['..Número..', '..Placa..', '.Estrato.', '..Perros..', '..Gatos..', '..Otros..', 
                            '..Perros...1','..Gatos...1', '..Perros...2', '..Gatos...2', '..Caracterización...56',
                            '..Evaluación...56', '..Caracterización...57', '..Evaluación...57', '..Caracterización...58',
                            '..Evaluación...58', '..Caracterización...59','..Evaluación...59','..Caracterización...60',
                            '..Evaluación...60', '..Caracterización...61', '..Evaluación...61','..Caracterización...62',
                            '..Evaluación...62','..Caracterización...63', '..Evaluación...63']
     
-    cantErrorsPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1Sec2, 2, 1)+validarTelefono(reqFieldsPg1[9])
-                      +validate_address(addressComponents)+validate_only_number(columnsNamesNumbers))
+    cantErrorsPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1Sec2, 2, 1)+validar_telefono(reqFieldsPg1[9])
+                      +validate_address(addressComponents)+validate_only_number(columnsNames_only_numbers))
     if cantErrorsPg_1 == 0:
         print("Sin errores en la primera página")
     return cantErrorsPg_1
@@ -852,12 +872,66 @@ def pm_pg1():
                          '.¿Cuenta con protocolo de aislamiento?.', '.¿En la institución se dispone de un lugar específico de aislamiento?.', '.¿Se cuenta con protocolo de limpieza y desinfección al ingreso de la institución?.',
                          '.¿Durante el desarrollo de actividades en la institución, se conserva el distanciamiento social?.', '.¿Implementan técnica de lavado de manos por lo menos cada tres horas?.',
                          '.¿Todas las personas que se encuentran en la institución utilizan tapabocas?.', '.¿Se cuenta con ruta sanitaria activa en la institución?.']
-    cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields_next_column(reqFieldspg1_next)+validarTelefono(reqFieldsPg1[6], '.Teléfono2.')+validarNoManzana(reqFieldsPg1[5],'.Numero de manzana.'))
+    
+    addressComponents = {
+        'columnNameZone': '.Zona.',
+        'columnNameAx1': '.Eje Principal.',
+        'columnNameNumber':'.Número.',
+        'columnNameAx2':'.Eje generador.',
+        'columnNamePlate':'.Placa.',
+        'columnNameTrail':'.Vereda.',
+        'columnNameX':'.Coordenadas X.',
+        'columnNameY':'.Coordenadas Y.'
+    }
+
+    columnsNames_only_numbers = ['.Documento.', '.Teléfono1.', '.Teléfono2.', '.Placa.', '.Eje generador.', '.Número.']
+
+    cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields_next_column(reqFieldspg1_next)+validar_telefono(reqFieldsPg1[6], '.Teléfono2.')+validarNoManzana(reqFieldsPg1[5],'.Numero de manzana.')+
+                       +validate_address(addressComponents)+validate_email(reqFieldsPg1[7], '.Correo1.')+validate_only_text(reqFieldsPg1[8], reqFieldsPg1[9], '.Segundo nombre.', '.Segundo apellido.')
+                       +validate_only_text_inst_barr(reqFieldsPg1[0], '.Barrio.', '.Vereda.')+validate_only_number(columnsNames_only_numbers)+validate_type_doc_pm('.Tipo documento.')
+                       +comparar_fechas('Fecha_intervencion','.Fecha evaluación.'))
 
     if cantErroresPg_1 == 0:
         print("Sin errores en la primera página")
     return cantErroresPg_1
 
+def validate_evaluation_fields(columnNameDate, numColumns, columnsNamesEva = []):
+    totalErrorsEva = 0
+    if columnNameDate not in df_modified.columns or numColumns not in df_modified.columns:
+        raise ValueError(f'La columna {columnName} y/o {columnNameDate} no se encuentra')
+    
+    for columnName in columnsNamesEva:
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+        
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        errors = fill_rows[(pd.notna(fill_rows[columnName]) & pd.isna(fill_rows[columnNameDate])) |
+                           pd.notna(fill_rows[columnNameDate]) & pd.isna(fill_rows[columnName])]
+        totalErrorsEva += len(errors)
+        for index in errors.index:
+            setBgError(index, columnName, bgSecError)
+            setBgError(index, columnNameDate, bgSecError)
+
+    if totalErrorsEva > 0:
+        print(f"Campos de evaluación sin la fecha: {totalErrorsEva}")
+    return totalErrorsEva
+
+def validate_type_doc_pm(columnName):
+    totalErrorsDoc = 0
+    if columnName not in df_modified.columns:
+        raise ValueError(f'La columna {columnName} no se encuentra')
+
+    fill_rows = df_modified[pd.notna(df_modified[columnName])]
+    errors = fill_rows[fill_rows[columnName].isin(['2- RC', '3- TI', '8- Menor sin ID.', 60, 61, 66])]
+
+    totalErrorsDoc += len(errors)
+    for index in errors.index:
+        setBgError(index, columnName, bgError)
+
+    if totalErrorsDoc > 0:
+        print(f'Tipos de documento que no corresponden con persona mayor: {totalErrorsDoc}')
+
+    return totalErrorsDoc
 #------------------------------PERSONA MAYOR PÁGINA 2---------------------------------
 def pm_pg2():
     reqFieldsPg2 = ['.Persona en abandono.', 'IdTipoDocumento', 'Documento', 'PrimerNombre',
@@ -871,7 +945,7 @@ def pm_pg2():
                        +gen_vs_sex(reqFieldsPg2[6], reqFieldsPg2[7])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[9],reqFieldsPg2[8])
                        +nac_vs_pdi(reqFieldsPg2[5], reqFieldsPg2[14])+et_vs_lang(reqFieldsPg2[10], 'HablaEspaniol')
                        +discapacidad_categoria(reqFieldsPg2[14], 'CategoriasDiscapacidad')+required_fields_next_column(reqFieldspg2_next)
-                       +validate_only_text(reqFieldsPg2[3], 'SegundoNombre', reqFieldsPg2[4], 'SegundoApellido'))
+                       +validate_only_text(reqFieldsPg2[3], 'SegundoNombre', reqFieldsPg2[4], 'SegundoApellido')+validate_type_doc_pm(reqFieldsPg2[1]))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
