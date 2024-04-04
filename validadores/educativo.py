@@ -34,6 +34,7 @@ def setBase(base):
     chooseBase(base)
     preguntaDescarga()
     
+    
 # llamar o cargar archivo excel
 def loadExcel():
     # Abrir el archivo Excel
