@@ -333,7 +333,7 @@ def validar_pagina2_sesiones(sheet):
         print("Error", f"Se produjo un error: {str(e)}")
 def validar_pagina3_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
-    adulto_menor_sin_id = re.compile(r'^\d{3,4}[A-Za-z]{2,4}\d{5,6}$')
+    adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
 
     NumeroDocumento = re.compile("^\d{10}$")
     try:
@@ -412,14 +412,14 @@ def validar_pagina3_sesiones(sheet):
             #verificar poblacion
             if edad <= 14 and sheet.cell(i,19).value != "Estudiante":
                 celdas_pintadas_rojo += 1
-                colum["column"] = {17, 19, 2}
+                colum["column"] = {14, 19, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
                 
             #verificar poblacion
             if edad <= 17 and sheet.cell(i,19).value == "Docente":
                 celdas_pintadas_rojo += 1
-                colum["column"] = {17, 19, 2}
+                colum["column"] = {14, 19, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
                 
@@ -442,7 +442,7 @@ def validar_pagina3_sesiones(sheet):
                 
             if sheet.cell(i, 10).value  in ["8- Menor sin ID.", "7- Adulto sin ID."] and not adulto_menor_sin_id.match(numeroDocumento) :
                 celdas_pintadas_rojo += 1
-                colum["column"] = {10, 2}
+                colum["column"] = {10, 9, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
                 
@@ -973,7 +973,7 @@ def mascota_pag1(sheet):
         celTexto["ColumText"] = {8, 11}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
-        adulto_menor_sin_id = re.compile(r'^\d{3,4}[A-Za-z]{2,4}\d{5,6}$')
+        adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
         
         NumeroDocumento = re.compile("^\d{8}$|^\d{10}$")
         for i in range(2, ultima_fila + 1):
@@ -1152,7 +1152,7 @@ def Docuemento(sheet, Var_edad ):
     celdas_pintadas_rojo = 0 
     NumeroDocumento = re.compile("^\d{10}$")
         #validador de campos por la edad 
-    adulto_menor_sin_id = re.compile(r'^\d{3,4}[A-Za-z]{2,4}\d{5,6}$')
+    adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
     
     
     
