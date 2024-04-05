@@ -1,4 +1,6 @@
 import datetime
+from datetime import datetime
+import math
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import PatternFill, Font
 from openpyxl import load_workbook, Workbook
@@ -65,7 +67,8 @@ def chooseBase(base):
         "sesiones_colectivas": sc,
         "hcb": hcb,
         "mascota_verde": mv,
-        "persona_mayor": pm
+        "persona_mayor": pm,
+        "pci": pci
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -156,6 +159,27 @@ def pm():
     cantErrPm = (totalErroresPg_1+totalErroresPg_2)
     print(f">>TOTAL ERRORES EN PERSONA MAYOR: {(cantErrPm)}")
 
+def pci():
+    for index, sheet_name in enumerate(workbook.sheetnames):
+        global sheet
+        sheet = workbook[sheet_name]
+        data = sheet.values
+        cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
+        global df
+        df = pd.DataFrame(data, columns=cols)
+        global df_modified
+        df_modified = list_pages()
+        print(f"-------------------Página {index+1}-------------------")
+        if index == 0:
+            totalErroresPg_1 = pci_pg1()
+        if index == 1:
+            totalErroresPg_2 = pci_pg2()
+        if index == 2:
+            totalErroresPg_3 = pci_pg3()
+            print("----------------------------------------------")
+            
+    cantErrPm = (totalErroresPg_1+totalErroresPg_2+totalErroresPg_3)
+    print(f">>TOTAL ERRORES EN PCI: {(cantErrPm)}")
 ##------------------------------------------------------------------------------------    
 ##------------------------------GENERAL FUNCTIONS-------------------------------------
 ##------------------------------------------------------------------------------------
@@ -209,7 +233,6 @@ def validate_email(*columnsNames):
     if cantErrorsEmail > 0:
         print(f'Correos con formato incorrecto: {cantErrorsEmail}')
     return cantErrorsEmail
-
 
 def validarNoManzana(columnNameManzana, columnNameNroManzana):
     totalErrApple = 0
@@ -286,23 +309,44 @@ def difference_dates(date_interv, date2):
 
 def comparar_fechas(columnNameDateInter, columnNameDate):
     totalErrDate = 0
+    
+    if columnNameDate not in df_modified.columns: 
+        raise ValueError(f'No se encontró la columna {columnNameDate}')
+    
     for index, fila in df_modified.iterrows():
         cellDateSesion = fila[columnNameDate]
         cellDateSesionInter = fila[columnNameDateInter]
-        if columnNameDate in df_modified.columns: 
-            if pd.notna(cellDateSesion):
-                if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
-                    setBgError(index, columnNameDate, bgError)
-                    totalErrDate += 1
-        else:
-            print(f'No se encontró la columna {columnNameDate}')
+        
+        if pd.notna(cellDateSesion):
+            if pd.to_datetime(cellDateSesion) < pd.to_datetime(cellDateSesionInter):
+                setBgError(index, columnNameDate, bgError)
+                totalErrDate += 1
+
     if totalErrDate > 0:
         print(f'Fechas menor que la de intervención: {totalErrDate}')
     return totalErrDate
 
+def fecha_mayor(columnNameDate):
+    totalErrDate = 0
+    fecha_actual = datetime.now().date()
+    
+    if columnNameDate not in df_modified.columns: 
+        raise ValueError(f'No se encontró la columna {columnNameDate}')
+        
+    for index, fila in df_modified.iterrows():
+        cellDate = fila[columnNameDate]
+        if pd.notna(cellDate):
+            if pd.to_datetime(cellDate).date() > fecha_actual:
+                setBgError(index, columnNameDate, bgError)
+                totalErrDate += 1
+                
+    if totalErrDate > 0:
+        print(f'Fecha incoherente: {totalErrDate}')
+    return totalErrDate
+
 def calculate_age(birth_date, intervention_date):
     age = (pd.to_datetime(intervention_date) - pd.to_datetime(birth_date)).days // 365.25
-    return round(age)
+    return math.ceil(age)
 
 def type_institution(columnNameType, columnNameOther):
     totalErrTypeInst = 0
@@ -311,10 +355,11 @@ def type_institution(columnNameType, columnNameOther):
     
     fill_rows = df_modified[pd.notna(df_modified[columnNameType]) & pd.notna(df_modified[columnNameOther])]
     
-    errors = fill_rows[(fill_rows[columnNameType] == '12 Otra Institución') & 
+    pattern = re.compile(r'\ Otra\b', flags=re.IGNORECASE)# Expresión regular
+    errors = fill_rows[(fill_rows[columnNameType].apply(lambda x: bool(pattern.search(str(x))))) & 
                        (fill_rows[columnNameOther].str.len() < 9) |
                        (fill_rows[columnNameOther].str.len() >= 9) & 
-                        (fill_rows[columnNameType] != '12 Otra Institución')]
+                        (~fill_rows[columnNameType].apply(lambda x: bool(pattern.search(str(x)))))]
     
     totalErrTypeInst = len(errors)
         
@@ -401,6 +446,7 @@ def validate_address(addressComponents):
             raise ValueError(f'La columna {addressComponents[component]} no se encuentra')
     
     fill_rows = df_modified[pd.notna(df_modified[addressComponents['columnNameZone']])]
+    fill_rows[addressComponents['columnNameZone']] = fill_rows[addressComponents['columnNameZone']].astype(str)
     errors_urban = fill_rows[(fill_rows[addressComponents['columnNameZone']].str.startswith('1')) &
                             ((pd.isna(fill_rows[addressComponents['columnNameAx1']])) |
                             (pd.isna(fill_rows[addressComponents['columnNameNumber']])) |
@@ -676,7 +722,8 @@ def sc_pg3():
                        +age_vs_typedoc(reqFieldsPg3[4], 'Edad')+nac_vs_typedoc(reqFieldsPg3[4], reqFieldsPg3[8])
                        +gen_vs_sex(reqFieldsPg3[9], reqFieldsPg3[10])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg3[12],reqFieldsPg3[11])
                        +nac_vs_pdi(reqFieldsPg3[8], reqFieldsPg3[14])+et_vs_lang(reqFieldsPg3[13], 'HablaEspaniol')
-                       +validate_only_text(reqFieldsPg3[6], reqFieldsPg3[7], 'SegundoNombre', 'SegundoApellido'))
+                       +validate_only_text(reqFieldsPg3[6], reqFieldsPg3[7], 'SegundoNombre', 'SegundoApellido')
+                       +fecha_mayor(reqFieldsPg3[12]))
     if cantErroresPg_3 == 0:
         print('Sin errores en la tercera página')
     return cantErroresPg_3
@@ -736,7 +783,8 @@ def hcb_pg2():
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
                        +validate_alerts_hcb(fieldsAlerts)+tamizajes_vs_peso_hcb()+salud_bucal_hcb()
                        +afiliacion_eapb(reqFieldsPg2[11], reqFieldsPg2[12])+validate_only_text(reqFieldsPg2[2], reqFieldsPg2[3], 'SegundoNombre', 'SegundoApellido')
-                       +sb_clasificacion_hcb()+ocupacion(reqFieldsPg2[8], 'Fecha_intervencion', reqFieldsPg2[14]))
+                       +sb_clasificacion_hcb()+ocupacion(reqFieldsPg2[8], 'Fecha_intervencion', reqFieldsPg2[14])
+                       +(fecha_mayor(reqFieldsPg2[8])))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
@@ -945,10 +993,59 @@ def pm_pg2():
                        +gen_vs_sex(reqFieldsPg2[6], reqFieldsPg2[7])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[9],reqFieldsPg2[8])
                        +nac_vs_pdi(reqFieldsPg2[5], reqFieldsPg2[14])+et_vs_lang(reqFieldsPg2[10], 'HablaEspaniol')
                        +discapacidad_categoria(reqFieldsPg2[14], 'CategoriasDiscapacidad')+required_fields_next_column(reqFieldspg2_next)
-                       +validate_only_text(reqFieldsPg2[3], 'SegundoNombre', reqFieldsPg2[4], 'SegundoApellido')+validate_type_doc_pm(reqFieldsPg2[1]))
+                       +validate_only_text(reqFieldsPg2[3], 'SegundoNombre', reqFieldsPg2[4], 'SegundoApellido')+validate_type_doc_pm(reqFieldsPg2[1])
+                       +fecha_mayor(reqFieldsPg2[9]))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
+
+#------------------------PLAN DE CUIDADO INSTITUCIONAL PÁGINA 1---------------------------
+def pci_pg1():
+    reqFieldsPg1 = ['.Nombre institución.', '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio.', '.Teléfono1.',
+                    '.Manzana del cuidado.', '.Barrio Priorizado.', '.Tipo institución.']
+    
+    addressComponents = {
+        'columnNameZone': '.Zona.',
+        'columnNameAx1': '.Eje Principal.',
+        'columnNameNumber':'.Número.',
+        'columnNameAx2':'.Eje generador.',
+        'columnNamePlate':'.Placa.',
+        'columnNameTrail':'.Vereda.',
+        'columnNameX':'.Coordenadas X.',
+        'columnNameY':'.Coordenadas Y.'
+    }
+    
+    columnsNames_only_numbers = [reqFieldsPg1[5], '.Teléfono2.', '.Número.', '.Eje generador.', '.Placa.']
+    
+    cantErroresPg_1 = (required_fields(reqFieldsPg1)+validate_address(addressComponents)+validar_telefono(reqFieldsPg1[5], '.Teléfono2.')
+                       +validarNoManzana(reqFieldsPg1[6], '.Nro Manzana.')+type_institution(reqFieldsPg1[8], '.Tipo institución	. Otra.')
+                       +validate_only_text_inst_barr(reqFieldsPg1[0], reqFieldsPg1[4])+validate_only_number(columnsNames_only_numbers))
+    
+    
+    if cantErroresPg_1 == 0:
+        print("Sin errores en la primera página")
+    return cantErroresPg_1
+
+def pci_pg2():
+    reqFieldsPg2 = ['.Sesión.','.Línea operativa.', '.Dimensión.', '.Temática.']
+    
+    cantErroresPg_2 = (required_fields(reqFieldsPg2)+validate_only_number([reqFieldsPg2[0], '.Nro. participantes.'])
+                       +comparar_fechas('Fecha_intervencion', '.Fecha.')+fecha_mayor('.Fecha.'))
+    
+    if cantErroresPg_2 == 0:
+        print("Sin errores en la segunda página")
+    return cantErroresPg_2
+
+def pci_pg3():
+    reqFieldsPg3 = ['.Nro. sesión.', '.Línea operativa.', '.Fecha.', '.Descripción.']
+    
+    cantErroresPg_3 = (required_fields(reqFieldsPg3)+comparar_fechas('Fecha_intervencion', '.Fecha.')
+                       +fecha_mayor('.Fecha.')+validate_only_number([reqFieldsPg3[0], reqFieldsPg3[1]]))
+    
+    if cantErroresPg_3 == 0:
+        print("Sin errores en la segunda página")
+    return cantErroresPg_3
+    
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
 
