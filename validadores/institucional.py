@@ -68,7 +68,8 @@ def chooseBase(base):
         "hcb": hcb,
         "mascota_verde": mv,
         "persona_mayor": pm,
-        "pci": pci
+        "pci": pci,
+        "ead": ead
     }
     execute_validator = switch.get(base)
     execute_validator()
@@ -132,6 +133,8 @@ def mv():
         global df_modified
         df_modified = list_pages()
         print(f"-------------------Página {index+1}-------------------")
+        if index == 0:
+            totalErroresPg_2 = mv_pg1()
         if index == 1:
             totalErroresPg_2 = mv_pg2()
             print("----------------------------------------------")
@@ -180,6 +183,24 @@ def pci():
             
     cantErrPm = (totalErroresPg_1+totalErroresPg_2+totalErroresPg_3)
     print(f">>TOTAL ERRORES EN PCI: {(cantErrPm)}")
+
+def ead():
+    for index, sheet_name in enumerate(workbook.sheetnames):
+        global sheet
+        sheet = workbook[sheet_name]
+        data = sheet.values
+        cols = next(data) # Obtener los encabezados de las columnas (ignorar la primera columna)
+        global df
+        df = pd.DataFrame(data, columns=cols)
+        global df_modified
+        df_modified = list_pages()
+        print(f"-------------------Página {index+1}-------------------")
+        if index == 0:
+            totalErroresPg_1 = ead_pg1()
+            print("----------------------------------------------")
+            
+    cantErrPm = (totalErroresPg_1)
+    print(f">>TOTAL ERRORES EN ESCALA ABREVIADA: {(cantErrPm)}")
 ##------------------------------------------------------------------------------------    
 ##------------------------------GENERAL FUNCTIONS-------------------------------------
 ##------------------------------------------------------------------------------------
@@ -488,7 +509,7 @@ def len_num_doc(columNameTypeDoc, columnNameNumDoc):
     
     #Filtrar filas que no están vacías
     fill_rows = df_modified[pd.notna(df_modified[columNameTypeDoc]) & pd.notna(df_modified[columnNameNumDoc])]
-    errors = fill_rows[(fill_rows[columNameTypeDoc].isin([61,60])) & 
+    errors = fill_rows[(fill_rows[columNameTypeDoc].isin([61,60, '2- RC', '3- TI'])) & 
                             (fill_rows[columnNameNumDoc].astype(str).str.len() != 10)]
     
     totalErrLenDoc = len(errors)
@@ -525,17 +546,17 @@ def age_vs_typedoc(columnNameTypeDoc, columnNameAge):
     return totalTypeDocErr
 
 #Poblacional - Nacionalidad y tipo de documento
-def nac_vs_typedoc(columnNameTypeDoc, columnNameNac):    
+def nac_vs_typedoc(columnNameTypeDoc, columnNameNac, text_colombian_nation):    
     #Verificar existencia de las columnas
     if columnNameNac not in df_modified.columns or columnNameTypeDoc not in df_modified.columns:
         raise ValueError(f'Las columnas {columnNameTypeDoc} y/o {columnNameNac} no se encuentran')
     
     #Filtrar las filas no vacías
     fill_rows = df_modified[pd.notna(df_modified[columnNameTypeDoc]) & pd.notna(df_modified[columnNameNac])]
-    errors = fill_rows[(fill_rows[columnNameTypeDoc].isin([59, 60, 61])) &
-                            (fill_rows[columnNameNac] != 'Colombia') | 
-                       (~fill_rows[columnNameTypeDoc].isin([59, 60, 61, 66, 63])) &
-                            (fill_rows[columnNameNac] == 'Colombia')]
+    errors = fill_rows[(fill_rows[columnNameTypeDoc].isin([59, 60, 61, '2- RC', '1- CC', '3- TI'])) &
+                            (fill_rows[columnNameNac] != text_colombian_nation) | 
+                       (~fill_rows[columnNameTypeDoc].isin([59, 60, 61, 66, 63, '2- RC', '1- CC', '3- TI'])) &
+                            (fill_rows[columnNameNac] == text_colombian_nation)]
     
     totalNacErr = len(errors)
     for index in errors.index:
@@ -570,9 +591,9 @@ def age_vs_maritalStatus(columnNameInterventionDate, columnNameBirthDay, columnN
         raise ValueError(f"Las columnas {columnNameBirthDay}, {columnNameInterventionDate} y/o {columnNameMarital} no se encuentran")
 
     fill_rows = df_modified[pd.notna(df_modified[columnNameBirthDay]) & pd.notna(df_modified[columnNameMarital])]
-    fill_rows.loc[:,'Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
-    errors = fill_rows[(fill_rows['Edad'] < 14.0) & (fill_rows[columnNameMarital] != '6- No aplica') |
-                       (fill_rows['Edad'] >= 14.0) & (fill_rows[columnNameMarital] == '6- No aplica')]
+    #fill_rows.loc[:,'Edad'] = fill_rows.apply(lambda row: calculate_age(row[columnNameBirthDay], row[columnNameInterventionDate]), axis=1)
+    errors = fill_rows[(fill_rows['Edad'] < 14) & (fill_rows[columnNameMarital] != '6- No aplica') |
+                       (fill_rows['Edad'] >= 14) & (fill_rows[columnNameMarital] == '6- No aplica')]
     
     totalErrMarital = len(errors)
     for index in errors.index:
@@ -719,7 +740,7 @@ def sc_pg3():
                          'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion']
     
     cantErroresPg_3 = (required_fields(reqFieldsPg3)+len_num_doc(reqFieldsPg3[4], reqFieldsPg3[5])
-                       +age_vs_typedoc(reqFieldsPg3[4], 'Edad')+nac_vs_typedoc(reqFieldsPg3[4], reqFieldsPg3[8])
+                       +age_vs_typedoc(reqFieldsPg3[4], 'Edad')+nac_vs_typedoc(reqFieldsPg3[4], reqFieldsPg3[8], 'Colombia')
                        +gen_vs_sex(reqFieldsPg3[9], reqFieldsPg3[10])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg3[12],reqFieldsPg3[11])
                        +nac_vs_pdi(reqFieldsPg3[8], reqFieldsPg3[14])+et_vs_lang(reqFieldsPg3[13], 'HablaEspaniol')
                        +validate_only_text(reqFieldsPg3[6], reqFieldsPg3[7], 'SegundoNombre', 'SegundoApellido')
@@ -778,7 +799,7 @@ def hcb_pg2():
                     '.Alerta Salud Bucal.', '.Alerta infancia.', '.Alertas en mujeres.', '.Alertas discapacidad - Limitaciones para la actividad.']
     
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
-                       +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
+                       +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4], 'Colombia')
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
                        +validate_alerts_hcb(fieldsAlerts)+tamizajes_vs_peso_hcb()+salud_bucal_hcb()
@@ -886,20 +907,72 @@ def sb_clasificacion_hcb():
             setBgError(index, columnName, bgError)
             
     if cantErrClas > 0:
-        print(f'Campo de clasificación a los que les falta signo "%"')
+        print(f'Campo de clasificación a los que les falta signo "%" {cantErrClas}')
     return cantErrClas
+
+#------------------------------MASCOTA VERDE PÁGINA 1---------------------------------
+def mv_pg1():
+    reqFieldsPg1 = ['.NOMBRE DEL HCB.', '.NOMBRE DE LA MADRE COMUNITARIA.', '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio.',
+                    '.Manzana del cuidado.', '.Barrio priorizado.', '.Teléfono.', '.Nombre profesional 1.', '.Nombre profesional 2.']
+    
+    addressComponents = {
+        'columnNameZone': '.Zona.',
+        'columnNameAx1': '..Tipo de vía..',
+        'columnNameNumber':'..Número..',
+        'columnNameAx2':'..Número..',
+        'columnNamePlate':'..Placa..',
+        'columnNameTrail':'.Vereda.',
+        'columnNameX':'..Coordenadas X..',
+        'columnNameY':'..Coordenadas Y..'
+    }
+    
+    cantErroresPg_1 = (required_fields(reqFieldsPg1)+validar_telefono(reqFieldsPg1[8])+validate_address(addressComponents)
+                       +validate_only_text_inst_barr('.NOMBRE DEL HCB.', '.NOMBRE DE LA MADRE COMUNITARIA.', '.Barrio.', '.Vereda.')
+                       +validate_only_text('..Letra..', '.Nombre profesional 1.', '.Nombre profesional 2.'))
+    if cantErroresPg_1 == 0:
+        print("Sin errores en la primera página")
+    return cantErroresPg_1
 
 #------------------------------MASCOTA VERDE PÁGINA 2---------------------------------
 def mv_pg2():
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
                     'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion']
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
-                       +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4])
+                       +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4], 'Colombia')
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion', reqFieldsPg2[8],reqFieldsPg2[7])
-                       +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol'))
+                       +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
+                       +validate_only_text('.Nombre de la mascota.', '.Nombre profesional 1.', '.Nombre profesional 1..1')+validateNumSesion_mv()
+                       +comparar_fechas('.Fecha.', '.Fecha..1'))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
+
+def validateNumSesion_mv():
+    cantErrSes = 0
+    columnNameSes1 = '.Numero.'
+    columnNameSes2 = '.Numero..1'
+    columnNameSes3 = '.Numero..2'
+    columnNameSes4 = '.Numero..3'
+    columnNameSes5 = '.Numero..4'
+    columnNameSes6 = '.Numero..5'
+
+    columnsNames = [columnNameSes1, columnNameSes2, columnNameSes3, columnNameSes4, columnNameSes5, columnNameSes6]
+
+    for index, columnName in enumerate(columnsNames):
+        if columnName not in df_modified.columns:
+            raise ValueError(f'La columna {columnName} no se encuentra')
+
+        fill_rows = df_modified[pd.notna(df_modified[columnName])]
+        errors = fill_rows[fill_rows[columnName] != index+1]
+
+        cantErrSes += len(errors)
+        for index in errors.index:
+            setBgError(index, columnName, bgError)
+
+    if cantErrSes > 0:
+        print(f"Número de sesión incorrecto: {cantErrSes}")
+    return cantErrSes
+    
 
 #------------------------------PERSONA MAYOR PÁGINA 1---------------------------------
 def pm_pg1():
@@ -989,7 +1062,7 @@ def pm_pg2():
     
     reqFieldspg2_next = ['.Condición crónica.', '.Enfermedad transmisible y ETV.', '.Alerta nutricional.', '.Alerta Psicosociales.', '.Alerta salud oral.']
 
-    cantErroresPg_2 = (required_fields(reqFieldsPg2)+age_vs_typedoc(reqFieldsPg2[1], 'Edad')+nac_vs_typedoc(reqFieldsPg2[1],reqFieldsPg2[5])
+    cantErroresPg_2 = (required_fields(reqFieldsPg2)+age_vs_typedoc(reqFieldsPg2[1], 'Edad')+nac_vs_typedoc(reqFieldsPg2[1],reqFieldsPg2[5], 'Colombia')
                        +gen_vs_sex(reqFieldsPg2[6], reqFieldsPg2[7])+age_vs_maritalStatus('Fecha_intervencion',reqFieldsPg2[9],reqFieldsPg2[8])
                        +nac_vs_pdi(reqFieldsPg2[5], reqFieldsPg2[14])+et_vs_lang(reqFieldsPg2[10], 'HablaEspaniol')
                        +discapacidad_categoria(reqFieldsPg2[14], 'CategoriasDiscapacidad')+required_fields_next_column(reqFieldspg2_next)
@@ -1021,11 +1094,11 @@ def pci_pg1():
                        +validarNoManzana(reqFieldsPg1[6], '.Nro Manzana.')+type_institution(reqFieldsPg1[8], '.Tipo institución	. Otra.')
                        +validate_only_text_inst_barr(reqFieldsPg1[0], reqFieldsPg1[4])+validate_only_number(columnsNames_only_numbers))
     
-    
     if cantErroresPg_1 == 0:
         print("Sin errores en la primera página")
     return cantErroresPg_1
 
+#------------------------PLAN DE CUIDADO INSTITUCIONAL PÁGINA 2---------------------------
 def pci_pg2():
     reqFieldsPg2 = ['.Sesión.','.Línea operativa.', '.Dimensión.', '.Temática.']
     
@@ -1035,7 +1108,7 @@ def pci_pg2():
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
-
+#------------------------PLAN DE CUIDADO INSTITUCIONAL PÁGINA 3---------------------------
 def pci_pg3():
     reqFieldsPg3 = ['.Nro. sesión.', '.Línea operativa.', '.Fecha.', '.Descripción.']
     
@@ -1045,7 +1118,20 @@ def pci_pg3():
     if cantErroresPg_3 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_3
+##---------------------------------ESCALA ABREVIADA-----------------------------------
+def ead_pg1():
+    reqFieldsPg1 = ['.Fecha Caracterización.', '.Entorno.', '.Nombre del HCB/Jardín.', '.Localidad.', '.1er. NOMBRE.', '.1er. APELLIDO.',
+                    '.Tipo de documento.', '.N° Documento:.', '.Nacionalidad.', '.Población diferencial y de inclusión.', '.Nombre Digitador.']
     
+    reqFieldsPg1_next_1 = ['.Fecha de caracterización.', '.Fecha de nacimiento.', '.Edad del niño (a).', '.Total Acumulado al inicio.', '.Número de Items correctos.',
+                           '.Total (PD).', '.total puntuación típica PT.', '.Puntuación típica PT.', '.Edad (en meses/dias).', '.Nivel de desarrollo del niño o niña - Caracterización..']
+    
+    cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1_next_1, 2, 1)+validate_only_text_inst_barr('.Nombre del HCB/Jardín.')
+                       +validate_only_text('.1er. NOMBRE.', '.2do. NOMBRE.', '.1er. APELLIDO.', '.2do. APELLIDO.', '.Nombre Digitador.')
+                       +nac_vs_typedoc(reqFieldsPg1[6],reqFieldsPg1[8],'COL')+len_num_doc(reqFieldsPg1[6], reqFieldsPg1[7])+comparar_fechas('Fecha_intervencion', '.Fecha Caracterización.'))
+
+    return cantErroresPg_1
+
 ##------------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------------
 
