@@ -328,7 +328,7 @@ def difference_dates(date_interv, date2):
     result = pd.to_datetime(date_interv) - pd.to_datetime(date2)
     return result
 
-def comparar_fechas(columnNameDateInter, columnNameDate):
+def comparar_fechas_vs_intervencion(columnNameDateInter, columnNameDate):
     totalErrDate = 0
     
     if columnNameDate not in df_modified.columns: 
@@ -728,7 +728,7 @@ def sc_pg1():
 def sc_pg2():
     requiredFieldsPg2 = ['.Componente.', '.Línea operativa.', '.Dimensión.', 
                          '.Temática.', '.Número sesión.', '.Fecha.', '.Nombre profesional 1.']
-    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+comparar_fechas('Fecha_intervencion', '.Fecha.')+validate_only_number(['.Número sesión.']))
+    cantErroresPg_2 = (required_fields(requiredFieldsPg2)+comparar_fechas_vs_intervencion('Fecha_intervencion', '.Fecha.')+validate_only_number(['.Número sesión.']))
     if cantErroresPg_2 == 0:
         print('Sin errores en la segunda página')
     return cantErroresPg_2
@@ -942,10 +942,44 @@ def mv_pg2():
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion', reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
                        +validate_only_text('.Nombre de la mascota.', '.Nombre profesional 1.', '.Nombre profesional 1..1')+validateNumSesion_mv()
-                       +comparar_fechas('.Fecha.', '.Fecha..1'))
+                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha.')+validateNameProfesional())
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
+
+def validateNameProfesional():
+    cantErrProf = 0
+    distanceColumnsProf = 10
+    
+    #Columns names profesionals
+    columnNameP1S1 = df_modified.iloc[:, 25]
+    columnNameP2S1 = ".Nombre profesional 2."
+    # columnIndexP1S2 = df_modified.columns.get_loc(columnNameP1S1) + distanceColumnsProf
+    # columnNameP1S2 = df_modified.columns[columnIndexP1S2]
+    
+    #Columns names number sesion
+    columnNameSes1 = '.Numero.'
+    # columnNameSes2 = '.Numero..1'
+    # columnNameSes3 = '.Numero..2'
+    # columnNameSes4 = '.Numero..3'
+    # columnNameSes5 = '.Numero..4'
+    # columnNameSes6 = '.Numero..5'
+    
+    if columnNameP1S1 not in df_modified.columns:
+        raise ValueError(f'La columna {columnNameP1S1} no se encuentra')
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameP1S1])]    
+    errors = fill_rows[(pd.notna(fill_rows[columnNameSes1]) & (fill_rows[columnNameP1S1].astype(str).str.len() == 7))]
+
+    cantErrProf += len(errors)
+    
+    for index in errors.index:
+        setBgError(index, columnNameP1S1, bgSecError)
+        setBgError(index, columnNameP2S1, bgSecError)
+        
+    if cantErrProf > 0:
+        print(f'Errores en nombre de profesional: {cantErrProf}')
+    return cantErrProf
 
 def validateNumSesion_mv():
     cantErrSes = 0
@@ -1010,7 +1044,7 @@ def pm_pg1():
     cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields_next_column(reqFieldspg1_next)+validar_telefono(reqFieldsPg1[6], '.Teléfono2.')+validarNoManzana(reqFieldsPg1[5],'.Numero de manzana.')+
                        +validate_address(addressComponents)+validate_email(reqFieldsPg1[7], '.Correo1.')+validate_only_text(reqFieldsPg1[8], reqFieldsPg1[9], '.Segundo nombre.', '.Segundo apellido.')
                        +validate_only_text_inst_barr(reqFieldsPg1[0], '.Barrio.', '.Vereda.')+validate_only_number(columnsNames_only_numbers)+validate_type_doc_pm('.Tipo documento.')
-                       +comparar_fechas('Fecha_intervencion','.Fecha evaluación.'))
+                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha evaluación.'))
 
     if cantErroresPg_1 == 0:
         print("Sin errores en la primera página")
@@ -1103,7 +1137,7 @@ def pci_pg2():
     reqFieldsPg2 = ['.Sesión.','.Línea operativa.', '.Dimensión.', '.Temática.']
     
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+validate_only_number([reqFieldsPg2[0], '.Nro. participantes.'])
-                       +comparar_fechas('Fecha_intervencion', '.Fecha.')+fecha_mayor('.Fecha.'))
+                       +comparar_fechas_vs_intervencion('Fecha_intervencion', '.Fecha.')+fecha_mayor('.Fecha.'))
     
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
@@ -1112,7 +1146,7 @@ def pci_pg2():
 def pci_pg3():
     reqFieldsPg3 = ['.Nro. sesión.', '.Línea operativa.', '.Fecha.', '.Descripción.']
     
-    cantErroresPg_3 = (required_fields(reqFieldsPg3)+comparar_fechas('Fecha_intervencion', '.Fecha.')
+    cantErroresPg_3 = (required_fields(reqFieldsPg3)+comparar_fechas_vs_intervencion('Fecha_intervencion', '.Fecha.')
                        +fecha_mayor('.Fecha.')+validate_only_number([reqFieldsPg3[0], reqFieldsPg3[1]]))
     
     if cantErroresPg_3 == 0:
@@ -1128,7 +1162,7 @@ def ead_pg1():
     
     cantErroresPg_1 = (required_fields(reqFieldsPg1)+required_fields(reqFieldsPg1_next_1, 2, 1)+validate_only_text_inst_barr('.Nombre del HCB/Jardín.')
                        +validate_only_text('.1er. NOMBRE.', '.2do. NOMBRE.', '.1er. APELLIDO.', '.2do. APELLIDO.', '.Nombre Digitador.')
-                       +nac_vs_typedoc(reqFieldsPg1[6],reqFieldsPg1[8],'COL')+len_num_doc(reqFieldsPg1[6], reqFieldsPg1[7])+comparar_fechas('Fecha_intervencion', '.Fecha Caracterización.'))
+                       +nac_vs_typedoc(reqFieldsPg1[6],reqFieldsPg1[8],'COL')+len_num_doc(reqFieldsPg1[6], reqFieldsPg1[7])+comparar_fechas_vs_intervencion('Fecha_intervencion', '.Fecha Caracterización.'))
 
     return cantErroresPg_1
 
