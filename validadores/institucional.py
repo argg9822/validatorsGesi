@@ -220,6 +220,10 @@ def setBgError(index, columnName, color):
     cellUsr = sheet.cell(row=index+2, column=df_modified.columns.get_loc('Red_fic')+1)
     cellUsr.fill = bgUsr
     cellUsr.font = Font(bold=True)
+
+def getColumnNameByNumber(numberColumn):
+    columnName = df_modified.iloc[:, numberColumn].name
+    return columnName
     
 def validar_telefono(*columnsNames):
     cantErroresTel = 0
@@ -331,8 +335,8 @@ def difference_dates(date_interv, date2):
 def comparar_fechas_vs_intervencion(columnNameDateInter, columnNameDate):
     totalErrDate = 0
     
-    if columnNameDate not in df_modified.columns: 
-        raise ValueError(f'No se encontró la columna {columnNameDate}')
+    if columnNameDate not in df_modified.columns or columnNameDateInter not in df_modified.columns:
+        raise ValueError(f'La(s) columna(s) {columnNameDate} y/o {columnNameDateInter} no se encontraron ')
     
     for index, fila in df_modified.iterrows():
         cellDateSesion = fila[columnNameDate]
@@ -345,6 +349,25 @@ def comparar_fechas_vs_intervencion(columnNameDateInter, columnNameDate):
 
     if totalErrDate > 0:
         print(f'Fechas menor que la de intervención: {totalErrDate}')
+    return totalErrDate
+
+def compare_dates(columnNameDateMin, columnNameDateMaj):
+    totalErrDate = 0
+    
+    if columnNameDateMin not in df_modified.columns or columnNameDateMaj not in df_modified.columns:
+        raise ValueError(f'La(s) columna(s) {columnNameDateMin} y/o {columnNameDateMaj} no se encontraron ')
+    
+    fill_rows = df_modified[pd.notna(df_modified[columnNameDateMin]) & pd.notna(df_modified[columnNameDateMaj])]
+    
+    for index, fila in fill_rows.iterrows():
+        cellDateMaj = fila[columnNameDateMaj]
+        cellDateMin = fila[columnNameDateMin]
+        
+        if pd.notna(cellDateMaj):
+            if pd.to_datetime(cellDateMaj) < pd.to_datetime(cellDateMin):
+                setBgError(index, columnNameDateMaj, bgError)
+                totalErrDate += 1
+
     return totalErrDate
 
 def fecha_mayor(columnNameDate):
@@ -942,40 +965,49 @@ def mv_pg2():
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion', reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
                        +validate_only_text('.Nombre de la mascota.', '.Nombre profesional 1.', '.Nombre profesional 1..1')+validateNumSesion_mv()
-                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha.')+validateNameProfesional())
+                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha.')+validateNameProfesional_mv()+validateDates_mv())
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
 
-def validateNameProfesional():
+def validateNameProfesional_mv():
     cantErrProf = 0
-    distanceColumnsProf = 10
-    
-    #Columns names profesionals
-    columnNameP1S1 = df_modified.iloc[:, 25]
-    columnNameP2S1 = ".Nombre profesional 2."
-    # columnIndexP1S2 = df_modified.columns.get_loc(columnNameP1S1) + distanceColumnsProf
-    # columnNameP1S2 = df_modified.columns[columnIndexP1S2]
-    
-    #Columns names number sesion
-    columnNameSes1 = '.Numero.'
-    # columnNameSes2 = '.Numero..1'
-    # columnNameSes3 = '.Numero..2'
-    # columnNameSes4 = '.Numero..3'
-    # columnNameSes5 = '.Numero..4'
-    # columnNameSes6 = '.Numero..5'
-    
-    if columnNameP1S1 not in df_modified.columns:
-        raise ValueError(f'La columna {columnNameP1S1} no se encuentra')
-    
-    fill_rows = df_modified[pd.notna(df_modified[columnNameP1S1])]    
-    errors = fill_rows[(pd.notna(fill_rows[columnNameSes1]) & (fill_rows[columnNameP1S1].astype(str).str.len() == 7))]
+    #Números de columna de profesionales
+    columnsNumberProf = [24, 25, 34, 35, 44, 45, 54, 55]
+    columnNamesProf = {
+        "columnNameP1S1":'',
+        "columnNameP2S1":'',
+        "columnNameP1S2":'',
+        "columnNameP2S2":'',
+        "columnNameP1S3":'',
+        'columnNameP2S3':'',
+        "columnNameP1S4":'',
+        "columnNameP2S4":''
+    }
+    lista = list(columnNamesProf.items()) #Lista de tuplas
 
-    cantErrProf += len(errors)
+    def findError(columnNameP1, columnNameP2):
+        foundErrors = 0
+        if columnNameP1 not in df_modified.columns or columnNameP2 not in df_modified.columns:
+            raise ValueError(f'La(s) columna(s) {columnNameP1} y/o {columnNameP2} no se encuentra(n)')
+
+        errors = df_modified[(pd.notna(columnNameP1) & (df_modified[columnNameP1] == df_modified[columnNameP2]))]
+        foundErrors += len(errors)
+
+        for index in errors.index:
+            setBgError(index, columnNameP1, bgSecError)
+            setBgError(index, columnNameP2, bgSecError)
+        
+        return foundErrors
     
-    for index in errors.index:
-        setBgError(index, columnNameP1S1, bgSecError)
-        setBgError(index, columnNameP2S1, bgSecError)
+    for index, number in enumerate(columnsNumberProf):
+        key, value = lista[index]
+        columnNamesProf[key] = getColumnNameByNumber(number)
+
+    cantErrProf = (findError(columnNamesProf['columnNameP1S1'], columnNamesProf['columnNameP2S1'])+
+                findError(columnNamesProf['columnNameP1S2'], columnNamesProf['columnNameP2S2'])+
+                findError(columnNamesProf['columnNameP1S3'], columnNamesProf['columnNameP2S3'])+
+                findError(columnNamesProf['columnNameP1S4'], columnNamesProf['columnNameP2S4']))
         
     if cantErrProf > 0:
         print(f'Errores en nombre de profesional: {cantErrProf}')
@@ -983,14 +1015,7 @@ def validateNameProfesional():
 
 def validateNumSesion_mv():
     cantErrSes = 0
-    columnNameSes1 = '.Numero.'
-    columnNameSes2 = '.Numero..1'
-    columnNameSes3 = '.Numero..2'
-    columnNameSes4 = '.Numero..3'
-    columnNameSes5 = '.Numero..4'
-    columnNameSes6 = '.Numero..5'
-
-    columnsNames = [columnNameSes1, columnNameSes2, columnNameSes3, columnNameSes4, columnNameSes5, columnNameSes6]
+    columnsNames = ['.Numero.', '.Numero..1', '.Numero..2', '.Numero..3', '.Numero..4', '.Numero..5']
 
     for index, columnName in enumerate(columnsNames):
         if columnName not in df_modified.columns:
@@ -1007,6 +1032,18 @@ def validateNumSesion_mv():
         print(f"Número de sesión incorrecto: {cantErrSes}")
     return cantErrSes
     
+def validateDates_mv():
+    totalErrDate = 0
+    columnsNamesDates = ['.Fecha.', '.Fecha..1', '.Fecha..2', '.Fecha..3', '.Fecha..4', '.Fecha..5']
+
+    for index, columnName in enumerate(columnsNamesDates):
+        if index != 0:
+            totalErrDate += compare_dates(columnsNamesDates[index-1], columnsNamesDates[index])
+    
+    if totalErrDate > 0:
+        print(f'Línea de tiempo incoherente: {totalErrDate}')
+
+    return totalErrDate
 
 #------------------------------PERSONA MAYOR PÁGINA 1---------------------------------
 def pm_pg1():
