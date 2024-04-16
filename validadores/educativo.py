@@ -262,6 +262,9 @@ def validar_pagina1_sesiones(sheet):
                 colum["column"] = {10, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
+                
+            CeldasVacias["vacias"] = {19}
+            celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
                          
             placas["placas"] = {26, 31, 35}
             celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#numeros de direcciones
@@ -347,7 +350,7 @@ def validar_pagina2_sesiones(sheet):
         print("Error", f"Se produjo un error: {str(e)}")
 def validar_pagina3_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
-    adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
+    adulto_menor_sin_id = re.compile(r'^\d{2,5}[A-Za-z]{2,5}\d{5,6}$')
 
     NumeroDocumento = re.compile("^\d{10}$")
     try:
