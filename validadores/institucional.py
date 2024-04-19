@@ -8,6 +8,10 @@ import pandas as pd
 from tkinter import filedialog, messagebox
 import os
 import re
+from functions import pandas, openpyxl
+
+
+pandas
 ##------------------------------------------------------------------------------------    
 ##---------------------CARGUE Y LECTURA DEL ARCHIVO EXCEL-----------------------------
 ##------------------------------------------------------------------------------------
@@ -991,7 +995,8 @@ def validateNameProfesional_mv():
         if columnNameP1 not in df_modified.columns or columnNameP2 not in df_modified.columns:
             raise ValueError(f'La(s) columna(s) {columnNameP1} y/o {columnNameP2} no se encuentra(n)')
 
-        errors = df_modified[(pd.notna(columnNameP1) & (df_modified[columnNameP1] == df_modified[columnNameP2]))]
+        errors = df_modified[(pd.notna(columnNameP1) & (df_modified[columnNameP1] == df_modified[columnNameP2])) |
+                             (pd.notna(columnNameP2) & (df_modified[columnNameP2] == df_modified[columnNameP1]))]
         foundErrors += len(errors)
 
         for index in errors.index:
@@ -1014,7 +1019,7 @@ def validateNameProfesional_mv():
     return cantErrProf
 
 def validateNumSesion_mv():
-    cantErrSes = 0
+    cantErrNumSes = 0
     columnsNames = ['.Numero.', '.Numero..1', '.Numero..2', '.Numero..3', '.Numero..4', '.Numero..5']
 
     for index, columnName in enumerate(columnsNames):
@@ -1028,9 +1033,9 @@ def validateNumSesion_mv():
         for index in errors.index:
             setBgError(index, columnName, bgError)
 
-    if cantErrSes > 0:
-        print(f"Número de sesión incorrecto: {cantErrSes}")
-    return cantErrSes
+    if cantErrNumSes > 0:
+        print(f"Número de sesión incorrecto: {cantErrNumSes}")
+    return cantErrNumSes
     
 def validateDates_mv():
     totalErrDate = 0
@@ -1045,6 +1050,9 @@ def validateDates_mv():
 
     return totalErrDate
 
+def validateCompleteSesion_mv():
+    cantErrSes = 0
+    
 #------------------------------PERSONA MAYOR PÁGINA 1---------------------------------
 def pm_pg1():
     reqFieldsPg1 = ['.Nombre de la institución.', '.Zona.', '.Localidad.', '.UPZ/UPR.', '.Barrio priorizado.', '.Manzana del cuidado.',

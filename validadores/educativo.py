@@ -130,6 +130,7 @@ def SesionesCoelctivas():
         sheet = workbook[workbook.sheetnames[2]]  # Acceder a la página 2
         print("Validando la página 3...")
         validar_pagina3_sesiones(sheet)
+
 def PrevencionEmbarazo(): 
     # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
@@ -144,6 +145,7 @@ def PrevencionEmbarazo():
         sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
         print("Validando la página 2...")
         prevencionPag2(sheet)
+
 def higieneManos():
     # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
@@ -163,6 +165,7 @@ def higieneManos():
         sheet = workbook[workbook.sheetnames[2]]  # Acceder a la página 1
         print("Validando la página 3...")
         hm_pag3(sheet) 
+        
 def pretest():
     # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
@@ -1270,9 +1273,6 @@ def Docuemento(sheet, Var_edad ):
         if edad >= 18:
             tipodocumento = "1- CC"
             Nacionalidad = Var_edad["Nacionalidad"]
-        
-        
-        
         
         if (sheet.cell(i, Var_edad["T_Doc"]).value != tipodocumento and sheet.cell(i, Var_edad["T_Doc"]).value != "8- Menor sin ID." and \
             sheet.cell(i, Var_edad["T_Doc"]).value != "7- Adulto sin ID.") and sheet.cell(i, Var_edad["Nac"]).value == Nacionalidad :
