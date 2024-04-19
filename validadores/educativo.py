@@ -758,6 +758,7 @@ def hm_pag2(sheet):
             "poblacion": 20# cambiar si es necesariio ya que puede solo aparecer "COl"
         }
 
+
         celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
         
         # Mostrar la cantidad de celdas pintadas de rojo
