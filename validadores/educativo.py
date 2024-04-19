@@ -265,6 +265,9 @@ def validar_pagina1_sesiones(sheet):
                 colum["column"] = {10, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
+                
+            CeldasVacias["vacias"] = {19}
+            celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
                          
             placas["placas"] = {26, 31, 35}
             celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#numeros de direcciones
@@ -350,7 +353,7 @@ def validar_pagina2_sesiones(sheet):
         print("Error", f"Se produjo un error: {str(e)}")
 def validar_pagina3_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
-    adulto_menor_sin_id = re.compile(r'^\d{2,4}[A-Za-z]{2,5}\d{5,6}$')
+    adulto_menor_sin_id = re.compile(r'^\d{2,5}[A-Za-z]{2,5}\d{5,6}$')
 
     NumeroDocumento = re.compile("^\d{10}$")
     try:
@@ -750,7 +753,9 @@ def hm_pag2(sheet):
             "Nac": 14,
             "No_doc": 13,
             "est_civil": 0, # colocar 0 si no tiene la columna de estado civil 
-            "Nacionalidad": "Colombia" # cambiar si es necesariio ya que puede solo aparecer "COl"
+            "Nacionalidad": "Colombia",
+            "vinculo_Jefe": 0, # colocar 0 si no existe el campo 
+            "poblacion": 20# cambiar si es necesariio ya que puede solo aparecer "COl"
         }
 
         celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
@@ -1072,7 +1077,7 @@ def saludmental_pag1(sheet):
         patternTel = re.compile(r'^\d{7}(\d{3})?$')
         celdas_pintadas_rojo = 0 
         ultima_fila = sheet.max_row
-        CeldasVacias["vacias"] = {9, 10, 11, 13, 14, 15, 17, 18, 19, 22, 24, 60 }
+        CeldasVacias["vacias"] = {9, 10, 11, 13, 14, 15, 18, 19, 22, 24, 60 ,51 }
         celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
         
         celTexto["ColumText"] = {22, 23, 24, 25, 136, 138}      
@@ -1081,13 +1086,39 @@ def saludmental_pag1(sheet):
         Genero["Genero"]= {30, 31}
         celdas_pintadas_rojo += validadorsexoGenero(sheet, Genero)
         
-        
+        for i in range(2, ultima_fila + 1):
+            if sheet.cell(i,10).value == "Universidades" :
+                if sheet.cell(i,17).value != " " :
+                    colum["column"] = {10, 17, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+            else:
+                if sheet.cell(i,17).value == " " :
+                    colum["column"] = {17, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                
+                
+                    
         for i in range(2, ultima_fila + 1):
             if sheet.cell(i, 42).value == "5- No asegurado" and not "no asegurado" in str(sheet.cell(i, 43).value).lower():
                 celdas_pintadas_rojo += 1
                 colum["column"] = {42, 43, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
+            else:
+                cantidad = len(sheet.cell(i,43).value)    
+                if cantidad < 3 : 
+                    celdas_pintadas_rojo += 1
+                    colum["column"] = {43, 2}
+                    colum["row"] = i
+                    pintar(colum, sheet)
+                    
+                    print(cantidad)
+                
+                celTexto["ColumText"] = {43}      
+                celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)    
+            
         
         Var_edad = { # seleccionar la columna donde se encuentra cada campo 
             "F_Intervencion": 3,
@@ -1096,7 +1127,10 @@ def saludmental_pag1(sheet):
             "Nac": 29,
             "No_doc": 28,
             "est_civil": 0, # colocar 0 si no tiene la columna de estado civil 
-            "Nacionalidad": "50" # cambiar si es necesariio ya que puede solo aparecer "COl"
+            "Nacionalidad": "50", # cambiar si es necesariio ya que puede solo aparecer "COl"
+            "vinculo_Jefe": 0,
+            "vinculo_Jefe": 0, # colocar 0 si no existe el campo 
+            "poblacion": 0
         }
         
         celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
@@ -1154,7 +1188,7 @@ def saludmental_pag1(sheet):
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
         
     except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")
+        print("Error", f"Se produjo un error en salud mental en la parte : {str(e)}")
     
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////HIGIENE BUCAL////////////////////////////////////////////////////////
@@ -1166,9 +1200,9 @@ def hb_pag1(sheet):
         
         celdas_pintadas_rojo = 0 
         ultima_fila = sheet.max_row
-        CeldasVacias["vacias"] = {10, 11, 12, 13, 14, 29 }
+        CeldasVacias["vacias"] = {10, 11, 12, 13, 14, 29,23 }
         celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
-        celTexto["ColumText"] = {10, 11}      
+        celTexto["ColumText"] = {10, 11, 23}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
        
        
@@ -1218,7 +1252,8 @@ def hb_pag2(sheet):
             "No_doc": 15,
             "est_civil": 0, # colocar 0 si no tiene la columna de estado civil 
             "Nacionalidad": "50", # cambiar si es necesariio ya que puede solo aparecer "COl"
-            "vinculo_Jefe": 25 # colocar 0 si no existe el campo 
+            "vinculo_Jefe": 25, # colocar 0 si no existe el campo 
+            "poblacion": 24
         }
         
         celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
@@ -1305,6 +1340,13 @@ def Docuemento(sheet, Var_edad ):
             if sheet.cell(i,Var_edad["vinculo_Jefe"]).value != "3- Hijo(a)" and edad < 15:
                 celdas_pintadas_rojo += 1
                 colum["column"] = {Var_edad["vinculo_Jefe"], 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+                
+        if Var_edad["poblacion"] != 0:
+            if  sheet.cell(i, Var_edad["Nac"]).value != Nacionalidad and sheet.cell(i,Var_edad["poblacion"]).value != "13- Migrante" :
+                celdas_pintadas_rojo += 1
+                colum["column"] = {Var_edad["poblacion"], Var_edad["Nac"], 2}
                 colum["row"] = i
                 pintar(colum, sheet)
             
@@ -1542,7 +1584,7 @@ def remplazarComillas(sheet):
                     else:
                         cell.number_format = numbers.FORMAT_TEXT      
     except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")
+        print("Error", f"Se produjo un error de comillas: {str(e)}")
         
         
               
