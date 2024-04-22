@@ -755,7 +755,7 @@ def hm_pag2(sheet):
             "est_civil": 0, # colocar 0 si no tiene la columna de estado civil 
             "Nacionalidad": "Colombia",
             "vinculo_Jefe": 0, # colocar 0 si no existe el campo 
-            "poblacion": 20# cambiar si es necesariio ya que puede solo aparecer "COl"
+            "poblacion": 18# cambiar si es necesariio ya que puede solo aparecer "COl"
         }
 
         celdas_pintadas_rojo += Docuemento(sheet, Var_edad)
