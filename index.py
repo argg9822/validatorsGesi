@@ -256,14 +256,17 @@ if version_actual:
     print(f"La versión actual es: {version_actual}")
     # Verificar si la versión obtenida es diferente a la versión actual
     if version_actual != version_actual_actual:  # Aquí estaba el error
-        print("Se detectó una nueva versión. Actualizando desde GitHub...")
-        # Actualizar el código desde GitHub
-        if actualizar_desde_github():
-            print("¡Actualización exitosa!")
-            # Reiniciar la aplicación si es necesario
-            subprocess.run(["python", "tunuevoarchivo.py"])
-        else:
-            print("No se pudo actualizar desde GitHub.")
+        
+        open_file = messagebox.askquestion("Actualizacion", "¿Desea actualizar la app?")
+        if open_file == 'yes':
+            print("Se detectó una nueva versión. Actualizando desde GitHub...")
+            # Actualizar el código desde GitHub
+            if actualizar_desde_github():
+                print("¡Actualización exitosa!")
+                # Reiniciar la aplicación si es necesario
+                subprocess.run(["python", "index.py"])
+            else:
+                print("No se pudo actualizar desde GitHub.")
     else:
         print("No hay una nueva versión disponible.")
 else:
