@@ -197,3 +197,26 @@ def imprimirResultado(text_widget):
     sys.stderr = TerminalRedirect(text_widget)
 
 buildGUI()
+
+
+from tkinter import messagebox
+import requests
+from __version__ import __version__ as version_actual  # Importa la versión actual desde __version__.py
+
+def verificar_actualizacion():
+    # URL del archivo __version__.py en tu repositorio de GitHub
+    url_archivo_version = 'https://github.com/argg9822/validatorsGesi/blob/main/__version__.py'
+    
+    # Consulta la API de GitHub para obtener el contenido del archivo __version__.py
+    respuesta = requests.get(url_archivo_version)
+    if respuesta.status_code == 200:
+        # Extrae la versión más reciente del contenido del archivo
+        version_mas_reciente = respuesta.text.split('=')[1].strip().strip("'")
+        
+        # Compara con la versión actual y muestra una notificación si hay una actualización disponible
+        if version_mas_reciente != version_actual:
+            mensaje = f'¡Hay una nueva versión disponible: {version_mas_reciente}!'
+            messagebox.showinfo('Actualización disponible', mensaje)
+
+# Verificar actualización al iniciar el programa
+verificar_actualizacion()
