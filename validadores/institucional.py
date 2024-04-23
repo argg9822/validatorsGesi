@@ -8,7 +8,10 @@ import pandas as pd
 from tkinter import filedialog, messagebox
 import os
 import re
+from functions import pandas, openpyxl
 
+
+pandas
 ##------------------------------------------------------------------------------------    
 ##---------------------CARGUE Y LECTURA DEL ARCHIVO EXCEL-----------------------------
 ##------------------------------------------------------------------------------------
@@ -961,12 +964,23 @@ def mv_pg1():
 def mv_pg2():
     reqFieldsPg2 = ['IdTipoDocumento','Documento', 'PrimerNombre','PrimerApellido', 'IdNacionalidad', 'IdSexo',
                     'IdGenero', 'IdEstadoCivil', 'FechaNacimiento', 'IdEtnia', 'PoblacionDiferencialInclusion']
+    
+    columnsNamesNumSes = ['.Numero.', '.Numero..1', '.Numero..2', '.Numero..3', '.Numero..4', '.Numero..5']
+
+    columnsNamesSesions = {
+        "fields_s1":['.Numero.', '.Fecha.', '.Nombre profesional 1.'],
+        "fields_s2":['.Numero..1','.Fecha..1', '..Temática...1', '..Alertas Psicosociales. Separados por coma...1', '..Nivel de crecimiento...1', 
+                   '..Mantenimiento...1', '..Estado de la mascota...1', '.Nombre profesional 1..1'],
+        "fields_s3":['.Numero..2', '.Fecha..2', '..Temática...2', '..Alertas Psicosociales. Separados por coma...2', '..Nivel de crecimiento...2',
+                     '..Mantenimiento...2', '..Estado de la mascota...2', '.Nombre profesional 1..2']
+    }
+
     cantErroresPg_2 = (required_fields(reqFieldsPg2)+len_num_doc(reqFieldsPg2[0],reqFieldsPg2[1])
                        +age_vs_typedoc(reqFieldsPg2[0], 'Edad')+nac_vs_typedoc(reqFieldsPg2[0], reqFieldsPg2[4], 'Colombia')
                        +gen_vs_sex(reqFieldsPg2[5],reqFieldsPg2[6])+age_vs_maritalStatus('Fecha_intervencion', reqFieldsPg2[8],reqFieldsPg2[7])
                        +nac_vs_pdi(reqFieldsPg2[4], reqFieldsPg2[10])+et_vs_lang(reqFieldsPg2[9], 'HablaEspaniol')
-                       +validate_only_text('.Nombre de la mascota.', '.Nombre profesional 1.', '.Nombre profesional 1..1')+validateNumSesion_mv()
-                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha.')+validateNameProfesional_mv()+validateDates_mv())
+                       +validate_only_text('.Nombre de la mascota.', '.Nombre profesional 1.', '.Nombre profesional 1..1')+validateNumSesion_mv(columnsNamesNumSes)
+                       +comparar_fechas_vs_intervencion('Fecha_intervencion','.Fecha.')+validateNameProfesional_mv()+validateDates_mv()+validate_pet_name(columnsNamesSesions))
     if cantErroresPg_2 == 0:
         print("Sin errores en la segunda página")
     return cantErroresPg_2
@@ -1015,9 +1029,8 @@ def validateNameProfesional_mv():
         print(f'Errores en nombre de profesional: {cantErrProf}')
     return cantErrProf
 
-def validateNumSesion_mv():
+def validateNumSesion_mv(columnsNames):
     cantErrNumSes = 0
-    columnsNames = ['.Numero.', '.Numero..1', '.Numero..2', '.Numero..3', '.Numero..4', '.Numero..5']
 
     for index, columnName in enumerate(columnsNames):
         if columnName not in df_modified.columns:
@@ -1026,7 +1039,7 @@ def validateNumSesion_mv():
         fill_rows = df_modified[pd.notna(df_modified[columnName])]
         errors = fill_rows[fill_rows[columnName] != index+1]
 
-        cantErrSes += len(errors)
+        cantErrNumSes += len(errors)
         for index in errors.index:
             setBgError(index, columnName, bgError)
 
@@ -1039,15 +1052,48 @@ def validateDates_mv():
     columnsNamesDates = ['.Fecha.', '.Fecha..1', '.Fecha..2', '.Fecha..3', '.Fecha..4', '.Fecha..5']
 
     for index, columnName in enumerate(columnsNamesDates):
+        if columnName not in df_modified.columns:
+            raise ValueError(f"La columna {columnName} no existe")
+        
         if index != 0:
             totalErrDate += compare_dates(columnsNamesDates[index-1], columnsNamesDates[index])
     
     if totalErrDate > 0:
-        print(f'Línea de tiempo incoherente: {totalErrDate}')
+        print(f'Fecha incoherente: {totalErrDate}')
 
     return totalErrDate
 
-def validateCompleteSesion_mv():
+#Verificar que si tiene nombre de mascota tenga asistencia a la sesión 2 en adelante
+def validate_pet_name(columnsNamesSesions):
+    cantErrPetName = 0
+    columnNamePet = '.Nombre de la mascota.'
+
+    if columnNamePet not in df_modified.columns:
+        raise ValueError(f"La columna {columnNamePet} no existe")
+
+    for key, columns in columnsNamesSesions.items():
+        if key == 'fields_s1':
+            continue
+        print(columns)
+        for index, columnName in enumerate(columns):
+            if index != 3:
+                if columnName not in df_modified.columns:
+                    raise ValueError(f"La columna {columnName} no existe")
+            
+                errors = df_modified[pd.notna(df_modified[columnNamePet]) & pd.isna(df_modified[columnName])]
+                cantErrPetName += len(errors)
+
+                for idx in errors.index:
+                    setBgError(idx, columnName, bgSecError)
+                    setBgError(idx, columnNamePet, bgSecError)
+
+    # Imprime si hay errores
+    if cantErrPetName > 0:
+        print(f'Error en nombre de mascota/nro sesión: {cantErrPetName}')
+
+    return cantErrPetName
+
+def validateDataSesions_mv():
     cantErrSes = 0
     
 #------------------------------PERSONA MAYOR PÁGINA 1---------------------------------
