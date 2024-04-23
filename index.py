@@ -201,24 +201,79 @@ from tkinter import messagebox
 import requests
 from __version__ import __version__ as version_actual  # Importa la versión actual desde __version__.py
 
-def verificar_actualizacion():
-    # URL del archivo __version__.py en tu repositorio de GitHub
-    url_archivo_version = 'https://github.com/argg9822/validatorsGesi/blob/main/__version__.py'
+# def verificar_actualizacion():
+#     # URL del archivo __version__.py en tu repositorio de GitHub
+#     url_archivo_version = 'https://github.com/argg9822/validatorsGesi/blob/main/__version__.py'
     
-    # Consulta la API de GitHub para obtener el contenido del archivo __version__.py
-    respuesta = requests.get(url_archivo_version)
-    if respuesta.status_code == 200:
-        # Extrae la versión más reciente del contenido del archivo
-        version_mas_reciente = respuesta.text.split('=')[1].strip().strip("'")
-        print(version_mas_reciente)
+#     # Consulta la API de GitHub para obtener el contenido del archivo __version__.py
+#     respuesta = requests.get(url_archivo_version)
+#     if respuesta.status_code == 200:
+#         # Extrae la versión más reciente del contenido del archivo
+#         version_mas_reciente = respuesta.text.split('=')[1].strip().strip("'")
+#         print(version_mas_reciente)
         
-        # Compara con la versión actual y muestra una notificación si hay una actualización disponible
-        if version_mas_reciente != version_actual:
-            mensaje = f'¡Hay una nueva versión disponible: {version_mas_reciente}!'
-            messagebox.showinfo('Actualización disponible', mensaje)
+#         # Compara con la versión actual y muestra una notificación si hay una actualización disponible
+#         if version_mas_reciente != version_actual:
+#             mensaje = f'¡Hay una nueva versión disponible: {version_mas_reciente}!'
+#             messagebox.showinfo('Actualización disponible', mensaje)
 
-# Verificar actualización al iniciar el programa
-verificar_actualizacion()
+# # Verificar actualización al iniciar el programa
+
+import requests
+import git
+import subprocess
+
+def obtener_version_actual(url_archivo):
+    try:
+        # Realiza una solicitud GET a la URL del archivo en GitHub
+        respuesta = requests.get(url_archivo)
+        # Verifica si la solicitud fue exitosa (código de estado 200)
+        if respuesta.status_code == 200:
+            # Extrae la versión del contenido del archivo
+            version_actual = respuesta.text.split('=')[1].strip().strip("'")
+            return version_actual
+        else:
+            # Si la solicitud no fue exitosa, imprime un mensaje de error
+            print(f"Error al obtener el contenido del archivo: {respuesta.status_code}")
+            return None
+    except Exception as e:
+        # Captura cualquier excepción que pueda ocurrir durante la solicitud
+        print(f"Error al realizar la solicitud: {str(e)}")
+        return None
+
+def actualizar_desde_github():
+    try:
+        # Clona el repositorio desde GitHub
+        git.Repo.clone_from('https://github.com/argg9822/validatorsGesi.git', 'directorio_destino')
+        return True
+    except Exception as e:
+        # Captura cualquier excepción que pueda ocurrir durante la clonación
+        print(f"Error al clonar el repositorio: {str(e)}")
+        return False
+
+# URL del archivo __version__.py en tu repositorio de GitHub
+url_archivo_version = 'https://raw.githubusercontent.com/argg9822/validatorsGesi/main/__version__.py'
+
+# Obtener la versión actual del archivo
+version_actual = obtener_version_actual(url_archivo_version)
+
+if version_actual:
+    print(f"La versión actual es: {version_actual}")
+    # # Verificar si la versión obtenida es diferente a la versión actual
+    # if version_actual != version_actual_actual:  # Aquí estaba el error
+    #     print("Se detectó una nueva versión. Actualizando desde GitHub...")
+    #     # Actualizar el código desde GitHub
+    #     if actualizar_desde_github():
+    #         print("¡Actualización exitosa!")
+    #         # Reiniciar la aplicación si es necesario
+    #         subprocess.run(["python", "tunuevoarchivo.py"])
+    #     else:
+    #         print("No se pudo actualizar desde GitHub.")
+    # else:
+    #     print("No hay una nueva versión disponible.")
+else:
+    print("No se pudo obtener la versión actual.")
+
 
 buildGUI()
 

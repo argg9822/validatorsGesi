@@ -20,6 +20,8 @@ setup(
         'openpyxl',
         'pandas',
         'requests',
+        'gitpython',
+        
     ],
     
     # Incluye las carpetas img y validadores y sus archivos en el paquete
