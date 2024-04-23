@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 import os
+from __version__ import __version__ as version_actual_actual  # Importa la versión actual desde __version__.py
+
 
 # Función para obtener todos los archivos de una carpeta y sus subcarpetas
 def get_files(directory):
@@ -11,7 +13,7 @@ def get_files(directory):
 
 setup(
     name='Validadores_GesiApp',
-    version='1.0.0',
+    version=version_actual_actual,
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
@@ -28,6 +30,7 @@ setup(
     data_files=[
         ('img', get_files('img')),
         ('validadores', get_files('validadores')),
-        ('index.exe')
+        ('index.exe'),
+        ('__version__.py'),
     ]
 )

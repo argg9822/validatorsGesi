@@ -1,3 +1,4 @@
+__version__.py
 index.exe
 setup.py
 Validadores_GesiApp.egg-info/PKG-INFO

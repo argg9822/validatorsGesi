@@ -1,5 +1,0 @@
-colorama
-Pillow
-openpyxl
-pandas
-requests

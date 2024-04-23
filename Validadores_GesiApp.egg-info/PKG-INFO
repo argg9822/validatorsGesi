@@ -6,3 +6,4 @@ Requires-Dist: Pillow
 Requires-Dist: openpyxl
 Requires-Dist: pandas
 Requires-Dist: requests
+Requires-Dist: gitpython

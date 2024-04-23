@@ -1,0 +1,4 @@
+Codigo para Generar archivo para intalador
+
+1. pyinstaller --onefile index.py
+2. python setup.py sdist
