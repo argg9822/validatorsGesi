@@ -1613,7 +1613,7 @@ def saveFile():
         file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
         
         # Guardar el libro de trabajo original con los cambios realizados
-        workbook.save(file_path)
+        #workbook.save(file_path)
         # Guardar el archivo modificado con el nombre específico para errores
         workbook.save(file_path_modificado)
         print("Archivo guardado", "El archivo ha sido guardado correctamente.")
