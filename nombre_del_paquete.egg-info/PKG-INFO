@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: nombre_del_paquete
+Version: 1.0.0
+Requires-Dist: colorama
+Requires-Dist: Pillow
+Requires-Dist: openpyxl
+Requires-Dist: pandas
