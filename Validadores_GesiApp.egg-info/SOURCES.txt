@@ -1,0 +1,17 @@
+index.exe
+setup.py
+Validadores_GesiApp.egg-info/PKG-INFO
+Validadores_GesiApp.egg-info/SOURCES.txt
+Validadores_GesiApp.egg-info/dependency_links.txt
+Validadores_GesiApp.egg-info/requires.txt
+Validadores_GesiApp.egg-info/top_level.txt
+img/logo.png
+validadores/comunitario.py
+validadores/educativo.py
+validadores/institucional.py
+validadores/__pycache__/educativo.cpython-311.pyc
+validadores/__pycache__/educativo.cpython-312.pyc
+validadores/__pycache__/institucional.cpython-311.pyc
+validadores/__pycache__/institucional.cpython-312.pyc
+validadores/functions/openpyxl.py
+validadores/functions/pandas.py

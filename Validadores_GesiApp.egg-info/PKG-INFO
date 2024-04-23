@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: Validadores_GesiApp
+Version: 1.0.0
+Requires-Dist: colorama
+Requires-Dist: Pillow
+Requires-Dist: openpyxl
+Requires-Dist: pandas
+Requires-Dist: requests

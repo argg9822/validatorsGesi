@@ -196,8 +196,6 @@ def imprimirResultado(text_widget):
     sys.stdout = TerminalRedirect(text_widget)
     sys.stderr = TerminalRedirect(text_widget)
 
-buildGUI()
-
 
 from tkinter import messagebox
 import requests
@@ -212,6 +210,7 @@ def verificar_actualizacion():
     if respuesta.status_code == 200:
         # Extrae la versión más reciente del contenido del archivo
         version_mas_reciente = respuesta.text.split('=')[1].strip().strip("'")
+        print(version_mas_reciente)
         
         # Compara con la versión actual y muestra una notificación si hay una actualización disponible
         if version_mas_reciente != version_actual:
@@ -220,3 +219,7 @@ def verificar_actualizacion():
 
 # Verificar actualización al iniciar el programa
 verificar_actualizacion()
+
+buildGUI()
+
+

@@ -1,4 +1,0 @@
-colorama
-Pillow
-openpyxl
-pandas
