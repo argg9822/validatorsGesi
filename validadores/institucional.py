@@ -8,10 +8,10 @@ import pandas as pd
 from tkinter import filedialog, messagebox
 import os
 import re
-from functions import pandas, openpyxl
+# from functions import pandas, openpyxl
 
 
-pandas
+# pandas
 ##------------------------------------------------------------------------------------    
 ##---------------------CARGUE Y LECTURA DEL ARCHIVO EXCEL-----------------------------
 ##------------------------------------------------------------------------------------

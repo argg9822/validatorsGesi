@@ -1187,6 +1187,15 @@ def saludmental_pag1(sheet):
          # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
         
+        
+        # VALIDAR CURSO 
+        for i in range(2, ultima_fila +1):
+            if sheet.cell(i,10).value == "Colegios" and sheet.cell(i,10).value == "No aplica":
+                celdas_pintadas_rojo += 1
+                colum["column"] = {85, 2}
+                colum["row"] = i
+                pintar(colum, sheet)
+        
     except Exception as e:
         print("Error", f"Se produjo un error en salud mental en la parte : {str(e)}")
     
