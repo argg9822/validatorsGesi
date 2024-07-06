@@ -567,118 +567,74 @@ def prevencionPag1(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
                 
-        celTexto["ColumText"] = {10, 11, 12, 13, 51, 123, 125}      
+        celTexto["ColumText"] = {10, 11, 12, 13, 59, 131, 133}      
         celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)
         
         Genero["Genero"]= {15, 16}
-        celdas_pintadas_rojo += validadorsexoGenero(sheet, Genero)
+        celdas_pintadas_rojo += validadorsexoGenero(sheet, Genero) #nueva vigencia ok
         
         etniaVal["etnia"]= {21, 22}
-        celdas_pintadas_rojo += Valetnia(sheet, etniaVal)
+        celdas_pintadas_rojo += Valetnia(sheet, etniaVal)# nueva vigencia ok
         
         afiliacion["afiliacion"]= {24, 25}
-        celdas_pintadas_rojo += Valiafiliacion(sheet, afiliacion)
+        celdas_pintadas_rojo += Valiafiliacion(sheet, afiliacion) # nueva vigencia ok
         
-        CeldasVacias["vacias"] = {41, 10 , 12, 9, 18,  24, 42, 43, 46, 53, 73, 76, 78, 79, 80, 81, 90, 105, 106, 108, 109, 110, 111, 112, 113, 115, 116, 118, 120, 122, 123, 124, 125}
-        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)#columnas requeridas
+        CeldasVacias["vacias"] = {41, 10 , 12, 9, 18,  24, 81, 86, 87, 88, 113, 116 ,118, 119, 120, 123, 124 , 126, 128, 130 , 131, 132, 133  }
+        celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)#columnas requeridas lista nueva vigencia
         
-        placas["placas"] = {55, 60, 64}
+        placas["placas"] = {63,72 }
         celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#columnas requeridas
         
-        # Tel["Tel"] = {73}
-        # celdas_pintadas_rojo += ValidarTel(sheet, Tel)#columnas requeridas telefono
         
         #validar si Gestante 
         for i in range(2, ultima_fila + 1):
-            if sheet.cell(i, 83).value == "SI" :
-                if sheet.cell(i,84).value == " ":
+            if sheet.cell(i, 90).value == "SI" : # validacion si es gestante y campos
+                if sheet.cell(i,92).value == " ":
                     celdas_pintadas_rojo += 1
-                    colum["column"] = {83, 84, 2}
+                    colum["column"] = {90, 91, 2}
                     colum["row"] = i
                     pintar(colum, sheet)
                                     
-                for col_num in {89, 91, 92, 93}:
+                for col_num in {97, 98, 99, 100, 101, 121}:
                     cell_value = sheet.cell(row=i, column=col_num).value
                     if cell_value == " ":
-                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        celdas_pintadas_rojo += 1   # campos obligatorios si es gestante
                         colum["column"] = {col_num, 2}
                         colum["row"] = i
                         pintar(colum, sheet)
                 
-                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
+                for col_num in {102, 104, 105, 106, 107, 108, 109, 110, 111 }:
                     cell_value = sheet.cell(row=i, column=col_num).value
                     if cell_value != " ":
-                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                        celdas_pintadas_rojo += 1   # verifica si campos que nos son requeridos en gestante tienen algun dato
                         colum["column"] = {col_num, 2}
                         colum["row"] = i
                         pintar(colum, sheet)
                 
-            elif sheet.cell(i, 85).value == "SI" :
-                if sheet.cell(i,86).value == " ":
+            elif sheet.cell(i, 93).value == "SI" :
+                if sheet.cell(i,94).value == " ":
                     celdas_pintadas_rojo += 1
-                    colum["column"] = {85, 86, 2}
+                    colum["column"] = {93, 94, 2}
                     colum["row"] = i
                     pintar(colum, sheet)
                                     
-                for col_num in {89, 91, 92, 93}:
+                for col_num in {98, 102, 104, 105, 106, 107, 108, 109, 110, 111, 121}:
                     cell_value = sheet.cell(row=i, column=col_num).value
-                    if cell_value != " ":
-                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-                        colum["column"] = {col_num, 2}
+                    if cell_value == " ":
+                        celdas_pintadas_rojo += 1   # verificar datos de lacatntes requerido
                         colum["row"] = i
                         pintar(colum, sheet)
                 
-                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
+                for col_num in {96, 97, 99, 100, 101}:
                     cell_value = sheet.cell(row=i, column=col_num).value
-                    if cell_value == " ":
-                        celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
+                    if cell_value != " ":
+                        celdas_pintadas_rojo += 1   # verificar si los campos no requeridos estan llenos diferentes a lactantye
                         colum["column"] = {col_num, 2}
                         colum["row"] = i
                         pintar(colum, sheet)
                         
-            elif sheet.cell(i, 87).value == "Gestante" :
-                if sheet.cell(i,88).value == " ":
-                    celdas_pintadas_rojo += 1
-                    colum["column"] = {87, 88, 2}
-                    colum["row"] = i
-                    pintar(colum, sheet)
-                
-                
-                    for col_num in {89, 91, 92, 93}:
-                        cell_value = sheet.cell(row=i, column=col_num).value
-                        if cell_value != " ":
-                            celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-                            colum["column"] = {col_num, 2}
-                            colum["row"] = i
-                            pintar(colum, sheet)
-                
-                    for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:
-                        cell_value = sheet.cell(row=i, column=col_num).value
-                        if cell_value != " ":
-                            
-                            celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-                            colum["column"] = {col_num, 2}
-                            colum["row"] = i
-                            pintar(colum, sheet)
-            else:
-                for col_num in {89, 91, 92, 93}:
-                    celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-                    colum["column"] = {col_num, 2}
-                    colum["row"] = i
-                    pintar(colum, sheet)
-                
-                for col_num in {94, 96, 97, 98, 99, 100, 101, 102, 103}:                        
-                    celdas_pintadas_rojo += 1   # Luego, verifica si el valor convertido es mayor a 250 y aplica el formato de relleno rojo si es necesario
-                    colum["column"] = {col_num, 2}
-                    colum["row"] = i
-                    pintar(colum, sheet)
             
-        for i in range(2, ultima_fila +1):
-            if sheet.cell(i,120).value == "SI" and sheet.cell(i,121).value == " ":
-                celdas_pintadas_rojo += 1
-                colum["column"] = {120, 121, 2}
-                colum["row"] = i
-                pintar(colum, sheet)
+        
                 
        # Mostrar la cantidad de celdas pintadas de rojo
         print(f"Total errores encontrados {celdas_pintadas_rojo}.")
