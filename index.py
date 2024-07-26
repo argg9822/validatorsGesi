@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.font as font
 import subprocess
-from validadores import institucional, educativo
+from validadores import institucional, educativo, comunitario
 import sys
 from colorama import init, Fore, Style
 from PIL import Image, ImageTk
@@ -43,6 +43,8 @@ def ejecutarValidadorEntornos(script_path, base):
             institucional.setBase(base)
         elif script_path == "educativo":
             educativo.setBase(base)
+        elif script_path == "comunitario":
+            comunitario.setBase(base)
             
     return callback
 
