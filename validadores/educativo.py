@@ -1043,7 +1043,7 @@ def saludmental_pag1(sheet):
         celdas_pintadas_rojo += validadorsexoGenero(sheet, Genero)
         
         for i in range(2, ultima_fila + 1):
-            if sheet.cell(i,10).value == "Universidades" :
+            if sheet.cell(i,10).value == "Universidades" or sheet.cell(i,10).value == "Jardines" :
                 if sheet.cell(i,17).value != " " :
                     colum["column"] = {10, 17, 2}
                     colum["row"] = i
@@ -1070,12 +1070,7 @@ def saludmental_pag1(sheet):
                     colum["row"] = i
                     pintar(colum, sheet)
                     
-                    print(cantidad)
                 
-                celTexto["ColumText"] = {43}      
-                celdas_pintadas_rojo += validarCeldasTexto(sheet, celTexto)    
-            
-        
         Var_edad = { # seleccionar la columna donde se encuentra cada campo 
             "F_Intervencion": 3,
             "F_nacimiento": 37,
