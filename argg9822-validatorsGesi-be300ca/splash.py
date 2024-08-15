@@ -1,11 +1,12 @@
-import os
-import requests
-import zipfile
 import tkinter as tk
 from PIL import Image, ImageTk
+import subprocess
 import sys
-
-VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
+import os
+from PIL import Image, ImageTk
+import requests
+import json
+import zipfile
 
 def open_main_window(splash_root):
     splash_root.destroy()  # Cierra la pantalla de inicio
@@ -19,21 +20,11 @@ def center_window(window, width, height):
     window.geometry(f'{width}x{height}+{x}+{y}')
 
 def obtener_ultima_version():
-    url = "https://api.github.com/repos/argg9822/validatorsGesi/releases/latest"
+    url = f"https://api.github.com/repos/argg9822/validatorsGesi/releases/latest"
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()["tag_name"]
     return None
-
-def leer_version_actual():
-    if os.path.exists(VERSION_FILE):
-        with open(VERSION_FILE, "r") as f:
-            return f.read().strip()
-    return None
-
-def guardar_version_actual(version):
-    with open(VERSION_FILE, "w") as f:
-        f.write(version)
 
 def descargar_cambios(version):
     url = f"https://api.github.com/repos/argg9822/validatorsGesi/zipball/{version}"
@@ -47,26 +38,17 @@ def descargar_cambios(version):
 def aplicar_cambios():
     with zipfile.ZipFile("cambios.zip", "r") as zip_ref:
         zip_ref.extractall()
-    # Ejecutar script para instalar dependencias, si es necesario
-    # subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
 
 def actualizar_aplicacion():
-    version_actual = leer_version_actual()
-    ultima_version = obtener_ultima_version()
-    
-    if ultima_version:
-        if version_actual != ultima_version:
-            print("Actualización disponible. Descargando cambios...")
-            if descargar_cambios(ultima_version):
-                aplicar_cambios()
-                guardar_version_actual(ultima_version)
-                print("La aplicación ha sido actualizada con éxito")
-            else:
-                print("Error al descargar los cambios")
+    version = obtener_ultima_version()
+    if version:
+        if descargar_cambios(version):
+            aplicar_cambios()
+            print("La aplicación ha sido actualizada con éxito")
         else:
-            print("La aplicación ya está actualizada")
+            print("Error al descargar los cambios")
     else:
-        print("No se encontró la versión actual")
+        print("No se encontró la última versión")
 
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización

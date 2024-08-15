@@ -1,0 +1,6 @@
+colorama
+Pillow
+openpyxl
+pandas
+requests
+gitpython
