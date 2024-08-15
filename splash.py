@@ -48,7 +48,6 @@ def descargar_cambios(version):
 def aplicar_cambios():
     zip_path = "cambios.zip"
     target_dir = os.path.dirname(zip_path)  # Obtener el directorio donde está el archivo ZIP
-    temp_dir = os.path.join(target_dir, 'temp_extracted')  # Carpeta temporal para extraer el ZIP
 
     # Eliminar archivos y carpetas existentes en el directorio de destino
     for root, dirs, files in os.walk(target_dir, topdown=False):
@@ -57,21 +56,23 @@ def aplicar_cambios():
         for name in dirs:
             shutil.rmtree(os.path.join(root, name))
 
-    # Extraer el contenido del ZIP a la carpeta temporal
+    # Extraer el contenido del ZIP al directorio de destino
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(temp_dir)
+        # Obtener la lista de todos los archivos en el ZIP
+        all_files = zip_ref.namelist()
 
-    # Mover el contenido de la carpeta temporal al directorio de destino, sobrescribiendo archivos existentes
-    for item in os.listdir(temp_dir):
-        s = os.path.join(temp_dir, item)
-        d = os.path.join(target_dir, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, dirs_exist_ok=True)
-        else:
-            shutil.copy2(s, d)
+        # Encontrar la carpeta dentro del ZIP
+        folder_name = [name for name in all_files if name.endswith('/')][0]
 
-    # Eliminar la carpeta temporal
-    shutil.rmtree(temp_dir)
+        # Filtrar solo los archivos dentro de la carpeta
+        files_to_extract = [f for f in all_files if f.startswith(folder_name)]
+
+        # Extraer solo los archivos que están dentro de la carpeta
+        for file in files_to_extract:
+            zip_ref.extract(file, target_dir)
+
+
+    
 
 
 def actualizar_aplicacion():
