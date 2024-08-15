@@ -4,6 +4,7 @@ import zipfile
 import tkinter as tk
 from PIL import Image, ImageTk
 import sys
+import shutil
 
 VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
 
@@ -45,10 +46,20 @@ def descargar_cambios(version):
     return False
 
 def aplicar_cambios():
-    with zipfile.ZipFile("cambios.zip", "r") as zip_ref:
-        zip_ref.extractall()
-    # Ejecutar script para instalar dependencias, si es necesario
-    # subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
+    zip_path = "cambios.zip"
+    target_dir = os.path.dirname(zip_path)  # Obtener el directorio donde está el archivo ZIP
+
+    # Eliminar archivos y carpetas existentes en el directorio de destino
+    for root, dirs, files in os.walk(target_dir, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            shutil.rmtree(os.path.join(root, name))
+
+    # Extraer el contenido del ZIP
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(target_dir)
+
 
 def actualizar_aplicacion():
     version_actual = leer_version_actual()

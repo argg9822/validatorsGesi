@@ -8,7 +8,9 @@ include_files = [
     ("img", "img"),
     ("validadores", "validadores"),
     ("index.py", "index.py"),
-    ("__version__.py", "__version__.py")  # Asegúrate de incluir __version__.py
+    ("__version__.py", "__version__.py"), # Asegúrate de incluir __version__.py
+    ("version.txt", "version.txt")  # Asegúrate de incluir __version__.py
+    
 ]
 
 executables = [cx_Freeze.Executable("splash.py", base=None)]
