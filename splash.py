@@ -35,7 +35,6 @@ def leer_version_actual():
 def guardar_version_actual(version):
     with open(VERSION_FILE, "w") as f:
         f.write(version)
-
 def descargar_cambios(version):
     url = f"https://api.github.com/repos/argg9822/validatorsGesi/zipball/{version}"
     response = requests.get(url)
@@ -46,34 +45,34 @@ def descargar_cambios(version):
     return False
 
 def aplicar_cambios():
+    # Ruta donde se guarda el ZIP
     zip_path = "cambios.zip"
-    target_dir = os.path.dirname(zip_path)  # Obtener el directorio donde está el archivo ZIP
+    # Obtener el directorio actual
+    current_dir = os.path.dirname(os.path.abspath(zip_path))
 
-    # Eliminar archivos y carpetas existentes en el directorio de destino
-    for root, dirs, files in os.walk(target_dir, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            shutil.rmtree(os.path.join(root, name))
-
-    # Extraer el contenido del ZIP al directorio de destino
+    # Extraer el ZIP en una carpeta temporal
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        # Obtener la lista de todos los archivos en el ZIP
-        all_files = zip_ref.namelist()
+        temp_dir = os.path.join(current_dir, "temp_extract")
+        zip_ref.extractall(temp_dir)
 
-        # Encontrar la carpeta dentro del ZIP
-        folder_name = [name for name in all_files if name.endswith('/')][0]
+    # Buscar el archivo index.py dentro de las carpetas extraídas
+    for root, dirs, files in os.walk(temp_dir):
+        if 'index.py' in files:
+            # Ruta completa al archivo index.py en el ZIP
+            index_py_path = os.path.join(root, 'index.py')
 
-        # Filtrar solo los archivos dentro de la carpeta
-        files_to_extract = [f for f in all_files if f.startswith(folder_name)]
+            # Ruta donde está el index.py actual que será reemplazado
+            destination_path = os.path.join(current_dir, 'index.py')
 
-        # Extraer solo los archivos que están dentro de la carpeta
-        for file in files_to_extract:
-            zip_ref.extract(file, target_dir)
+            # Mover y reemplazar el archivo
+            shutil.move(index_py_path, destination_path)
+            print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+            break
 
-
+    # Eliminar la carpeta temporal
+    shutil.rmtree(temp_dir)
     
-
+        
 
 def actualizar_aplicacion():
     version_actual = leer_version_actual()
