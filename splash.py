@@ -107,6 +107,7 @@ def aplicar_cambios():
     shutil.rmtree(temp_dir)
     
         
+import tkinter as tk
 
 def actualizar_aplicacion():
     version_actual = leer_version_actual()
@@ -114,18 +115,51 @@ def actualizar_aplicacion():
     
     if ultima_version:
         if version_actual != ultima_version:
-            print("Actualización disponible. Descargando cambios...")
-            if descargar_cambios(ultima_version):
-                aplicar_cambios()
-                guardar_version_actual(ultima_version)
-                print("La aplicación ha sido actualizada con éxito")
-            else:
-                print("Error al descargar los cambios")
+            # Crea una ventana para mostrar la opción de actualizar
+            ventana_actualizacion = tk.Tk()
+            ventana_actualizacion.title("Actualizar aplicación")
+            ventana_actualizacion.geometry("400x200")  # Establece el tamaño de la ventana
+            ventana_actualizacion.configure(bg="#f0f0f0")  # Establece el color de fondo
+
+            # Crea un label para mostrar el mensaje de actualización
+            label_actualizacion = tk.Label(ventana_actualizacion, text="Actualización disponible.", font=("Arial", 14), bg="#f0f0f0")
+            label_actualizacion.pack(pady=20)
+
+            # Crea un label para mostrar la versión actual y la última versión
+            label_versiones = tk.Label(ventana_actualizacion, text=f"Versión actual: {version_actual}\nÚltima versión: {ultima_version}", font=("Arial", 12), bg="#f0f0f0")
+            label_versiones.pack()
+
+            # Crea un frame para contener los botones
+            frame_botones = tk.Frame(ventana_actualizacion, bg="#f0f0f0")
+            frame_botones.pack(pady=20)
+
+            # Crea un botón para actualizar la aplicación
+            boton_actualizar = tk.Button(frame_botones, text="Actualizar ahora", command=lambda: actualizar_aplicacion_sí(ventana_actualizacion, ultima_version), bg="#4CAF50", fg="#ffffff", font=("Arial", 12))
+            boton_actualizar.pack(side=tk.LEFT, padx=10)
+
+            # Crea un botón para no actualizar la aplicación
+            boton_no_actualizar = tk.Button(frame_botones, text="No actualizar", command=ventana_actualizacion.destroy, bg="#e74c3c", fg="#ffffff", font=("Arial", 12))
+            boton_no_actualizar.pack(side=tk.LEFT, padx=10)
+
+            # Muestra la ventana de actualización
+            ventana_actualizacion.mainloop()
         else:
             print("La aplicación ya está actualizada")
     else:
         print("No se encontró la versión actual")
 
+def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
+    # Descarga y aplica los cambios
+    ventana_actualizacion.destroy()
+    print("Actualiz en proceso")
+    
+    if descargar_cambios(ultima_version):
+        aplicar_cambios()
+        guardar_version_actual(ultima_version)
+        print("App actualizada con exito")
+    else:
+        print("Error al descargar los cambios")
+   
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización
 
