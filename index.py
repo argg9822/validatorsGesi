@@ -138,7 +138,7 @@ def buildGUI():
     container_title.pack(pady=(30, 0))
     
     # Título en la parte superior
-    title_label = tk.Label(container_title, text="VALIDADOR prueba", font=fontTitle, fg=fontLetter, bg=bgColor)
+    title_label = tk.Label(container_title, text="VALIDADOR", font=fontTitle, fg=fontLetter, bg=bgColor)
     title_label.pack()
     
     font_sub_title = ('Helvetica', 16)
