@@ -55,18 +55,51 @@ def aplicar_cambios():
         temp_dir = os.path.join(current_dir, "temp_extract")
         zip_ref.extractall(temp_dir)
 
-    # Buscar el archivo index.py dentro de las carpetas extraídas
+    # Variables para almacenar rutas encontradas
+    index_found = False
+    validadores_found = False
+    img_found = False
+
+    # Buscar los archivos y carpetas dentro de las carpetas extraídas
     for root, dirs, files in os.walk(temp_dir):
-        if 'index.py' in files:
-            # Ruta completa al archivo index.py en el ZIP
+        # Buscar y reemplazar index.py
+        if not index_found and 'index.py' in files:
             index_py_path = os.path.join(root, 'index.py')
-
-            # Ruta donde está el index.py actual que será reemplazado
             destination_path = os.path.join(current_dir, 'index.py')
-
-            # Mover y reemplazar el archivo
             shutil.move(index_py_path, destination_path)
             print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+            index_found = True
+
+        # Buscar y reemplazar la carpeta validadores
+        if not validadores_found and 'validadores' in dirs:
+            validadores_path = os.path.join(root, 'validadores')
+            destination_path = os.path.join(current_dir, 'validadores')
+
+            # Si la carpeta ya existe, eliminarla antes de reemplazarla
+            if os.path.exists(destination_path):
+                shutil.rmtree(destination_path)
+
+            # Mover la carpeta validadores al destino
+            shutil.move(validadores_path, destination_path)
+            print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
+            validadores_found = True
+
+        # Buscar y reemplazar la carpeta img
+        if not img_found and 'img' in dirs:
+            img_path = os.path.join(root, 'img')
+            destination_path = os.path.join(current_dir, 'img')
+
+            # Si la carpeta ya existe, eliminarla antes de reemplazarla
+            if os.path.exists(destination_path):
+                shutil.rmtree(destination_path)
+
+            # Mover la carpeta img al destino
+            shutil.move(img_path, destination_path)
+            print(f"Carpeta {img_path} reemplazada en {destination_path}")
+            img_found = True
+
+        # Detener la búsqueda si ya se encontraron index.py, validadores, y img
+        if index_found and validadores_found and img_found:
             break
 
     # Eliminar la carpeta temporal
