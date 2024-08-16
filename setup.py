@@ -16,10 +16,8 @@ include_files = [
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"  # Omitir consola de comandos en aplicaciones GUI en Windows
-
 # Ejecutable configurado con Win32GUI
 executables = [Executable("Validador_gesi.py", base=base, icon="img/logo.ico")]
-
 # Configuración de cx_Freeze
 setup(
     name="Gesi App",

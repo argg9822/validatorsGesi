@@ -13,6 +13,7 @@ SetupIconFile=D:\Perfil\Documentos\validatorsGesi\img\logo.ico
 [Files]
 ; Archivos que se incluirán en el instalador
 Source: "build\exe.win-amd64-3.12\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "install_dependencies.bat"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Tasks]
 ; Opciones adicionales durante la instalación
@@ -20,13 +21,15 @@ Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; Gr
 
 [Icons]
 ; Accesos directos en el menú de inicio
-Name: "{group}\Validador_Gesiapp"; Filename: "{app}\splash.exe"; IconFilename: "D:\Perfil\Documentos\validatorsGesi\img\logo.ico"
+Name: "{group}\Validador_Gesiapp"; Filename: "{app}\Validador_gesi.exe"; IconFilename: "{app}\img\logo.ico"
 ; Acceso directo en el escritorio (solo si se selecciona la tarea 'desktopicon')
-Name: "{userdesktop}\Validador_Gesiapp"; Filename: "{app}\splash.exe"; Tasks: desktopicon; IconFilename: "D:\Perfil\Documentos\validatorsGesi\img\logo.ico"
+Name: "{userdesktop}\Validador_Gesiapp"; Filename: "{app}\Validador_gesi.exe"; Tasks: desktopicon; IconFilename: "{app}\img\logo.ico"
 
 [Run]
 ; Ejecutar la aplicación después de la instalación
-Filename: "{app}\splash.exe"; Description: "Ejecutar Validador_Gesiapp"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Validador_gesi.exe"; Description: "Ejecutar Validador_Gesiapp"; Flags: nowait postinstall skipifsilent
+; Ejecutar el script de instalación de dependencias
+Filename: "{tmp}\install_dependencies.bat"; Parameters: ""; Flags: runhidden
 
 [UninstallDelete]
 ; Borrar archivos al desinstalar
