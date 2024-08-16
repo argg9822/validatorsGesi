@@ -1,5 +1,5 @@
 import tkinter as tk
-import tkinter.font as font
+import customtkinter
 import subprocess
 from validadores import institucional, educativo, comunitario
 import sys
@@ -7,49 +7,117 @@ from colorama import init, Fore, Style
 from PIL import Image, ImageTk
 from __version__ import __version__ as version_actual_actual  # Importa la versión actual desde __version__.py
 
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
 
-init()
+        # Configure window
+        self.title("Validador Gesiapp")
+        self.geometry(f"{1010}x{450}")
 
-fontTitle = ("Helvetica", 30, "bold")
-fontTexts = ("Helvetica", 15)
-bgColor = "#001B36"
-themeColor = "#F15025"
-secondColor = "#000D1C"
-neonBlue = "#00FFFF"
-neonPink = "#DA00A5"
-secondColorRgba =(60, 110, 113, 0.5)
-secondColorHex = '#%02x%02x%02x' % secondColorRgba[:3]
-fontLetter = "#ffffff"
-imgLogo = Image.open("img/logo.png")
+       
 
-# Función para calcular las dimensiones de la ventana
-def calcular_dimensiones_ventana(root):
-    ancho_pantalla = root.winfo_screenwidth()
-    alto_pantalla = root.winfo_screenheight()
-    ancho_ventana = int(ancho_pantalla * 0.72)
-    alto_ventana = int(alto_pantalla * 0.75)
-    x = (ancho_pantalla - ancho_ventana) // 2
-    y = (alto_pantalla - alto_ventana) // 2
-    root.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
+        # Configure grid layout
+        self.grid_columnconfigure(1, weight=0)
+        self.grid_columnconfigure((2), weight=1)
+        self.grid_rowconfigure((1), weight=1)
 
-def ajustar_ancho_menu(event):
-    ancho_marco_menu = int(event.width * 0.3)  # 10% del ancho de la ventana
-    marco_menu.config(width=ancho_marco_menu)
+        # Create sidebar frame with widgets
+        self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
+        self.sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew")
+        self.sidebar_frame.grid_rowconfigure(6, weight=1)
+        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Validar Bases", font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
-def ejecutarValidadorEntornos(script_path, base):
-    def callback():
-        subprocess.Popen(["python", 'validadores/'+script_path+'.py', base])  # Ejecutar el script cuando se hace clic en el botón
-        if script_path == "institucional":
-            institucional.setBase(base)
-        elif script_path == "educativo":
-            educativo.setBase(base)
-        elif script_path == "comunitario":
-            comunitario.setBase(base)
-            
-    return callback
+        self.sidebar_button_1 = customtkinter.CTkButton(self.sidebar_frame, text="Hogar", command=lambda: self.mostrarBases("Hogar"))
+        self.sidebar_button_1.grid(row=1, column=0, padx=20, pady=10)
+        
+        self.sidebar_button_2 = customtkinter.CTkButton(self.sidebar_frame, text="Laboral", command=lambda: self.mostrarBases("laboral"))
+        self.sidebar_button_2.grid(row=2, column=0, padx=20, pady=10)
+        
+        self.sidebar_button_3 = customtkinter.CTkButton(self.sidebar_frame, text="Educativo", command=lambda: self.mostrarBases("Educativo"))
+        self.sidebar_button_3.grid(row=3, column=0, padx=20, pady=10)
+        
+        self.sidebar_button_4 = customtkinter.CTkButton(self.sidebar_frame, text="Comunitario", command=lambda: self.mostrarBases("Comunitario"))
+        self.sidebar_button_4.grid(row=4, column=0, padx=20, pady=10)
+        
+        self.sidebar_button_5 = customtkinter.CTkButton(self.sidebar_frame, text="Institucional", command=lambda: self.mostrarBases("Institucional"))
+        self.sidebar_button_5.grid(row=5, column=0, padx=20, pady=10)
+        
+        self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
+        self.appearance_mode_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"],
+                                                                       command=self.change_appearance_mode_event)
+        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
+        self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
+        self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
+                                                               command=self.change_scaling_event)
+        self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
 
-def mostrarBases(entorno):
-    def callback():
+        # Create textbox
+        self.textbox = customtkinter.CTkTextbox(self, width=250, height=250)
+        self.textbox.grid(row=1, column=2, padx=(20, 20), pady=(10, 10), sticky="nsew")
+        
+         # Redirect stdout to the CTkTextbox
+        sys.stdout = TextRedirector(self.textbox)
+
+        # Create tabview
+        self.tabview = customtkinter.CTkTabview(self, width=250)
+        self.tabview.grid(row=1, column=1, padx=(20, 0), pady=(5, 10), sticky="nsew")
+
+        # Initialize tabs dictionary
+        self.tabs = {}
+        
+         # Create menu
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+
+        # Add "Archivo" menu
+        self.archivo_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Archivo", menu=self.archivo_menu)
+        self.archivo_menu.add_command(label="Nuevo", command=self.nuevo_event)
+        self.archivo_menu.add_command(label="Actualizar Todo", command=self.actualizar_todo_event)
+        self.archivo_menu.add_separator()
+        self.archivo_menu.add_command(label="Salir", command=self.quit)
+
+        # Add "Herramientas" menu
+        self.herramientas_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Herramientas", menu=self.herramientas_menu)
+        self.herramientas_menu.add_command(label="Actualizar Bases", command=self.actualizar_bases_event)
+
+    def nuevo_event(self):
+        print("Nuevo seleccionado")
+        # Agrega la lógica para "Nuevo" aquí
+
+    def actualizar_todo_event(self):
+        print("Actualizar Todo seleccionado")
+        # Agrega la lógica para actualizar todo aquí
+
+    def actualizar_bases_event(self):
+        print("Actualizar Bases seleccionado")
+        # Aquí puedes actualizar las bases como desees
+        # Ejemplo: Puedes agregar un método para recargar las bases o cualquier lógica específica que necesites
+
+        
+    def open_input_dialog_event(self):
+        dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
+        print("CTkInputDialog:", dialog.get_input())
+
+    def change_appearance_mode_event(self, new_appearance_mode: str):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+    def change_scaling_event(self, new_scaling: str):
+        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+        customtkinter.set_widget_scaling(new_scaling_float)
+
+    def sidebar_button_event(self):
+        print("sidebar_button click")
+
+    def mostrarBases(self, valor):
+        print(f"Activando validadores de: {valor}")
+
+        # Define the bases dictionary
         bases = {
             "hogar": ["csa", "implementacion", "apgar", "sesiones_colectivas", "rqc", "srq"],
             "laboral": ["utis", "nna", "sesiones_colectivas", "oms", "findrisc"],
@@ -57,152 +125,71 @@ def mostrarBases(entorno):
             "comunitario": ["sesiones_colectivas", "vinculate", "maps", "cami", "zarit", "pcbh", "caldas", "guardianes", "acondicionamiento", "cuidarte", "mujeres", "fortalecimiento", "pid"],
             "institucional": ["sesiones_colectivas", "ead", "hcb", "mascota_verde", "ipa", "pcb", "persona_mayor", "pci", "tamizajes"]
         }
-        print("\x1b[31mEntorno seleccionado:\x1b[0m " + entorno)
-        #Vaciar contenedor
-        for element in marco_botones_bases.winfo_children():
-            element.destroy()
 
-        found = False
-        bordes = []
-        botones = []
-        for key, value in bases.items():
-            if key == entorno.lower():
-                found = True
-                for v in value:
-                    border_buttons_bases = tk.Frame(marco_botones_bases, bg=neonPink)
-                    border_buttons_bases.grid(column=1, row=1, pady=5)
-                    bordes.append(border_buttons_bases)
-                    
-                    btn_bases = tk.Button(border_buttons_bases, text=v,  width="25", height="1", borderwidth=0, highlightbackground="white", bg=bgColor, fg="white", command=ejecutarValidadorEntornos(entorno.lower(), v))                    
-                    btn_bases.grid(row=0, column=0, padx=2, pady=2, ipady=5)
-                    botones.append(btn_bases)
-                    
-                for index, borde in enumerate(bordes):
-                    row = index // 3
-                    col = index % 3
-                    padLeft = 30 if index in [0,3,6,9,12] else 30
-                    padTop = 25 if index in [0,1,2] else 5
-                    borde.grid(row=row, column=col, padx=(padLeft, 5), pady=(padTop, 5))
-                break
-            
-        if not found:
-            print("No match found.")
-    return callback
+        # Convert valor to lowercase to match dictionary keys
+        valor_lower = valor.lower()
 
-def buildGUI():    
-    # Crear la interfaz gráfica
-    root = tk.Tk()
-    root.title("Validador GesiApp")
+        # Check if the tab already exists
+        if valor_lower in self.tabs:
+            tab_name = self.tabs[valor_lower]
+        else:
+            tab_name = "Bases " + valor
+            self.tabview.add(tab_name)
+            self.tabs[valor_lower] = tab_name
 
-    # Calcular las dimensiones de la ventana
-    calcular_dimensiones_ventana(root)
-    
-    # Marco principal
-    marco_principal = tk.Frame(root, padx="0")
-    marco_principal.pack(expand=True, fill="both")
-    
-    # Marco para el menú en la parte izquierda (10% del ancho)
-    global marco_menu 
-    marco_menu = tk.Frame(marco_principal)
-    marco_menu.pack(side="left", fill="y")
-    
-    # Marco para los botones en la parte derecha (90% del ancho)
-    capa_2_botones_entornos = tk.Frame(marco_menu, bg=secondColor, width=root.winfo_width() * 0.4, padx=40)
-    capa_2_botones_entornos.pack(side="left", expand=True, fill="y")
-    
-    marco_botones_entornos = tk.Frame(capa_2_botones_entornos, bg=secondColor)
-    marco_botones_entornos.pack(side="bottom", pady=(0, 40))
-    
-    fontButtonsEntornos = ('Helvetica', 10, 'bold')
-    
-    # Botones entornos
-    entornos = ["Hogar", "Laboral", "Educativo", "Comunitario", "Institucional"]
+        # Get the frame for the tab
+        tab_frame = self.tabview.tab(tab_name)
 
-    for entorno in entornos:
-        border_buttons_entornos = tk.Frame(marco_botones_entornos, bg=neonBlue, pady="0")
-        border_buttons_entornos.pack(pady="19")
+        # Clear existing widgets in the tab
+        for widget in tab_frame.winfo_children():
+            widget.destroy()
 
-        btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="25", height="1", borderwidth=0, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno), font=fontButtonsEntornos)
-        btn_entorno.pack(pady=1, padx=1, ipady=5)        
+        # Add new buttons to the tab using customtkinter.CTkButton
+        if valor_lower in bases:
+            for item in bases[valor_lower]:
+                button = customtkinter.CTkButton(tab_frame, text=item, width=200, height=25, corner_radius=10, command=self.ejecutarValidadorEntornos(valor_lower, item))
+                button.pack(pady=1)
+        else:
+            print("No se encontraron bases coincidentes.")
+
+    def ejecutarValidadorEntornos(self, script_path, base):
         
-    logoGesiApp = ImageTk.PhotoImage(imgLogo)
-    label_logo = tk.Label(marco_botones_entornos, bg=secondColor, image=logoGesiApp, width=capa_2_botones_entornos.winfo_width() * 0.06)
-    label_logo.pack(side="bottom", pady=(20, 0))
-    
-    # #Contenedor de la parte derecha
-    container_right = tk.Frame(marco_principal, width=marco_principal.winfo_width() * 0.6, bg=bgColor)
-    container_right.pack(side="right", fill="both", expand=True)
-    
-    # #Container título
-    container_title = tk.Label(container_right, bg=bgColor)
-    container_title.pack(pady=(30, 0))
-    
-    # Título en la parte superior
-    title_label = tk.Label(container_title, text="NUEVA VERSIÓN", font=fontTitle, fg=fontLetter, bg=bgColor)
-    title_label.pack()
-    
-    font_sub_title = ('Helvetica', 16)
-    sub_label = tk.Label(container_title, text="GesiApp " + version_actual_actual, font=font_sub_title, fg=neonBlue, bg=bgColor)
-    sub_label.pack()
+        def callback():
+            subprocess.Popen(["python", f'validadores/{script_path}.py', base])  # Ejecutar el script cuando se hace clic en el botón
+            # Aquí deberías agregar tu lógica específica para cada script_path
+            if script_path == "institucional":
+                print(f"Inicializando la base de: {base} por favor espere"  )
+                institucional.setBase(base)
+            elif script_path == "educativo":
+                print(f"Inicializando la base de: {base} por favor espere"  )
 
-    global marco_botones_bases
-    marco_botones_bases = tk.Frame(container_right, bg=secondColor)
-    marco_botones_bases.pack(side="top", expand=True, fill="x")
-    marco_botones_bases.place(relx=0.05, rely=0.22, relwidth=0.9, relheight=0.41)
+                educativo.setBase(base)
+                print(f"Inicializando la base de: {base} por favor espere"  )
 
-    container_init_text = tk.Frame(marco_botones_bases, bg=neonBlue)
-    container_init_text.pack(fill="both", expand=True, pady=15, padx=20)
-    initial_text = "Por favor seleccione un entorno para continuar"
-    preview_message = tk.Label(container_init_text, text=initial_text, fg="white", bg=secondColor, font=fontTexts)
-    preview_message.pack(fill="both", expand=True, pady=1, padx=1)
+            elif script_path == "comunitario":
+                print(f"Inicializando la base de: {base} por favor espere"  )
+                comunitario.setBase(base)
+                
+
+        return callback
+
+    def update_bases(self):
+        # Logic to update the bases dictionary
+        # This could be a dialog that asks the user to enter new data, or you could load it from a file
+        print("Update Bases menu item clicked")
         
-    marco_resultado = tk.Frame(container_right, bg=bgColor)
-    marco_resultado.pack(side="bottom", expand=True, fill="x")
-    marco_resultado.place(relx=0.05, rely=0.65, relwidth=0.9, relheight=0.3)
+class TextRedirector:
+    def __init__(self, widget, tag="stdout"):
+        self.widget = widget
+        self.tag = tag
 
-    texto_terminal = tk.Text(marco_resultado, bg=bgColor, fg="white", borderwidth=0, relief="solid")
-    texto_terminal.pack(side="bottom", expand=True, fill="both", pady="5")
+    def write(self, string):
+        self.widget.insert(tk.END, string)
+        self.widget.see(tk.END)  # Scroll to the end of the textbox
 
-    # Llamar a la función imprimirResultado después de configurar los botones
-    imprimirResultado(texto_terminal)
-    print("\x1b[31m¡Bienvenido!\x1b[0m")
+    def flush(self):
+        pass
 
-    root.mainloop()
-
-def imprimirResultado(text_widget):
-    class TerminalRedirect:
-        def __init__(self, text_widget):
-            self.text_widget = text_widget
-
-        def write(self, message):
-            start_index = 0
-            while True:
-                color_start = message.find('\x1b[', start_index)
-                if color_start == -1:
-                    self.text_widget.insert(tk.END, message[start_index:])
-                    break
-                else:
-                    self.text_widget.insert(tk.END, message[start_index:color_start])
-                    color_end = message.find('m', color_start)
-                    if color_end != -1:
-                        color_code = message[color_start + 2:color_end].strip()
-                        if color_code.isdigit():  # Verificar si es un número
-                            self.apply_color(color_code)
-                    start_index = color_end + 1
-
-            self.text_widget.see(tk.END)  # Desplazar hacia abajo para mostrar el texto más reciente
-
-        def apply_color(self, color_code):
-            self.text_widget.tag_add('color', 'end - 1c')
-            self.text_widget.tag_config('color', foreground="white", background='')
-
-    # Redirigir la salida estándar al widget texto_terminal
-    sys.stdout = TerminalRedirect(text_widget)
-    sys.stderr = TerminalRedirect(text_widget)
-
-
-
-
-buildGUI()
-
-
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

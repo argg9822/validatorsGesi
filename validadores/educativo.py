@@ -74,7 +74,7 @@ def chooseBase(base):
 def mascota_verde():
     # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
-    print(f"El archivo Excel tiene {num_paginas} páginas.")
+    print(f"El archivo Excel tiene {num_paginas} páginas." , flush=True)
     # Primero, validar la página 1
     if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
@@ -1546,7 +1546,7 @@ def remplazarComillas(sheet):
     except Exception as e:
         print("Error", f"Se produjo un error de comillas: {str(e)}")
         
-        
+ 
               
 # Función para calcular la edad
 def calcular_edad(fecha_nacimiento, fecha_intervencion):

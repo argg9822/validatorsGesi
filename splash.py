@@ -6,12 +6,13 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import sys
 import shutil
+import tkinter as tk
 
 VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
 
 def open_main_window(splash_root):
     splash_root.destroy()  # Cierra la pantalla de inicio
-    os.system(f'python {os.path.abspath("index.py")}')  # Ejecuta index.py
+    os.system(f'pythonw {os.path.abspath("index.py")}')  # Ejecuta index.py sin mostrar la consola
 
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
@@ -36,6 +37,7 @@ def leer_version_actual():
 def guardar_version_actual(version):
     with open(VERSION_FILE, "w") as f:
         f.write(version)
+        
 def descargar_cambios(version):
     url = f"https://api.github.com/repos/argg9822/validatorsGesi/zipball/{version}"
     response = requests.get(url)
@@ -46,11 +48,9 @@ def descargar_cambios(version):
     return False
 
 def aplicar_cambios():
-    # Ruta donde se guarda el ZIP
     zip_path = "cambios.zip"
-    # Obtener el directorio actual
     current_dir = os.path.dirname(os.path.abspath(zip_path))
-
+    
     # Extraer el ZIP en una carpeta temporal
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         temp_dir = os.path.join(current_dir, "temp_extract")
@@ -106,9 +106,6 @@ def aplicar_cambios():
     # Eliminar la carpeta temporal
     shutil.rmtree(temp_dir)
     
-        
-import tkinter as tk
-
 def actualizar_aplicacion():
     version_actual = leer_version_actual()
     ultima_version = obtener_ultima_version()
@@ -117,28 +114,41 @@ def actualizar_aplicacion():
         if version_actual != ultima_version:
             # Crea una ventana para mostrar la opción de actualizar
             ventana_actualizacion = tk.Tk()
-            ventana_actualizacion.title("Actualizar aplicación")
-            ventana_actualizacion.geometry("400x200")  # Establece el tamaño de la ventana
+            ventana_actualizacion.title("Actualizar validador")
+            ventana_actualizacion.geometry("300x150")  # Establece el tamaño de la ventana
             ventana_actualizacion.configure(bg="#f0f0f0")  # Establece el color de fondo
 
+            # Centra la ventana en la pantalla
+            pantalla_ancho = ventana_actualizacion.winfo_screenwidth()
+            pantalla_alto = ventana_actualizacion.winfo_screenheight()
+            x = (pantalla_ancho / 2) - (300 / 2)
+            y = (pantalla_alto / 2) - (150 / 2)
+            ventana_actualizacion.geometry(f"300x150+{int(x)}+{int(y)}")
+
+            # Agrega el logo de la aplicación
+            ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
+
             # Crea un label para mostrar el mensaje de actualización
-            label_actualizacion = tk.Label(ventana_actualizacion, text="Actualización disponible.", font=("Arial", 14), bg="#f0f0f0")
-            label_actualizacion.pack(pady=20)
+            label_actualizacion = tk.Label(ventana_actualizacion, text="Hay una actualización disponible.", font=("Arial", 12), bg="#f0f0f0")
+            label_actualizacion.pack(pady=5)
 
             # Crea un label para mostrar la versión actual y la última versión
-            label_versiones = tk.Label(ventana_actualizacion, text=f"Versión actual: {version_actual}\nÚltima versión: {ultima_version}", font=("Arial", 12), bg="#f0f0f0")
+            label_versiones = tk.Label(ventana_actualizacion, text=f"Versión actual: {version_actual}\nÚltima versión: {ultima_version}", font=("Arial", 10), bg="#f0f0f0")
             label_versiones.pack()
-
+            
+            label_actualizacion = tk.Label(ventana_actualizacion, text="Desea instalarla ahora?", font=("Arial", 11), bg="#f0f0f0")
+            label_actualizacion.pack(pady=5)
+            
             # Crea un frame para contener los botones
             frame_botones = tk.Frame(ventana_actualizacion, bg="#f0f0f0")
-            frame_botones.pack(pady=20)
+            frame_botones.pack(pady=10)
 
             # Crea un botón para actualizar la aplicación
-            boton_actualizar = tk.Button(frame_botones, text="Actualizar ahora", command=lambda: actualizar_aplicacion_sí(ventana_actualizacion, ultima_version), bg="#4CAF50", fg="#ffffff", font=("Arial", 12))
+            boton_actualizar = tk.Button(frame_botones, text="Si", command=lambda: actualizar_aplicacion_sí(ventana_actualizacion, ultima_version),  font=("Arial", 10), width=15)
             boton_actualizar.pack(side=tk.LEFT, padx=10)
 
             # Crea un botón para no actualizar la aplicación
-            boton_no_actualizar = tk.Button(frame_botones, text="No actualizar", command=ventana_actualizacion.destroy, bg="#e74c3c", fg="#ffffff", font=("Arial", 12))
+            boton_no_actualizar = tk.Button(frame_botones, text="No", command=ventana_actualizacion.destroy, font=("Arial", 10), width=15)
             boton_no_actualizar.pack(side=tk.LEFT, padx=10)
 
             # Muestra la ventana de actualización
@@ -170,12 +180,9 @@ def main():
     # Define el tamaño de la ventana de inicio
     window_width = 900
     window_height = 500
-
     # Centra la ventana en la pantalla
     center_window(splash_root, window_width, window_height)
-
     splash_root.overrideredirect(True)  # Elimina la barra de título
-
     # Configura la ventana para ser completamente transparente
     transparent_color = '#00c7fc'
     splash_root.attributes('-transparentcolor', transparent_color)  # Establece el color azul como transparente
@@ -204,17 +211,23 @@ def main():
     # Crear una barra de progreso
     progress_width = 607  # Ancho de la barra de progreso
     progress_height = 5  # Altura de la barra de progreso
-    progress_x = (window_width - progress_width) // 2
-    progress_y = window_height - 100
-    progress_bar = canvas.create_rectangle(progress_x, progress_y, progress_x + progress_width, progress_y + progress_height, fill='blue', outline='blue')
+    progress_x = ((window_width - progress_width) // 2) -49
+    
+    progress_y = window_height - 80
+    progress_bar = canvas.create_rectangle(progress_x, progress_y, progress_x + progress_width, progress_y + progress_height, fill='white', outline='white')
 
-    # Actualizar la barra de progreso
-    def update_progress_bar():
-        canvas.itemconfig(progress_bar, fill='green')
+    # Función para actualizar la barra de progreso
+    def update_progress_bar(percentage):
+        canvas.coords(progress_bar, progress_x, progress_y, progress_x + (progress_width * percentage), progress_y + progress_height)
         canvas.update_idletasks()
-        splash_root.after(1000, lambda: open_main_window(splash_root))  # Pasa splash_root como argumento
 
-    update_progress_bar()
+    # Actualizar la barra de progreso gradualmente
+    def run_progress():
+        for i in range(101):
+            splash_root.after(i * 80, lambda p=i/100: update_progress_bar(p))  # Actualiza cada 80ms
+        splash_root.after(8100, lambda: open_main_window(splash_root))  # Espera 8 segundos antes de abrir la ventana principal
+
+    run_progress()
 
     # Iniciar la ventana de inicio
     splash_root.mainloop()

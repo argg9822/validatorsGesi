@@ -1,3 +1,4 @@
+import sys
 import cx_Freeze
 from cx_Freeze import setup, Executable
 
@@ -10,8 +11,13 @@ include_files = [
     ("version.txt", "version.txt")
 ]
 
-# Ejecutable configurado con Win32GUI para ocultar la consola
-executables = [Executable("splash.py", base="Win32GUI")]  # Omitir consola de comandos
+# Configuración de base solo para Windows
+base = None
+if sys.platform == "win32":
+    base = "Win32GUI"  # Omitir consola de comandos en aplicaciones GUI en Windows
+
+# Ejecutable configurado con Win32GUI
+executables = [Executable("splash.py", base=base, icon="img/logo.ico")]
 
 # Configuración de cx_Freeze
 setup(
