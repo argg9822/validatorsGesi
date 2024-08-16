@@ -28,7 +28,7 @@ setup(
     options={"build_exe": {
         "include_files": include_files,
         "packages": [
-            "tkinter", "PIL", "requests", "json", "zipfile", "subprocess", 
+            "tkinter", "customtkinter", "PIL", "requests", "json", "zipfile", "subprocess", 
             "sys", "openpyxl", "pandas", "re", "shutil", "datetime"
         ],
         "includes": [
