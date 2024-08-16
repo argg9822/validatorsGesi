@@ -74,16 +74,16 @@ def chooseBase(base):
 def mascota_verde():
     # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
-    print(f"El archivo Excel tiene {num_paginas} páginas." , flush=True)
+    print(f"Se validaron {num_paginas} páginas.")
     # Primero, validar la página 1
     if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
-        print("Validando la página 1...")
+        print("Página 1...")
         mascota_pag1(sheet)
     
     if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:
         sheet = workbook[workbook.sheetnames[1]]  # Acceder a la página 1
-        print("Validando la página 2...")
+        print("Página 2...")
         mascota_pag2(sheet)
 def higiene_bucal():
     num_paginas = len(workbook.sheetnames)
@@ -91,7 +91,7 @@ def higiene_bucal():
     # Primero, validar la página 1
     if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
         sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
-        print("Validando la página 1...")
+        print("Página 1...")
         hb_pag1(sheet)
         
     if num_paginas >= 1 and workbook.sheetnames[1] in workbook.sheetnames:

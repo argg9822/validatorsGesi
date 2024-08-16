@@ -15,8 +15,6 @@ class App(customtkinter.CTk):
         self.title("Validador Gesiapp")
         self.geometry(f"{1010}x{450}")
 
-       
-
         # Configure grid layout
         self.grid_columnconfigure(1, weight=0)
         self.grid_columnconfigure((2), weight=1)
@@ -158,16 +156,16 @@ class App(customtkinter.CTk):
             subprocess.Popen(["python", f'validadores/{script_path}.py', base])  # Ejecutar el script cuando se hace clic en el botón
             # Aquí deberías agregar tu lógica específica para cada script_path
             if script_path == "institucional":
-                print(f"Inicializando la base de: {base} por favor espere"  )
+                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
                 institucional.setBase(base)
             elif script_path == "educativo":
-                print(f"Inicializando la base de: {base} por favor espere"  )
+                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
 
                 educativo.setBase(base)
-                print(f"Inicializando la base de: {base} por favor espere"  )
+                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
 
             elif script_path == "comunitario":
-                print(f"Inicializando la base de: {base} por favor espere"  )
+                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
                 comunitario.setBase(base)
                 
 
