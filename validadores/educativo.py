@@ -12,6 +12,32 @@ import os
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import numbers
 import datetime
+
+import tkinter as tk
+from tkinter import ttk
+import re
+import time
+
+
+def mostrar_ventana_progreso(titulo, max_val):
+    # Crear una nueva ventana para mostrar el progreso
+    ventana = tk.Tk()
+    ventana.title(titulo)
+
+    # Crear y colocar una etiqueta para mostrar el texto de la función en ejecución
+    label = tk.Label(ventana, text=titulo)
+    label.pack(pady=10)
+
+    # Crear y colocar la barra de progreso
+    progress = ttk.Progressbar(ventana, orient="horizontal", length=300, mode="determinate")
+    progress.pack(pady=20)
+
+    return ventana, progress, label
+
+def actualizar_barra_progreso(ventana, progress, valor):
+    progress['value'] = valor
+    ventana.update_idletasks()
+
 #validadores educativo 
 init()
 # Declarar el objeto colum inicialmente para almacenar variables para las funciones
@@ -215,21 +241,27 @@ def autocuidado():
 #/////////////////////////////////sESIONES COLECTIVAS////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 def validar_pagina1_sesiones(sheet):
+    # Mostrar ventana de progreso
+    
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
+    
     try:
         remplazarComillas(sheet)
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
+
+        ventana, progress, label = mostrar_ventana_progreso(f"Validando pagina1_sesiones...{ultima_fila}", ultima_fila - 1)
+        ventana.update()  # Refrescar la ventana principal
         
         for i in range(2, ultima_fila + 1):
+            
             # Tipo institución
             if len(sheet.cell(i, 8).value.strip()) > 0 and len(sheet.cell(i, 9).value.strip()) > 0:
                 celdas_pintadas_rojo += 1
                 colum["column"] = {8, 9, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
-                celdas_pintadas_rojo += 1
                 
             # Nombre institución
             if not sheet.cell(row=i, column=10).value:
@@ -246,7 +278,7 @@ def validar_pagina1_sesiones(sheet):
                 pintar(colum, sheet)
             
             # verificar si es barrio priorizado
-            if sheet.cell(i, 24).value == "SI"  and not len(sheet.cell(i, 25).value.strip()) > 0:
+            if sheet.cell(i, 24).value == "SI" and not len(sheet.cell(i, 25).value.strip()) > 0:
                 celdas_pintadas_rojo += 1
                 colum["column"] = {24, 25, 2}
                 colum["row"] = i
@@ -270,20 +302,35 @@ def validar_pagina1_sesiones(sheet):
             celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
                          
             placas["placas"] = {26, 31, 35}
-            celdas_pintadas_rojo += numeroDirecciones(sheet, placas)#numeros de direcciones
+            celdas_pintadas_rojo += numeroDirecciones(sheet, placas)  # numeros de direcciones
+            
+            actualizar_barra_progreso(ventana, progress, i * 100 / ultima_fila)
+            
+            if progress['value'] == 100:
+                ventana.after(100, lambda: ventana.destroy())  # Cerrar la ventana después de 100 ms
+                break
+            
+        label.config(text=f"Total errores encontrados: {celdas_pintadas_rojo}. de {ultima_fila}")
+        ventana.update()  
         
-        # Mostrar la cantidad de celdas pintadas de rojo
-        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        print(f"Total errores encontrados {celdas_pintadas_rojo}. de {ultima_fila}")
+        
 
     except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")    
+        print("Error", f"Se produjo un error: {str(e)}")   
+        
+        
 def validar_pagina2_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
+    
     try:
         remplazarComillas(sheet)
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
+        
+        ventana, progress, label = mostrar_ventana_progreso("Validando pagina2_sesiones...", ultima_fila - 1)
+        ventana.update()  # Refrescar la ventana principal
 
         # Obtener la fecha actual
         fechaActual = datetime.datetime.now()
@@ -344,22 +391,35 @@ def validar_pagina2_sesiones(sheet):
                 colum["row"] = i
                 pintar(colum, sheet)
                 
-                
-                
+            actualizar_barra_progreso(ventana, progress, i * 100 / ultima_fila)
+            
+            if progress['value'] == 90:
+                ventana.after(10, lambda: ventana.destroy())  # Cerrar la ventana después de 10 ms
+                break   
+        
+        label.config(text=f"Total errores encontrados: {celdas_pintadas_rojo}. de {ultima_fila}")
+        ventana.update() 
+           
          # Mostrar la cantidad de celdas pintadas de rojo
-        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        print(f"Total errores encontrados {celdas_pintadas_rojo}. de {ultima_fila}")
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}")
+        
+        
 def validar_pagina3_sesiones(sheet):
     regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     adulto_menor_sin_id = re.compile(r'^\d{2,5}[A-Za-z]{2,5}\d{5,6}$')
 
     NumeroDocumento = re.compile("^\d{10}$")
+    
     try:
         remplazarComillas(sheet)  
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
+        
+        ventana, progress, label = mostrar_ventana_progreso("Validando sexo sesiones...", ultima_fila - 1)
+        ventana.update()  # Refrescar la ventana principal
             
         for i in range(2, ultima_fila + 1):
             # Tipo institución
@@ -380,9 +440,7 @@ def validar_pagina3_sesiones(sheet):
                 colum["column"] = {11, 12, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
-        
-        #validador de campos por la edad 
-        for i in range(2, ultima_fila + 1):
+                
             FechaIntervencion = sheet.cell(i, 3).value
             FechaNacimiento = sheet.cell(i, 14).value
             FechaNacimiento = FechaNacimiento.replace('/', '-')  # Reemplazar '/' por '-'
@@ -465,8 +523,7 @@ def validar_pagina3_sesiones(sheet):
                 colum["column"] = {10, 9, 2}
                 colum["row"] = i
                 pintar(colum, sheet)
-                
-        for i in range(2, ultima_fila + 1):          
+               
             if sheet.cell(i, 16).value == "COL" and \
                 sheet.cell(i, 10).value not in ["2- RC", "3- TI", "1- CC", "8- Menor sin ID.", "7- Adulto sin ID."]:
                     celdas_pintadas_rojo += 1
@@ -474,7 +531,6 @@ def validar_pagina3_sesiones(sheet):
                     colum["row"] = i
                     pintar(colum, sheet)
                     
-        for i in range(2, ultima_fila + 1):          
             if sheet.cell(i, 16).value != "COL" and \
                 sheet.cell(i, 10).value in ["2- RC", "3- TI", "1- CC"]:
                     celdas_pintadas_rojo += 1
@@ -487,12 +543,23 @@ def validar_pagina3_sesiones(sheet):
                 colum["column"] = {8, 2}
                 colum["row"] = i
                 pintar(colum, sheet)   
-                      
+                
+            actualizar_barra_progreso(ventana, progress, i * 100 / ultima_fila)
+            
+            if progress['value'] == 100:
+                ventana.after(10, lambda: ventana.destroy())  # Cerrar la ventana después de 100 ms
+                break 
+            
+        label.config(text=f"Total errores encontrados: {celdas_pintadas_rojo}. de {ultima_fila}")
+        ventana.update()  
+                   
         # Mostrar la cantidad de celdas pintadas de rojo
-        print(f"Total errores encontrados {celdas_pintadas_rojo}.")
+        print(f"Total errores encontrados {celdas_pintadas_rojo}. de {ultima_fila}")
 
     except Exception as e:
         print("Error", f"Se produjo un error: {str(e)}") 
+        
+        
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////////PREVENCION EMBARAZO////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
@@ -1595,3 +1662,4 @@ def preguntaDescarga():
             print("Tu archivo no será descargado")
     except Exception as e:
         print(f"No se pudo guardar el archivo: {str(e)}")
+        
