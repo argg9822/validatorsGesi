@@ -1,0 +1,46 @@
+{
+    "educativo": [
+        "prevencion_embarazo",
+        "autocuidado",
+        "sesiones_colectivas",
+        "higiene_bucal",
+        "higiene_manos",
+        "salud_mental",
+        "mascota_verde",
+        "entornos_escolares",
+        "pretest",
+        "entornos_jardines",
+        "jornadas",
+        "escala_abreviada",
+        "tiendas_escolares"
+    ],
+    "comunitario": [
+        "sesiones_colectivas",
+        "vinculate",
+        "maps",
+        "cami",
+        "zarit",
+        "pcbh",
+        "caldas",
+        "guardianes",
+        "acondicionamiento",
+        "cuidarte",
+        "mujeres",
+        "fortalecimiento",
+        "pid"
+    ],
+    "institucional": [
+        "sesiones_colectivas",
+        "ead",
+        "hcb",
+        "mascota_verde",
+        "ipa",
+        "pcb",
+        "persona_mayor",
+        "pci",
+        "tamizajes"
+    ],
+    "hogar": [
+        "csa"
+    ]
+}

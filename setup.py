@@ -10,6 +10,8 @@ include_files = [
     ("index1.py", "index1.py"),
     ("__version__.py", "__version__.py"),
     ("version.txt", "version.txt")
+    ("bases.json", "bases.json")
+    
 ]
 
 # Configuración de base solo para Windows
