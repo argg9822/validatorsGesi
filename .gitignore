@@ -1,0 +1,30 @@
+# Archivos de bytecode compilados
+*.pyc
+*.pyo
+__pycache__/
+
+# Entornos virtuales
+venv/
+.env
+
+# Archivos de configuración del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos generados por el empaquetador
+build/
+dist/
+*.egg-info/
+
+# Archivos generados por PyInstaller
+*.spec
+
+# Archivos de log
+*.log
+
+# Archivos de base de datos SQLite
+*.sqlite3
+
+# Archivos temporales y de respaldo
+*.swp
+*.swo

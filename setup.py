@@ -1,35 +1,43 @@
-from setuptools import setup, find_packages
-import os
-from __version__ import __version__ as version_actual_actual  # Importa la versión actual desde __version__.py
+import sys
+import cx_Freeze
+from cx_Freeze import setup, Executable
 
-# Función para obtener todos los archivos de una carpeta y sus subcarpetas
-def get_files(directory):
-    files = []
-    for root, _, filenames in os.walk(directory):
-        for filename in filenames:
-            files.append(os.path.join(root, filename))
-    return files
-
-setup(
-    name='Validadores_GesiApp',
-    version=version_actual_actual,
-    packages=find_packages(),
-    include_package_data=True,
-    install_requires=[
-        'colorama',
-        'Pillow',
-        'openpyxl',
-        'pandas',
-        'requests',
-        'gitpython',
-        
-    ],
+# Archivos a incluir en el paquete
+include_files = [
+    ("img", "img"),
+    ("validadores", "validadores"),
+    ("index.py", "index.py"),
+    ("index1.py", "index1.py"),
+    ("__version__.py", "__version__.py"),
+    ("version.txt", "version.txt"),
+    ("bases.json", "bases.json")
     
-    # Incluye las carpetas img y validadores y sus archivos en el paquete
-    data_files=[
-        ('img', get_files('img')),
-        ('validadores', get_files('validadores')),
-        ('index.exe'),
-        ('__version__.py'),
-    ]
+]
+
+# Configuración de base solo para Windows
+base = None
+if sys.platform == "win32":
+    base = "Win32GUI"  # Omitir consola de comandos en aplicaciones GUI en Windows
+# Ejecutable configurado con Win32GUI
+executables = [Executable("Validador_gesi.py", base=base, icon="img/logo.ico")]
+# Configuración de cx_Freeze
+setup(
+    name="Gesi App",
+    version="1.0",
+    description="Gesi App",
+    executables=executables,
+    options={"build_exe": {
+        "include_files": include_files,
+        "packages": [
+            "tkinter", "customtkinter", "PIL", "requests", "json", "zipfile", 
+            "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
+            "datetime", "colorama",
+        ],
+        "includes": [
+            "validadores", "img", "colorama", "__version__", 
+            "tkinter.filedialog", "tkinter.messagebox", "tkinter.simpledialog", 
+            "openpyxl.styles", "openpyxl.utils"
+        ],
+        "excludes": ["tkinter.ttk", "tkinter.tix"]  # Excluir dependencias innecesarias
+    }},
 )
