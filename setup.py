@@ -9,7 +9,7 @@ include_files = [
     ("index.py", "index.py"),
     ("index1.py", "index1.py"),
     ("__version__.py", "__version__.py"),
-    ("version.txt", "version.txt")
+    ("version.txt", "version.txt"),
     ("bases.json", "bases.json")
     
 ]

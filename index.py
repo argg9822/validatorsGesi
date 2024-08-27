@@ -1,595 +1,208 @@
 import tkinter as tk
-import customtkinter
+import tkinter.font as font
 import subprocess
 from validadores import institucional, educativo, comunitario
 import sys
 from colorama import init, Fore, Style
 from PIL import Image, ImageTk
 from __version__ import __version__ as version_actual_actual  # Importa la versión actual desde __version__.py
-import os
-import tkinter as tk
-import customtkinter
-from tkinter import simpledialog
-import json
-import tkinter as tk
-from tkinter import simpledialog
-from tkinter import messagebox
-
-class App(customtkinter.CTk):
-    
-    codigo_ejemplo = """# Código de ejemplo para crear un validador
-
-import tkinter as tk
-from tkinter import filedialog, messagebox
-import openpyxl
-import re
-import shutil
-from openpyxl.styles import PatternFill
-from openpyxl import load_workbook
-import pandas as pd
-import tkinter.simpledialog as simpledialog
-from colorama import init, Fore, Style
-import os
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import numbers
-import datetime
-
-import tkinter as tk
-from tkinter import ttk
-import re
-import time
 
 
-def mostrar_ventana_progreso(titulo, max_val):
-    # Crear una nueva ventana para mostrar el progreso
-    ventana = tk.Tk()
-    ventana.title(titulo)
-
-    # Crear y colocar una etiqueta para mostrar el texto de la función en ejecución
-    label = tk.Label(ventana, text=titulo)
-    label.pack(pady=10)
-
-    # Crear y colocar la barra de progreso
-    progress = ttk.Progressbar(ventana, orient="horizontal", length=300, mode="determinate")
-    progress.pack(pady=20)
-
-    return ventana, progress, label
-
-def actualizar_barra_progreso(ventana, progress, valor):
-    progress['value'] = valor
-    ventana.update_idletasks()
-
-#validadores educativo 
 init()
-# Declarar el objeto colum inicialmente para almacenar variables para las funciones
-colum = {"column": set(), "row": 0}
-celTexto = {"ColumText": set()}
-Genero = {"Genero": set()}
-etniaVal = {"etniaVal": set()}
-afiliacion = {"afiliacion": set()}
-CeldasVacias = {"vacias": set()}
-CeldasVacias_Condicional = {"vacias": set(), "row": 0}
 
-placas = {"placas": set()}
-Tel = {"Tel": set()}
-Manzana = {"Manzana": set()}
-rural = {"rural": set()}
+fontTitle = ("Helvetica", 30, "bold")
+fontTexts = ("Helvetica", 15)
+bgColor = "#001B36"
+themeColor = "#F15025"
+secondColor = "#000D1C"
+neonBlue = "#00FFFF"
+neonPink = "#DA00A5"
+secondColorRgba =(60, 110, 113, 0.5)
+secondColorHex = '#%02x%02x%02x' % secondColorRgba[:3]
+fontLetter = "#ffffff"
+imgLogo = Image.open("img/logo.png")
 
-    
-def setBase(base):
-    loadExcel()
-    chooseBase(base)
-    preguntaDescarga()
-    
-    
-# llamar o cargar archivo excel
-def loadExcel():
-    # Abrir el archivo Excel
-    global file_path
-    file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
-    if not file_path:
-        return
-    
-    global workbook
-    workbook = openpyxl.load_workbook(file_path)
-    global sheet
-    sheet = workbook.active
-    
-    # Leer los encabezados de la primera fila
-    headers = []
-    for cell in sheet[1]:
-        headers.append(cell.value)
-    
-    # Retornar los encabezados y la hoja de cálculo
-    return headers, sheet
-    
-def chooseBase(base):
-    switch = {
-        "sesiones_colectivas": SesionesCoelctivas,  #ejemplo de insercion de cada base para validar 
-    }
-    execute_validator = switch.get(base)
-    execute_validator()
-    
-def SesionesCoelctivas(): # funcion para determinar la cantdad de paginas a validar 
-    # Páginas del archivo Excel cargado
-    num_paginas = len(workbook.sheetnames)
-    print(f"El archivo Excel tiene {num_paginas} páginas.")
+# Función para calcular las dimensiones de la ventana
+def calcular_dimensiones_ventana(root):
+    ancho_pantalla = root.winfo_screenwidth()
+    alto_pantalla = root.winfo_screenheight()
+    ancho_ventana = int(ancho_pantalla * 0.72)
+    alto_ventana = int(alto_pantalla * 0.75)
+    x = (ancho_pantalla - ancho_ventana) // 2
+    y = (alto_pantalla - alto_ventana) // 2
+    root.geometry(f"{ancho_ventana}x{alto_ventana}+{x}+{y}")
 
-    # Primero, validar la página 1
-    if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
-        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
-        print("Validando la página 1...")
-        validar_pagina1_sesiones(sheet)
+def ajustar_ancho_menu(event):
+    ancho_marco_menu = int(event.width * 0.3)  # 10% del ancho de la ventana
+    marco_menu.config(width=ancho_marco_menu)
 
-#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#/////////////////////////////////sESIONES COLECTIVAS////////////////////////////////////////////////////////////////
-#///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
-def validar_pagina1_sesiones(sheet):
-    # Mostrar ventana de progreso
-    
-    regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
-    patternTel = re.compile(r'^\d{7}(\d{3})?$')
-    
-    try:
-        remplazarComillas(sheet) #ejecuta funcion para quitar comillas 
-        ultima_fila = sheet.max_row
-        celdas_pintadas_rojo = 0
-
-        ventana, progress, label = mostrar_ventana_progreso(f"Validando pagina1_sesiones...{ultima_fila}", ultima_fila - 1)
-        ventana.update()  # Refrescar la ventana principal
-        
-        for i in range(2, ultima_fila + 1):
+def ejecutarValidadorEntornos(script_path, base):
+    def callback():
+        subprocess.Popen(["python", 'validadores/'+script_path+'.py', base])  # Ejecutar el script cuando se hace clic en el botón
+        if script_path == "institucional":
+            institucional.setBase(base)
+        elif script_path == "educativo":
+            educativo.setBase(base)
+        elif script_path == "comunitario":
+            comunitario.setBase(base)
             
-            # Tipo institución
-            if len(sheet.cell(i, 8).value.strip()) > 0 and len(sheet.cell(i, 9).value.strip()) > 0: # condicion para validar las celdas 
-                celdas_pintadas_rojo += 1
-                colum["column"] = {8, 9, 2}
-                colum["row"] = i
-                pintar(colum, sheet)# función para pintar las celdas establecidas 
-                
-            #////////////////////////////// Codigo para actualizar progreso de validacion NO QUITAR  ////////////////////////////////////////// 
-            actualizar_barra_progreso(ventana, progress, i * 100 / ultima_fila)
-            if progress['value'] == 100:
-                ventana.after(100, lambda: ventana.destroy())  # Cerrar la ventana después de 100 ms
+    return callback
+
+def mostrarBases(entorno):
+    def callback():
+        bases = {
+            "hogar": ["csa", "implementacion", "apgar", "sesiones_colectivas", "rqc", "srq"],
+            "laboral": ["utis", "nna", "sesiones_colectivas", "oms", "findrisc"],
+            "educativo": ["prevencion_embarazo", "autocuidado", "sesiones_colectivas", "higiene_bucal", "higiene_manos", "salud_mental", "mascota_verde", "entornos_escolares", "pretest", "entornos_jardines", "jornadas", "escala_abreviada", "tiendas_escolares"],
+            "comunitario": ["sesiones_colectivas", "vinculate", "maps", "cami", "zarit", "pcbh", "caldas", "guardianes", "acondicionamiento", "cuidarte", "mujeres", "fortalecimiento", "pid"],
+            "institucional": ["sesiones_colectivas", "ead", "hcb", "mascota_verde", "ipa", "pcb", "persona_mayor", "pci", "tamizajes"]
+        }
+        print("\x1b[31mEntorno seleccionado:\x1b[0m " + entorno)
+        #Vaciar contenedor
+        for element in marco_botones_bases.winfo_children():
+            element.destroy()
+
+        found = False
+        bordes = []
+        botones = []
+        for key, value in bases.items():
+            if key == entorno.lower():
+                found = True
+                for v in value:
+                    border_buttons_bases = tk.Frame(marco_botones_bases, bg=neonPink)
+                    border_buttons_bases.grid(column=1, row=1, pady=5)
+                    bordes.append(border_buttons_bases)
+                    
+                    btn_bases = tk.Button(border_buttons_bases, text=v,  width="25", height="1", borderwidth=0, highlightbackground="white", bg=bgColor, fg="white", command=ejecutarValidadorEntornos(entorno.lower(), v))                    
+                    btn_bases.grid(row=0, column=0, padx=2, pady=2, ipady=5)
+                    botones.append(btn_bases)
+                    
+                for index, borde in enumerate(bordes):
+                    row = index // 3
+                    col = index % 3
+                    padLeft = 30 if index in [0,3,6,9,12] else 30
+                    padTop = 25 if index in [0,1,2] else 5
+                    borde.grid(row=row, column=col, padx=(padLeft, 5), pady=(padTop, 5))
                 break
-            #/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
-        #//////////////////////////////// Actualizacion de vntana NO QUITAR ///////////////////////////////////////////////////////////
-        label.config(text=f"Total errores encontrados: {celdas_pintadas_rojo}. de {ultima_fila}")
-        ventana.update()  
-        print(f"Total errores encontrados {celdas_pintadas_rojo}. de {ultima_fila}")
-        #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if not found:
+            print("\x1b[31m¡No match found.!\x1b[0m")
+    return callback
 
-    except Exception as e:
-        print("Error", f"Se produjo un error: {str(e)}")   
-        
-#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#///////////////////////////////// FIN SESIONES COLECTIVAS////////////////////////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+def buildGUI():    
+    # Crear la interfaz gráfica
+    root = tk.Tk()
+    root.title("Validador GesiApp")
 
-
-# funcio para remplazar comillas
-def remplazarComillas(sheet):
-    try :
-        for row in sheet.iter_rows():
-            for cell in row:
-                if cell.value and '`' in cell.value:
-                    # Elimina las comillas
-                    cell.value = cell.value.replace('`', '')
-
-                    # Verifica si el valor es un número
-                    if isinstance(cell.value, (int, float)):
-                        cell.number_format = numbers.FORMAT_NUMBER
-                    # Verifica si el valor es una fecha
-                    elif isinstance(cell.value, datetime.date):
-                        cell.number_format = numbers.FORMAT_DATE_XLSX15
-                    # Verifica si el valor es texto
-                    else:
-                        cell.number_format = numbers.FORMAT_TEXT      
-    except Exception as e:
-        print("Error", f"Se produjo un error de comillas: {str(e)}")      
-         
-#funcion para pintar celdas 
-def pintar(colum, sheet):
-    colorRed = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-    number_colum = len(colum["column"])
-    columns = list(colum["column"])
-    for i in range(number_colum):
-        sheet.cell(row=colum["row"], column=columns[i]).fill = colorRed
-  
-def saveFile():
-    try:
-        file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
-        file_path_modificado = file_path.replace('.xlsx', '_errores.xlsx')
-        
-        # Guardar el libro de trabajo original con los cambios realizados
-        #workbook.save(file_path)
-        # Guardar el archivo modificado con el nombre específico para errores
-        workbook.save(file_path_modificado)
-        print("Archivo guardado", "El archivo ha sido guardado correctamente.")
-        # Preguntar al usuario si desea abrir el archivo guardado
-        open_file = messagebox.askquestion("Abrir Archivo", "¿Desea abrir el archivo guardado?")
-        if open_file == 'yes':
-            os.startfile(file_path_modificado)  # Abre el archivo guardado
-    except Exception as e:
-        print("Error", f"No se pudo guardar el archivo: {str(e)}")
-
-def preguntaDescarga():
-    try:
-        respuesta = messagebox.askquestion("Abrir Archivo", "¿Guardar el archivo generado?")
-        if respuesta == "yes":
-            cadenaGuardar = "Guardando archivo..."
-            print(cadenaGuardar)
-            saveFile()
-        else:
-            print("Tu archivo no será descargado")
-    except Exception as e:
-        print(f"No se pudo guardar el archivo: {str(e)}")
-"""
+    # Calcular las dimensiones de la ventana
+    calcular_dimensiones_ventana(root)
     
+    # Marco principal
+    marco_principal = tk.Frame(root, padx="0")
+    marco_principal.pack(expand=True, fill="both")
     
+    # Marco para el menú en la parte izquierda (10% del ancho)
+    global marco_menu 
+    marco_menu = tk.Frame(marco_principal)
+    marco_menu.pack(side="left", fill="y")
     
+    # Marco para los botones en la parte derecha (90% del ancho)
+    capa_2_botones_entornos = tk.Frame(marco_menu, bg=secondColor, width=root.winfo_width() * 0.4, padx=40)
+    capa_2_botones_entornos.pack(side="left", expand=True, fill="y")
     
+    marco_botones_entornos = tk.Frame(capa_2_botones_entornos, bg=secondColor)
+    marco_botones_entornos.pack(side="bottom", pady=(0, 40))
     
-    def __init__(self):
-        
-        
-        super().__init__()
-        
-        try:
-            with open('bases.json', 'r') as f:
-                self.bases = json.load(f)
-        except FileNotFoundError:
-            self.bases = {}
-        
-       
-        # Configure window
-        self.title("Validador Gesiapp")
-        self.geometry(f"{1010}x{450}")
-
-        # Configure grid layout
-        self.grid_columnconfigure(1, weight=0)
-        self.grid_columnconfigure((2), weight=1)
-        self.grid_rowconfigure((1), weight=1)
-
-        # Create sidebar frame with widgets
-        self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
-        self.sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(6, weight=1)
-        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Validar Bases", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-
+    fontButtonsEntornos = ('Helvetica', 10, 'bold')
     
+    # Botones entornos
+    entornos = ["Hogar", "Laboral", "Educativo", "Comunitario", "Institucional"]
+
+    for entorno in entornos:
+        border_buttons_entornos = tk.Frame(marco_botones_entornos, bg=neonBlue, pady="0")
+        border_buttons_entornos.pack(pady="19")
+
+        btn_entorno = tk.Button(border_buttons_entornos, text=entorno,  width="25", height="1", borderwidth=0, relief="solid", bg=secondColor, fg="white", command=mostrarBases(entorno), font=fontButtonsEntornos)
+        btn_entorno.pack(pady=1, padx=1, ipady=5)        
         
-        # Crear botones dinámicamente según las categorías en el diccionario
-        for i, category in enumerate(self.bases.keys(), start=1):
-            button = customtkinter.CTkButton(
-                self.sidebar_frame, 
-                text=category.capitalize(), 
-                command=lambda cat=category: self.mostrarBases(cat)
-            )
-            button.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
+    logoGesiApp = ImageTk.PhotoImage(imgLogo)
+    label_logo = tk.Label(marco_botones_entornos, bg=secondColor, image=logoGesiApp, width=capa_2_botones_entornos.winfo_width() * 0.06)
+    label_logo.pack(side="bottom", pady=(20, 0))
+    
+    # #Contenedor de la parte derecha
+    container_right = tk.Frame(marco_principal, width=marco_principal.winfo_width() * 0.6, bg=bgColor)
+    container_right.pack(side="right", fill="both", expand=True)
+    
+    # #Container título
+    container_title = tk.Label(container_right, bg=bgColor)
+    container_title.pack(pady=(30, 0))
+    
+    # Título en la parte superior
+    title_label = tk.Label(container_title, text="NUEVA VERSIÓN", font=fontTitle, fg=fontLetter, bg=bgColor)
+    title_label.pack()
+    
+    font_sub_title = ('Helvetica', 16)
+    sub_label = tk.Label(container_title, text="GesiApp " + version_actual_actual, font=font_sub_title, fg=neonBlue, bg=bgColor)
+    sub_label.pack()
+
+    global marco_botones_bases
+    marco_botones_bases = tk.Frame(container_right, bg=secondColor)
+    marco_botones_bases.pack(side="top", expand=True, fill="x")
+    marco_botones_bases.place(relx=0.05, rely=0.22, relwidth=0.9, relheight=0.41)
+
+    container_init_text = tk.Frame(marco_botones_bases, bg=neonBlue)
+    container_init_text.pack(fill="both", expand=True, pady=15, padx=20)
+    initial_text = "Por favor seleccione un entorno para continuar"
+    preview_message = tk.Label(container_init_text, text=initial_text, fg="white", bg=secondColor, font=fontTexts)
+    preview_message.pack(fill="both", expand=True, pady=1, padx=1)
         
-        # Appearance options
-        self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"],
-                                                                       command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
-        self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
-        self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
-                                                               command=self.change_scaling_event)
-        self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
+    marco_resultado = tk.Frame(container_right, bg=bgColor)
+    marco_resultado.pack(side="bottom", expand=True, fill="x")
+    marco_resultado.place(relx=0.05, rely=0.65, relwidth=0.9, relheight=0.3)
 
-        # Create textbox
-        self.textbox = customtkinter.CTkTextbox(self, width=250, height=250)
-        self.textbox.grid(row=1, column=2, padx=(20, 20), pady=(10, 10), sticky="nsew")
-        
-         # Redirect stdout to the CTkTextbox
-        sys.stdout = TextRedirector(self.textbox)
+    texto_terminal = tk.Text(marco_resultado, bg=bgColor, fg="white", borderwidth=0, relief="solid")
+    texto_terminal.pack(side="bottom", expand=True, fill="both", pady="5")
 
-        # Create tabview
-        self.tabview = customtkinter.CTkTabview(self, width=250)
-        self.tabview.grid(row=1, column=1, padx=(20, 0), pady=(5, 10), sticky="nsew")
-        
-        self.textbox.configure(
-            font=("Consolas", 12)  # Fuente monoespaciada
-        )
-        
-        
-        self.textbox.insert("1.0", "Bienvenido a la línea de registro Gesiapp\n")
-        self.textbox.insert("1.0", "...\n")
-        self.textbox.insert("end", "...\n")
-        
-        
-        
+    # Llamar a la función imprimirResultado después de configurar los botones
+    imprimirResultado(texto_terminal)
+    print("\x1b[31m¡Bienvenido!\x1b[0m")
 
-        # Initialize tabs dictionary
-        self.tabs = {}
-        
-         # Create menu
-        self.menu = tk.Menu(self)
-        self.config(menu=self.menu)
+    root.mainloop()
 
-        # Add "Archivo" menu
-        self.archivo_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Archivo", menu=self.archivo_menu)
-        self.archivo_menu.add_command(label="Nuevo", command=self.nuevo_event)
-        self.archivo_menu.add_command(label="Actualizar Todo", command=self.actualizar_todo_event)
-        self.archivo_menu.add_separator()
-        self.archivo_menu.add_command(label="Salir", command=self.quit)
+def imprimirResultado(text_widget):
+    class TerminalRedirect:
+        def __init__(self, text_widget):
+            self.text_widget = text_widget
 
-        # Add "Herramientas" menu
-        self.herramientas_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Herramientas", menu=self.herramientas_menu)
-        self.herramientas_menu.add_command(label="Editar Bases", command=self.editar_bases_event)
-        
-         # Agregar menú Codigos
-        self.codigo_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Codigos", menu=self.codigo_menu)
-        
-        # Agregar comandos para archivos en la carpeta validadores
-        self.cargar_codigos()
+        def write(self, message):
+            start_index = 0
+            while True:
+                color_start = message.find('\x1b[', start_index)
+                if color_start == -1:
+                    self.text_widget.insert(tk.END, message[start_index:])
+                    break
+                else:
+                    self.text_widget.insert(tk.END, message[start_index:color_start])
+                    color_end = message.find('m', color_start)
+                    if color_end != -1:
+                        color_code = message[color_start + 2:color_end].strip()
+                        if color_code.isdigit():  # Verificar si es un número
+                            self.apply_color(color_code)
+                    start_index = color_end + 1
 
-    def cargar_codigos(self):
-        carpeta = "validadores"
+            self.text_widget.see(tk.END)  # Desplazar hacia abajo para mostrar el texto más reciente
 
-        # Verifica si la carpeta existe
-        if not os.path.exists(carpeta):
-            messagebox.showerror("Error", "La carpeta no existe")
-            return
+        def apply_color(self, color_code):
+            self.text_widget.tag_add('color', 'end - 1c')
+            self.text_widget.tag_config('color', foreground="white", background='')
 
-        # Limpiar el menú antes de agregar nuevos comandos
-        self.codigo_menu.delete(0, tk.END)
-
-        # Agregar comandos para cada archivo en la carpeta
-        for archivo in os.listdir(carpeta):
-            if os.path.isfile(os.path.join(carpeta, archivo)):
-                # Añadir un comando al menú por cada archivo
-                self.codigo_menu.add_command(label=archivo, command=lambda f=archivo: self.pedir_contrasena_y_abrir(f))
-
-    def pedir_contrasena_y_abrir(self, archivo):
-        # Pedir nombre de usuario y contraseña
-        usuario = simpledialog.askstring("Usuario", "Ingresa tu nombre de usuario:")
-        contrasena = simpledialog.askstring("Contraseña", "Ingresa tu contraseña:", show='*')
-
-        # Verificar las credenciales
-        if self.verificar_credenciales(usuario, contrasena):
-            self.abrir_archivo(archivo)
-        else:
-            messagebox.showerror("Error", "Credenciales incorrectas")
-
-    def verificar_credenciales(self, usuario, contrasena):
-        # Definir el usuario y contraseña correctos
-        usuario_correcto = "admin"
-        contrasena_correcta = "1234456"
-
-        return usuario == usuario_correcto and contrasena == contrasena_correcta
-
-    def abrir_archivo(self, archivo):
-        # Lógica para abrir el archivo
-        filepath = os.path.join("validadores", archivo)
-        # Abre el archivo en el Bloc de notas (solo en Windows)
-        try:
-            subprocess.Popen(['notepad.exe', filepath])
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo abrir el archivo: {e}")
-
-        
-         
-    def actualizar_todo_event(self):
-        for widget in self.sidebar_frame.winfo_children():
-            widget.destroy()
-
-        # Recrea los widgets del sidebar
-        self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Validar Bases", font=customtkinter.CTkFont(size=20, weight="bold"))
-        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-        
-        # Recrea los botones dinámicamente según las categorías en el diccionario
-        for i, category in enumerate(self.bases.keys(), start=1):
-            button = customtkinter.CTkButton(
-                self.sidebar_frame, 
-                text=category.capitalize(), 
-                command=lambda cat=category: self.mostrarBases(cat)
-            )
-            button.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
-
-        # Actualiza las opciones de apariencia y escala
-        self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"],
-                                                                    command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
-        self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
-        self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
-                                                            command=self.change_scaling_event)
-        self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-        
-        # Si usas un TextRedirector para redirigir stdout a un CTkTextbox, asegúrate de reiniciarlo si es necesario
-        sys.stdout = TextRedirector(self.textbox)
-        print('Ventana actualizada.'.format(Fore.RED, Style.RESET_ALL))
-    # Primero, destruye todos los widgets dentro del sidebar_frame para limpiar
-        
-   
-    def editar_bases_event(self):
-        # Crear una ventana de diálogo para editar el diccionario
-        dialog = customtkinter.CTkToplevel(self)
-        dialog.title("Editar Bases")
-        
-        # Crear campos de entrada para cada categoría
-        self.entries = {}
-        for i, (category, items) in enumerate(self.bases.items()):
-            label = customtkinter.CTkLabel(dialog, text=f"{category}:")
-            label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            
-            entry = customtkinter.CTkEntry(dialog)
-            entry.grid(row=i, column=1, padx=10, pady=5, sticky="ew")
-            entry.insert(0, ", ".join(items))
-            self.entries[category] = entry
-        
-        # Botón para guardar cambios
-        save_button = customtkinter.CTkButton(dialog, text="Guardar", command=self.save_changes)
-        save_button.grid(row=len(self.bases), column=0, columnspan=2, pady=10)
-
-        # Crear campos de entrada para agregar una nueva categoría
-        self.new_category_name = customtkinter.CTkEntry(dialog, placeholder_text="Nueva categoría")
-        self.new_category_name.grid(row=len(self.bases) + 1, column=0, padx=10, pady=5, sticky="ew")
-        
-        self.new_category_items = customtkinter.CTkEntry(dialog, placeholder_text="Ítems (separados por comas)")
-        self.new_category_items.grid(row=len(self.bases) + 1, column=1, padx=10, pady=5, sticky="ew")
-        
-        # Botón para agregar nueva categoría
-        add_button = customtkinter.CTkButton(dialog, text="Agregar Categoría", command=self.add_category)
-        add_button.grid(row=len(self.bases) + 2, column=0, columnspan=2, pady=10)
-
-    def save_changes(self):
-        # Actualizar el diccionario con los nuevos valores
-        for category, entry in self.entries.items():
-            new_items = entry.get().split(", ")
-            self.bases[category] = new_items
-        print("Bases actualizadas:", self.bases)
-        
-        self.save_data()
-        
-    def save_data(self):
-        with open('bases.json', 'w') as f:
-            json.dump(self.bases, f, indent=4)
-            
-    def add_category(self):
-        # Obtener el nombre y los ítems de la nueva categoría
-        new_category = self.new_category_name.get().strip()
-        new_items = self.new_category_items.get().split(", ")
-        
-        if new_category and new_items:
-            # Agregar la nueva categoría al diccionario
-            self.bases[new_category] = new_items
-            print(f"Categoría añadida: {new_category} con ítems: {new_items}")
-            
-            # Limpiar los campos de entrada
-            self.new_category_name.delete(0, tk.END)
-            self.new_category_items.delete(0, tk.END)
-            
-            # Volver a mostrar el diálogo con la nueva categoría incluida
-            self.editar_bases_event()
-            
-            # Crear archivo en la carpeta validadores con el nombre de la categoría
-            validator_file_path = os.path.join("validadores", f"{new_category}.py")
-            
-            with open(validator_file_path, "w") as f:
-                f.write(self.codigo_ejemplo)  # crear archivo con muetra de codigo 
-            
-            # Abrir el archivo en el bloque de notas
-            print(f"Ruta del archivo: {validator_file_path}")
-            
-            subprocess.Popen(['notepad.exe', validator_file_path])
-            os.startfile(validator_file_path)
-            self.save_data()
-        else:
-            print("El nombre de la categoría o los ítems no pueden estar vacíos.")
-
-    def update_bases(self, base):
-        # Aquí puedes agregar lógica para editar las bases
-        new_value = simpledialog.askstring("Editar Bases", f"Editar base {base}:")
-        if new_value:
-            print(f"Base actualizada: {base} -> {new_value}")
-            # Actualiza la base en el diccionario
-            # Ejemplo: self.bases[base] = new_value
-            self.mostrarBases(base)  # Refresca la vista
-
-
-    def nuevo_event(self):
-        print("Nuevo seleccionado")
-        # Agrega la lógica para "Nuevo" aquí
+    # Redirigir la salida estándar al widget texto_terminal
+    sys.stdout = TerminalRedirect(text_widget)
+    sys.stderr = TerminalRedirect(text_widget)
 
 
 
-    def open_input_dialog_event(self):
-        dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="CTkInputDialog")
-        print("CTkInputDialog:", dialog.get_input())
 
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        customtkinter.set_appearance_mode(new_appearance_mode)
+buildGUI()
 
-    def change_scaling_event(self, new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        customtkinter.set_widget_scaling(new_scaling_float)
 
-    def sidebar_button_event(self):
-        print("sidebar_button click")
-
-    def mostrarBases(self, valor):
-        print(f"Activando validadores de: {valor}")
-
-        # Convert valor to lowercase to match dictionary keys
-        valor_lower = valor.lower()
-
-        # Check if the tab already exists
-        if valor_lower in self.tabs:
-            tab_name = self.tabs[valor_lower]
-        else:
-            tab_name = "Bases " + valor
-            self.tabview.add(tab_name)
-            self.tabs[valor_lower] = tab_name
-
-        # Get the frame for the tab
-        tab_frame = self.tabview.tab(tab_name)
-
-        # Clear existing widgets in the tab
-        for widget in tab_frame.winfo_children():
-            widget.destroy()
-
-        # Add new buttons to the tab using customtkinter.CTkButton
-        if valor_lower in self.bases:
-            for item in self.bases[valor_lower]:
-                button = customtkinter.CTkButton(tab_frame, text=item, width=200, height=25, corner_radius=10, command=self.ejecutarValidadorEntornos(valor_lower, item))
-                button.pack(pady=1)
-        else:
-            print("No se encontraron bases coincidentes.")
-
-    def ejecutarValidadorEntornos(self, script_path, base):
-        
-        def callback():
-            subprocess.Popen(["python", f'validadores/{script_path}.py', base])  # Ejecutar el script cuando se hace clic en el botón
-            # Aquí deberías agregar tu lógica específica para cada script_path
-            if script_path == "institucional":
-                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-                institucional.setBase(base)
-            elif script_path == "educativo":
-                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-
-                educativo.setBase(base)
-                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-
-            elif script_path == "comunitario":
-                print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-                comunitario.setBase(base)
-                
-
-        return callback
-
-    def update_bases(self):
-        # Logic to update the bases dictionary
-        # This could be a dialog that asks the user to enter new data, or you could load it from a file
-        print("Update Bases menu item clicked")
-        
-class TextRedirector(object):
-    def __init__(self, widget):
-        self.widget = widget
-
-    def write(self, string):
-        if string.startswith('\x1b[31m'):  # Verificar si la cadena comienza con el código ANSI para el color rojo
-            self.widget.insert(tk.INSERT, string[7:], 'error')  # Eliminar el código ANSI e insertar con la etiqueta 'error'
-        elif string.startswith('\x1b[0m'):  # Verificar si la cadena comienza con el código ANSI para el color de reset
-            self.widget.insert(tk.INSERT, string[4:])  # Eliminar el código ANSI e insertar normalmente
-        else:
-            self.widget.insert(tk.INSERT, string)
-        self.widget.see(tk.END)
-
-    def flush(self):
-        pass
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
