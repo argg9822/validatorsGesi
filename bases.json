@@ -1,43 +1,148 @@
 {
     "educativo": [
-        "prevencion_embarazo (1)",
-        "autocuidado (1)",
-        "sesiones_colectivas (3)",
-        "higiene_bucal (1)",
-        "higiene_manos (1)",
-        "salud_mental (1)",
-        "mascota_verde (1)",
-        "entornos_escolares (1)",
-        "pretest (1)",
-        "entornos_jardines (1)",
-        "jornadas (1)",
-        "escala_abreviada (1)",
-        "tiendas_escolares (1)"
+        {
+            "nombre": "prevencion_embarazo",
+            "paginas": 2
+        },
+        {
+            "nombre": "autocuidado",
+            "paginas": 1
+        },
+        {
+            "nombre": "sesiones_colectivas",
+            "paginas": 3
+        },
+        {
+            "nombre": "higiene_bucal",
+            "paginas": 1
+        },
+        {
+            "nombre": "higiene_manos",
+            "paginas": 1
+        },
+        {
+            "nombre": "salud_mental",
+            "paginas": 1
+        },
+        {
+            "nombre": "mascota_verde",
+            "paginas": 1
+        },
+        {
+            "nombre": "entornos_escolares",
+            "paginas": 1
+        },
+        {
+            "nombre": "pretest",
+            "paginas": 1
+        },
+        {
+            "nombre": "entornos_jardines",
+            "paginas": 1
+        },
+        {
+            "nombre": "jornadas",
+            "paginas": 1
+        },
+        {
+            "nombre": "escala_abreviada",
+            "paginas": 1
+        },
+        {
+            "nombre": "tiendas_escolares",
+            "paginas": 1
+        }
     ],
     "comunitario": [
-        "sesiones_colectivas (3)",
-        "vinculate (1)",
-        "maps (1)",
-        "cami (1)",
-        "zarit (1)",
-        "pcbh (1)",
-        "caldas (1)",
-        "guardianes (1)",
-        "acondicionamiento (1)",
-        "cuidarte (1)",
-        "mujeres (1)",
-        "fortalecimiento (1)",
-        "pid (1)"
+        {
+            "nombre": "sesiones_colectivas",
+            "paginas": 3
+        },
+        {
+            "nombre": "vinculate",
+            "paginas": 1
+        },
+        {
+            "nombre": "maps",
+            "paginas": 1
+        },
+        {
+            "nombre": "cami",
+            "paginas": 1
+        },
+        {
+            "nombre": "zarit",
+            "paginas": 1
+        },
+        {
+            "nombre": "pcbh",
+            "paginas": 1
+        },
+        {
+            "nombre": "caldas",
+            "paginas": 1
+        },
+        {
+            "nombre": "guardianes",
+            "paginas": 1
+        },
+        {
+            "nombre": "acondicionamiento",
+            "paginas": 1
+        },
+        {
+            "nombre": "cuidarte",
+            "paginas": 1
+        },
+        {
+            "nombre": "mujeres",
+            "paginas": 1
+        },
+        {
+            "nombre": "fortalecimiento",
+            "paginas": 1
+        },
+        {
+            "nombre": "pid",
+            "paginas": 1
+        }
     ],
     "institucional": [
-        "sesiones_colectivas (3)",
-        "ead (1)",
-        "hcb (1)",
-        "mascota_verde (1)",
-        "ipa (1)",
-        "pcb (1)",
-        "persona_mayor (1)",
-        "pci (1)",
-        "tamizajes (1)"
+        {
+            "nombre": "sesiones_colectivas",
+            "paginas": 3
+        },
+        {
+            "nombre": "ead",
+            "paginas": 1
+        },
+        {
+            "nombre": "hcb",
+            "paginas": 1
+        },
+        {
+            "nombre": "mascota_verde",
+            "paginas": 1
+        },
+        {
+            "nombre": "ipa",
+            "paginas": 1
+        },
+        {
+            "nombre": "pcb",
+            "paginas": 1
+        },
+        {
+            "nombre": "persona_mayor",
+            "paginas": 1
+        },
+        {
+            "nombre": "pci",
+            "paginas": 1
+        },
+        {
+            "nombre": "tamizajes",
+            "paginas": 1
+        }
     ]
 }

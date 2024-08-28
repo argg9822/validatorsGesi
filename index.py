@@ -544,10 +544,12 @@ def preguntaDescarga():
         for i, (category, items) in enumerate(self.bases.items()):
             label = customtkinter.CTkLabel(dialog, text=f"{category}:")
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            
+
+            # Formatear los ítems como "nombre (páginas)"
+            formatted_items = [f"{item['nombre']} ({item['paginas']})" for item in items]
             entry = customtkinter.CTkEntry(dialog)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="ew")
-            entry.insert(0, ", ".join(items))
+            entry.insert(0, ", ".join(formatted_items))
             self.entries[category] = entry
         
         # Botón para guardar cambios
@@ -573,8 +575,27 @@ def preguntaDescarga():
     def save_changes(self):
         # Actualizar el diccionario con los nuevos valores
         for category, entry in self.entries.items():
-            new_items = entry.get().split(", ")
-            self.bases[category] = new_items
+            # Obtener el texto del campo de entrada y dividirlo en ítems
+            items_text = entry.get()
+            # Limpiar el texto y dividirlo en ítems basados en el formato "nombre (páginas)"
+            item_entries = items_text.split(", ")
+            
+            # Procesar cada ítem para extraer nombre y páginas
+            updated_items = []
+            for item_entry in item_entries:
+                try:
+                    # Separar el nombre y el número de páginas
+                    name, pages = item_entry.rsplit(" (", 1)
+                    pages = int(pages.rstrip(")"))  # Eliminar el paréntesis y convertir a entero
+                    updated_items.append({"nombre": name.strip(), "paginas": pages})
+                except ValueError:
+                    # Manejar el caso donde el formato es incorrecto
+                    print(f"Error al procesar el ítem: {item_entry}")
+                    continue
+            
+            # Actualizar la categoría en el diccionario
+            self.bases[category] = updated_items
+
         print("Bases actualizadas:", self.bases)
         
         self.save_data()
@@ -671,7 +692,7 @@ def preguntaDescarga():
         # Add new buttons to the tab using customtkinter.CTkButton
         if valor_lower in self.bases:
             for item in self.bases[valor_lower]:
-                button = customtkinter.CTkButton(tab_frame, text=item, width=200, height=25, corner_radius=10, command=self.ejecutarValidadorEntornos(valor_lower, item))
+                button = customtkinter.CTkButton(tab_frame, text=item['nombre'], width=200, height=25, corner_radius=10, command=self.ejecutarValidadorEntornos(valor_lower, item['nombre']))
                 button.pack(pady=1)
         else:
             print("No se encontraron bases coincidentes.")
