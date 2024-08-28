@@ -1,4 +1,4 @@
-# Cï¿½digo de ejemplo para crear un validador
+# Código de ejemplo para crear un validador
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -26,7 +26,7 @@ def mostrar_ventana_progreso(titulo, max_val):
     ventana = tk.Tk()
     ventana.title(titulo)
 
-    # Crear y colocar una etiqueta para mostrar el texto de la funciï¿½n en ejecuciï¿½n
+    # Crear y colocar una etiqueta para mostrar el texto de la función en ejecución
     label = tk.Label(ventana, text=titulo)
     label.pack(pady=10)
 
@@ -81,34 +81,34 @@ def loadExcel():
     for cell in sheet[1]:
         headers.append(cell.value)
     
-    # Retornar los encabezados y la hoja de cï¿½lculo
+    # Retornar los encabezados y la hoja de cálculo
     return headers, sheet
     
 def chooseBase(base):
     switch = {
-        "csa": csa,  #ejemplo de insercion de cada base para validar 
+        "sesiones_colectivas": SesionesCoelctivas,  #ejemplo de insercion de cada base para validar 
     }
     execute_validator = switch.get(base)
     execute_validator()
     
-def csa(): # funcion para determinar la cantdad de paginas a validar 
-    # Pï¿½ginas del archivo Excel cargado
+def SesionesCoelctivas(): # funcion para determinar la cantdad de paginas a validar 
+    # Páginas del archivo Excel cargado
     num_paginas = len(workbook.sheetnames)
-    print(f"El archivo Excel tiene {num_paginas} pï¿½ginas.")
+    print(f"El archivo Excel tiene {num_paginas} páginas.")
 
-    # Primero, validar la pï¿½gina 1
+    # Primero, validar la página 1
     if num_paginas >= 1 and workbook.sheetnames[0] in workbook.sheetnames:
-        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la pï¿½gina 1
-        print("Validando la pï¿½gina 1...")
-        csapag1(sheet)
+        sheet = workbook[workbook.sheetnames[0]]  # Acceder a la página 1
+        print("Validando la página 1...")
+        validar_pagina1_sesiones(sheet)
 
 #////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////////funciones////////////////////////////////////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
-def csapag1(sheet):
+def validar_pagina1_sesiones(sheet):
     # Mostrar ventana de progreso
     
-    regex = re.compile("^[a-zA-Zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\s]+$")
+    regex = re.compile("^[a-zA-ZÑñáéíóúÁÉÍÓÚ\s]+$")
     patternTel = re.compile(r'^\d{7}(\d{3})?$')
     
     try:
@@ -121,23 +121,17 @@ def csapag1(sheet):
         
         for i in range(2, ultima_fila + 1):
             
-            # Tipo instituciï¿½n
+            # Tipo institución
             if len(sheet.cell(i, 8).value.strip()) > 0 and len(sheet.cell(i, 9).value.strip()) > 0: # condicion para validar las celdas 
                 celdas_pintadas_rojo += 1
                 colum["column"] = {8, 9, 2}
                 colum["row"] = i
-                pintar(colum, sheet)# funciï¿½n para pintar las celdas establecidas 
+                pintar(colum, sheet)# función para pintar las celdas establecidas 
                 
-
-            # Codigo generado automaticamente
-            # valor para validar vacias
-            CeldasVacias['vacias'] = {5,6,8,7}
-            celdas_pintadas_rojo += validarVacias(sheet, CeldasVacias)
-            
-                #////////////////////////////// Codigo para actualizar progreso de validacion NO QUITAR  ////////////////////////////////////////// 
+            #////////////////////////////// Codigo para actualizar progreso de validacion NO QUITAR  ////////////////////////////////////////// 
             actualizar_barra_progreso(ventana, progress, i * 100 / ultima_fila)
             if progress['value'] == 100:
-                ventana.after(100, lambda: ventana.destroy())  # Cerrar la ventana despuï¿½s de 100 ms
+                ventana.after(100, lambda: ventana.destroy())  # Cerrar la ventana después de 100 ms
                 break
             #/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             
@@ -164,7 +158,7 @@ def remplazarComillas(sheet):
                     # Elimina las comillas
                     cell.value = cell.value.replace('`', '')
 
-                    # Verifica si el valor es un nï¿½mero
+                    # Verifica si el valor es un número
                     if isinstance(cell.value, (int, float)):
                         cell.number_format = numbers.FORMAT_NUMBER
                     # Verifica si el valor es una fecha
@@ -191,11 +185,11 @@ def saveFile():
         
         # Guardar el libro de trabajo original con los cambios realizados
         #workbook.save(file_path)
-        # Guardar el archivo modificado con el nombre especï¿½fico para errores
+        # Guardar el archivo modificado con el nombre específico para errores
         workbook.save(file_path_modificado)
         print("Archivo guardado", "El archivo ha sido guardado correctamente.")
         # Preguntar al usuario si desea abrir el archivo guardado
-        open_file = messagebox.askquestion("Abrir Archivo", "ï¿½Desea abrir el archivo guardado?")
+        open_file = messagebox.askquestion("Abrir Archivo", "¿Desea abrir el archivo guardado?")
         if open_file == 'yes':
             os.startfile(file_path_modificado)  # Abre el archivo guardado
     except Exception as e:
@@ -203,12 +197,12 @@ def saveFile():
 
 def preguntaDescarga():
     try:
-        respuesta = messagebox.askquestion("Abrir Archivo", "ï¿½Guardar el archivo generado?")
+        respuesta = messagebox.askquestion("Abrir Archivo", "¿Guardar el archivo generado?")
         if respuesta == "yes":
             cadenaGuardar = "Guardando archivo..."
             print(cadenaGuardar)
             saveFile()
         else:
-            print("Tu archivo no serï¿½ descargado")
+            print("Tu archivo no será descargado")
     except Exception as e:
         print(f"No se pudo guardar el archivo: {str(e)}")

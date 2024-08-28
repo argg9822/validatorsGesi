@@ -1,46 +1,49 @@
 {
     "educativo": [
-        "prevencion_embarazo",
-        "autocuidado",
-        "sesiones_colectivas",
-        "higiene_bucal",
-        "higiene_manos",
-        "salud_mental",
-        "mascota_verde",
-        "entornos_escolares",
-        "pretest",
-        "entornos_jardines",
-        "jornadas",
-        "escala_abreviada",
-        "tiendas_escolares"
+        "prevencion_embarazo (1)",
+        "autocuidado (1)",
+        "sesiones_colectivas (3)",
+        "higiene_bucal (1)",
+        "higiene_manos (1)",
+        "salud_mental (1)",
+        "mascota_verde (1)",
+        "entornos_escolares (1)",
+        "pretest (1)",
+        "entornos_jardines (1)",
+        "jornadas (1)",
+        "escala_abreviada (1)",
+        "tiendas_escolares (1)"
     ],
     "comunitario": [
-        "sesiones_colectivas",
-        "vinculate",
-        "maps",
-        "cami",
-        "zarit",
-        "pcbh",
-        "caldas",
-        "guardianes",
-        "acondicionamiento",
-        "cuidarte",
-        "mujeres",
-        "fortalecimiento",
-        "pid"
+        "sesiones_colectivas (3)",
+        "vinculate (1)",
+        "maps (1)",
+        "cami (1)",
+        "zarit (1)",
+        "pcbh (1)",
+        "caldas (1)",
+        "guardianes (1)",
+        "acondicionamiento (1)",
+        "cuidarte (1)",
+        "mujeres (1)",
+        "fortalecimiento (1)",
+        "pid (1)"
     ],
     "institucional": [
-        "sesiones_colectivas",
-        "ead",
-        "hcb",
-        "mascota_verde",
-        "ipa",
-        "pcb",
-        "persona_mayor",
-        "pci",
-        "tamizajes"
+        "sesiones_colectivas (3)",
+        "ead (1)",
+        "hcb (1)",
+        "mascota_verde (1)",
+        "ipa (1)",
+        "pcb (1)",
+        "persona_mayor (1)",
+        "pci (1)",
+        "tamizajes (1)"
     ],
     "hogar": [
-        "csa"
+        "csa (5)"
+    ],
+    "laboral": [
+        "nna (1)"
     ]
 }
