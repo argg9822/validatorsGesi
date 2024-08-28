@@ -20,6 +20,8 @@ import inspect
 
 class App(customtkinter.CTk):
     
+    
+    
     codigo_ejemplo = """# Código de ejemplo para crear un validador
 
 import tkinter as tk
@@ -417,7 +419,9 @@ def preguntaDescarga():
          # Buscar el inicio de la función sesiones_pagina1 y la ubicación para insertar el código
         inicio_funcion = None
         ubicacion_insercion = None
-
+        
+        print(self.bases)
+        
         # Buscar la función sesiones_pagina1 y el bloque de código donde insertar el nuevo código
         for i, linea in enumerate(contenido):
             if 'def csapag1(' in linea:
@@ -605,13 +609,28 @@ def preguntaDescarga():
             json.dump(self.bases, f, indent=4)
             
     def add_category(self):
-        # Obtener el nombre y los ítems de la nueva categoría
+        # Obtener el nombre de la nueva categoría
         new_category = self.new_category_name.get().strip()
-        new_items = self.new_category_items.get().split(", ")
-        new_pag = self.new_category_pag.get().strip()
-        
 
-        if new_category and new_items:
+        # Obtener los ítems y el número de páginas
+        new_items_text = self.new_category_items.get().strip()
+        new_pag_text = self.new_category_pag.get().strip()
+        
+        # Validar que los campos no estén vacíos
+        if new_category and new_items_text and new_pag_text:
+            # Dividir los ítems basados en la coma
+            item_entries = new_items_text.split(", ")
+
+            # Crear una lista de ítems en formato JSON
+            new_items = []
+            for item_name in item_entries:
+                try:
+                    # Crear un diccionario para cada ítem con el nombre y número de páginas
+                    new_items.append({"nombre": item_name.strip(), "paginas": int(new_pag_text)})
+                except ValueError:
+                    print(f"Error al procesar el número de páginas: {new_pag_text}")
+                    continue
+
             # Agregar la nueva categoría al diccionario
             self.bases[new_category] = new_items
             print(f"Categoría añadida: {new_category} con ítems: {new_items}")
@@ -619,6 +638,7 @@ def preguntaDescarga():
             # Limpiar los campos de entrada
             self.new_category_name.delete(0, tk.END)
             self.new_category_items.delete(0, tk.END)
+            self.new_category_pag.delete(0, tk.END)
             
             # Volver a mostrar el diálogo con la nueva categoría incluida
             self.editar_bases_event()
@@ -627,16 +647,18 @@ def preguntaDescarga():
             validator_file_path = os.path.join("validadores", f"{new_category}.py")
             
             with open(validator_file_path, "w") as f:
-                f.write(self.codigo_ejemplo)  # crear archivo con muetra de codigo 
+                f.write(self.codigo_ejemplo)  # Crear archivo con muestra de código
             
-            # Abrir el archivo en el bloque de notas
+            # Abrir el archivo en el bloc de notas
             print(f"Ruta del archivo: {validator_file_path}")
-            
             subprocess.Popen(['notepad.exe', validator_file_path])
             os.startfile(validator_file_path)
+            
+            # Guardar los datos actualizados
             self.save_data()
         else:
-            print("El nombre de la categoría o los ítems no pueden estar vacíos.")
+            print("El nombre de la categoría, los ítems o el número de páginas no pueden estar vacíos.")
+
 
     def update_bases(self, base):
         # Aquí puedes agregar lógica para editar las bases
