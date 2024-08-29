@@ -1,11 +1,11 @@
 [Setup]
 ; Información básica del instalador
-AppName=Validador gesiapp
+AppName=Odin
 AppVersion=1.0
-DefaultDirName={pf}\Validador_Gesiapp
-DefaultGroupName=Validador_Gesiapp
-OutputBaseFilename=ValidadorGesiInstaller
-OutputDir=D:\Perfil\Documentos\validatorsGesi
+DefaultDirName={pf}\Odin
+DefaultGroupName=Odin
+OutputBaseFilename=OdinIstaller
+OutputDir=D:\Perfil\Documentos\Odin
 Compression=lzma
 SolidCompression=yes
 SetupIconFile=D:\Perfil\Documentos\validatorsGesi\img\logo.ico
@@ -21,13 +21,13 @@ Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; Gr
 
 [Icons]
 ; Accesos directos en el menú de inicio
-Name: "{group}\Validador_Gesiapp"; Filename: "{app}\Validador_gesi.exe"; IconFilename: "{app}\img\logo.ico"
+Name: "{group}\Odin"; Filename: "{app}\Odin.exe"; IconFilename: "{app}\img\logo.ico"
 ; Acceso directo en el escritorio (solo si se selecciona la tarea 'desktopicon')
-Name: "{userdesktop}\Validador_Gesiapp"; Filename: "{app}\Validador_gesi.exe"; Tasks: desktopicon; IconFilename: "{app}\img\logo.ico"
+Name: "{userdesktop}\Odin"; Filename: "{app}\Odin.exe"; Tasks: desktopicon; IconFilename: "{app}\img\logo.ico"
 
 [Run]
 ; Ejecutar la aplicación después de la instalación
-Filename: "{app}\Validador_gesi.exe"; Description: "Ejecutar Validador_Gesiapp"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Odin.exe"; Description: "Ejecutar Odin"; Flags: nowait postinstall skipifsilent
 ; Ejecutar el script de instalación de dependencias
 Filename: "{tmp}\install_dependencies.bat"; Parameters: ""; Flags: runhidden
 

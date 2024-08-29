@@ -70,6 +70,20 @@ def aplicar_cambios():
             shutil.move(index_py_path, destination_path)
             print(f"Archivo {index_py_path} reemplazado en {destination_path}")
             index_found = True
+            
+        if not index_found and 'funciones.py' in files:
+            index_py_path = os.path.join(root, 'funciones.py')
+            destination_path = os.path.join(current_dir, 'funciones.py')
+            shutil.move(index_py_path, destination_path)
+            print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+            index_found = True
+            
+        if not index_found and 'bases.json' in files:
+            index_py_path = os.path.join(root, 'bases.json')
+            destination_path = os.path.join(current_dir, 'bases.json')
+            shutil.move(index_py_path, destination_path)
+            print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+            index_found = True
 
         # Buscar y reemplazar la carpeta validadores
         if not validadores_found and 'validadores' in dirs:
@@ -84,7 +98,21 @@ def aplicar_cambios():
             shutil.move(validadores_path, destination_path)
             print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
             validadores_found = True
+            
+        # Buscar y reemplazar la carpeta validadores
+        if not validadores_found and 'crear_hc' in dirs:
+            validadores_path = os.path.join(root, 'crear_hc')
+            destination_path = os.path.join(current_dir, 'crear_hc')
 
+            # Si la carpeta ya existe, eliminarla antes de reemplazarla
+            if os.path.exists(destination_path):
+                shutil.rmtree(destination_path)
+
+            # Mover la carpeta validadores al destino
+            shutil.move(validadores_path, destination_path)
+            print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
+            validadores_found = True
+            
         # Buscar y reemplazar la carpeta img
         if not img_found and 'img' in dirs:
             img_path = os.path.join(root, 'img')
@@ -204,7 +232,7 @@ def main():
     canvas.create_image(window_width // 2, window_height // 2, image=logo_photo)
 
     # Mostrar información de la aplicación
-    info_text = "Gesi-app v-1.0\n© 2024 Gabriel Monhabell - Aramis Garcia"
+    info_text = "Odin v-1.0\n© 2024 Gabriel Monhabell - Aramis Garcia"
     offset_x = 100  # Ajusta este valor para mover el texto más a la izquierda o derecha
     canvas.create_text((window_width // 2.2) - offset_x, window_height - 140, text=info_text, fill='white', font=('Helvetica', 14))  # Ajusta la posición y el estilo
 
