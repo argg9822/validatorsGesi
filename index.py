@@ -2,6 +2,7 @@ import tkinter as tk
 import customtkinter
 import subprocess
 from validadores import institucional, educativo, comunitario
+from crear_hc import crear
 import sys
 from colorama import init, Fore, Style
 from PIL import Image, ImageTk
@@ -323,6 +324,7 @@ def preguntaDescarga():
         self.menu.add_cascade(label="Herramientas", menu=self.herramientas_menu)
         self.herramientas_menu.add_command(label="Editar Bases", command=self.editar_bases_event)
         
+        
          # Agregar menú Codigos
         self.codigo_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Codigos", menu=self.codigo_menu)
@@ -335,15 +337,23 @@ def preguntaDescarga():
                 label=category,
                 command=lambda cat=category: self.aventanaadd(cat)
             )
+            
+        # menu hc
+        self.hc = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Crear hc", menu=self.herramientas_menu)
+        self.hc.add_command(label="Crear hc", command=self.crearhc)
 
         # Agregar comandos para archivos en la carpeta validadores
         self.cargar_codigos()
 
-     
+
     #////////////////////////////////////////////////////////////////////////
     #///////////////////////////////////////////////////////////////////////
     
-    
+    def crearhc():
+        print('crear fichas hc')
+        #crear
+        
     def aventanaadd(self, cat):
         print('ejecutar nueva ventana')
         # Crear una ventana de diálogo para editar el diccionario
