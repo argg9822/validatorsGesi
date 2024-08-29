@@ -33,7 +33,7 @@ setup(
         "packages": [
             "tkinter", "customtkinter", "PIL", "requests", "json", "zipfile", 
             "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
-            "datetime", "colorama", "selenium"
+            "datetime", "colorama", "selenium", "math", "os", "time"
         ],
         "includes": [
             "validadores", "img", "colorama", "__version__", 
@@ -41,6 +41,6 @@ setup(
             "openpyxl.styles", "openpyxl.utils", "selenium", "selenium.webdriver.common.keys", "selenium.webdriver.common.by", 
             "selenium.webdriver.common.action_chains", "selenium.common.exceptions"
         ],
-        "excludes": ["tkinter.ttk", "tkinter.tix"]  # Excluir dependencias innecesarias
+        "excludes": ["tkinter.tix"]  # Excluir dependencias innecesarias, puedes volver a agregar `ttk` si lo necesitas.
     }},
 )
