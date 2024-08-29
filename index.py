@@ -15,6 +15,7 @@ import json
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import messagebox
+from tkinter import PhotoImage
 
 import inspect
 
@@ -246,7 +247,7 @@ def preguntaDescarga():
         
        
         # Configure window
-        self.title("Validador Gesiapp")
+        self.title("Odin")
         self.geometry(f"{1010}x{450}")
 
         # Configure grid layout
@@ -339,9 +340,13 @@ def preguntaDescarga():
             )
             
         # menu hc
+        
+        
         self.hc = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Crear hc", menu=self.herramientas_menu)
-        self.hc.add_command(label="Crear hc", command=self.crearhc)
+        self.menu.add_cascade(label="Crear hc", menu=self.hc)
+        self.icon = PhotoImage(file="img/icons/icono_excel.png")  
+        self.hc.add_command(label="Editar", command=self.openxcel, image=self.icon, compound=tk.LEFT)
+        self.hc.add_command(label="Ejecutar", command=self.crearhc)
 
         # Agregar comandos para archivos en la carpeta validadores
         self.cargar_codigos()
@@ -350,9 +355,17 @@ def preguntaDescarga():
     #////////////////////////////////////////////////////////////////////////
     #///////////////////////////////////////////////////////////////////////
     
-    def crearhc():
+    def crearhc(self):
         print('crear fichas hc')
-        #crear
+        crear.hc_crear(self)
+    
+    def openxcel(self):
+        # Especifica la ruta relativa al archivo Excel
+        file_path = os.path.join(os.path.dirname(__file__), 'crear_hc', 'crearIndividualfinal.xlsx')
+        
+        # Abre el archivo con el programa predeterminado (Excel)
+        os.startfile(file_path)
+        
         
     def aventanaadd(self, cat):
         print('ejecutar nueva ventana')
@@ -459,8 +472,6 @@ def preguntaDescarga():
             
             
             
-        
-        
     def cargar_codigos(self):
         carpeta = "validadores"
 
