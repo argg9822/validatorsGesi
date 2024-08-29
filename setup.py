@@ -38,7 +38,8 @@ setup(
         "includes": [
             "validadores", "img", "colorama", "__version__", 
             "tkinter.filedialog", "tkinter.messagebox", "tkinter.simpledialog", 
-            "openpyxl.styles", "openpyxl.utils", "selenium"
+            "openpyxl.styles", "openpyxl.utils", "selenium", "selenium.webdriver.common.keys", "selenium.webdriver.common.by", 
+            "selenium.webdriver.common.action_chains", "selenium.common.exceptions"
         ],
         "excludes": ["tkinter.ttk", "tkinter.tix"]  # Excluir dependencias innecesarias
     }},
