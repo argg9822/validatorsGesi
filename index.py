@@ -469,8 +469,7 @@ def preguntaDescarga():
         
         print(f"nuevo parametro insertado en {ruta_hogar} exitosamente.")  
             
-            
-            
+                    
     def cargar_codigos(self):
         carpeta = "validadores"
 
