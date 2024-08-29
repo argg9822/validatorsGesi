@@ -81,6 +81,12 @@ def esperacapcha(driver):
     dialog.attributes("-topmost", True)
     dialog.transient()  
     dialog.grab_set()   
+    label_user = customtkinter.CTkLabel(dialog, text="Por favor complete el capcha")
+    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+    
+    label_user = customtkinter.CTkLabel(dialog, text="Una vez completado el capcha oprima (continuar)")
+    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+    
     save_button = customtkinter.CTkButton(dialog, text="Continuar", command=lambda: capchacompletado(driver, dialog))
     save_button.grid(row=2, column=0, columnspan=2, pady=10)
     print("Esperando captcha")
@@ -136,28 +142,31 @@ def iniciar(driver):
     dialog.title("inicar proceso")
     dialog.attributes("-topmost", True)
     dialog.transient()  
-    dialog.grab_set()   
-    save_button = customtkinter.CTkButton(dialog, text="Si", command=lambda: si(driver, dialog))
+    dialog.grab_set()  
+    
+    label_user = customtkinter.CTkLabel(dialog, text="Para la creacion desea incluir el si digitado")
+    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+     
+    save_button = customtkinter.CTkButton(dialog, text="Si", command=lambda: si(driver, dialog) )
     save_button.grid(row=1, column=0, columnspan=2, pady=10)
+    
     save_button = customtkinter.CTkButton(dialog, text="NO", command=lambda: no(driver, dialog))
     save_button.grid(row=1, column=2, columnspan=2, pady=10)
     dialog.wait_window()
-    dialog.destroy
+    
     
     
 def si(driver, dialog):
+    dialog.destroy
     total_filas = nombres.max_row
     for i in range(1, total_filas + 1):
         intento = 0
-        max_intentos = 3  # Número máximo de reintentos
+        max_intentos = 5  # Número máximo de reintentos
+        print (f"quedan {max_intentos} intentos")
         exito = False
         while intento < max_intentos and not exito:
             try:
                 ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
-                print(ficha.value)
-                print(fecha.value)
-                print(profesional.value)
-                print(entorno.value)
                 ficha1 = ficha.value
                 fecha1 = fecha.value
                 formato = fecha1.strftime('%d/%m/%Y')
@@ -165,7 +174,8 @@ def si(driver, dialog):
                 Entorno1 = entorno.value
                 perfil1 = perfil.value
                 base1 = base.value
-                Datos = (f"los datos que se agregaran son {Datos}")
+                Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
+                print(f"Se inmgresaron los datos {Datos}")
                 DatosCrearSi(Datos, driver)
                 exito = True  # Marcar como exitoso si no hay excepciones
             except (NoSuchElementException, TimeoutException, WebDriverException) as e:
@@ -180,19 +190,17 @@ def si(driver, dialog):
     driver.quit() 
     print(f"Se crearon {total_filas} en la herramienta de control")
     
-def no(driver):
+def no(driver, dialog):
+    dialog.destroy
     total_filas = nombres.max_row
     for i in range(1, total_filas + 1): 
         intento = 0
         max_intentos = 3  # Número máximo de reintentos
+        print (f"quedan {max_intentos} intentos")
         exito = False
         while intento < max_intentos and not exito:
             try:
                 ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
-                print(ficha.value)
-                print(fecha.value)
-                print(profesional.value)
-                print(entorno.value)
                 ficha1 = ficha.value
                 fecha1 = fecha.value
                 formato = fecha1.strftime('%d/%m/%Y')
@@ -201,6 +209,7 @@ def no(driver):
                 perfil1 = perfil.value
                 base1 = base.value
                 Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
+                print(f"Se inmgresaron los datos {Datos}")
                 llenar(Datos, driver)
                 exito = True  # Marcar como exitoso si no hay excepciones
             except (NoSuchElementException, TimeoutException, WebDriverException) as e:

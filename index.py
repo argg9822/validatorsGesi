@@ -301,7 +301,7 @@ def preguntaDescarga():
         )
         
         
-        self.textbox.insert("1.0", "Bienvenido a la línea de registro Gesiapp\n")
+        self.textbox.insert("1.0", "Bienvenido a la línea de registro Odin\n")
         self.textbox.insert("1.0", "...\n")
         self.textbox.insert("end", "...\n")
         
@@ -315,7 +315,6 @@ def preguntaDescarga():
         # Add "Archivo" menu
         self.archivo_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Archivo", menu=self.archivo_menu)
-        self.archivo_menu.add_command(label="Nuevo", command=self.nuevo_event)
         self.archivo_menu.add_command(label="Actualizar Todo", command=self.actualizar_todo_event)
         self.archivo_menu.add_separator()
         self.archivo_menu.add_command(label="Salir", command=self.quit)
@@ -323,30 +322,30 @@ def preguntaDescarga():
         # Add "Herramientas" menu
         self.herramientas_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Herramientas", menu=self.herramientas_menu)
+        
+        # Agregar el comando "Crear_Hc"
+        self.crear_hc_menu = tk.Menu(self.herramientas_menu, tearoff=0)
+        self.herramientas_menu.add_cascade(label="Crear_Hc", menu=self.crear_hc_menu)
+        
+        # Agregar opciones al submenú "Crear_Hc"
+        self.icon = PhotoImage(file="img/icons/icono_excel.png")  
+        self.crear_hc_menu.add_command(label="Editar",  command=self.openxcel, image=self.icon, compound=tk.LEFT)
+        self.crear_hc_menu.add_command(label="Ejecutar", command=self.crearhc)
+        
         self.herramientas_menu.add_command(label="Editar Bases", command=self.editar_bases_event)
+        self.obsiones_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Obsiones", menu=self.obsiones_menu)
+        self.codigo_menu = tk.Menu(self.herramientas_menu, tearoff=0)
+        self.obsiones_menu.add_cascade(label="Codigos", menu=self.codigo_menu)
+        self.addvalidador_menu = tk.Menu(self.obsiones_menu, tearoff=0)
+        self.obsiones_menu.add_cascade(label="Agregar validador", menu=self.addvalidador_menu)
         
-        
-         # Agregar menú Codigos
-        self.codigo_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Codigos", menu=self.codigo_menu)
-        
-        self.addvalidador_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Agregar validador", menu=self.addvalidador_menu)
-        
+         
         for i, category in enumerate(self.bases.keys(), start=1):
             self.addvalidador_menu.add_command(
                 label=category,
                 command=lambda cat=category: self.aventanaadd(cat)
             )
-            
-        # menu hc
-        
-        
-        self.hc = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Crear hc", menu=self.hc)
-        self.icon = PhotoImage(file="img/icons/icono_excel.png")  
-        self.hc.add_command(label="Editar", command=self.openxcel, image=self.icon, compound=tk.LEFT)
-        self.hc.add_command(label="Ejecutar", command=self.crearhc)
 
         # Agregar comandos para archivos en la carpeta validadores
         self.cargar_codigos()
@@ -689,12 +688,6 @@ def preguntaDescarga():
             # Actualiza la base en el diccionario
             # Ejemplo: self.bases[base] = new_value
             self.mostrarBases(base)  # Refresca la vista
-
-
-    def nuevo_event(self):
-        print("Nuevo seleccionado")
-        # Agrega la lógica para "Nuevo" aquí
-
 
 
     def open_input_dialog_event(self):
