@@ -332,7 +332,7 @@ def preguntaDescarga():
         
         self.herramientas_menu.add_command(label="Editar Bases", command=self.editar_bases_event)
         self.obsiones_menu = tk.Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label="Obsiones", menu=self.obsiones_menu)
+        self.menu.add_cascade(label="Obciones", menu=self.obsiones_menu)
         self.codigo_menu = tk.Menu(self.herramientas_menu, tearoff=0)
         self.obsiones_menu.add_cascade(label="Codigos", menu=self.codigo_menu)
         self.addvalidador_menu = tk.Menu(self.obsiones_menu, tearoff=0)

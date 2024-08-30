@@ -31,7 +31,7 @@ setup(
     options={"build_exe": {
         "include_files": include_files,
         "packages": [
-            "tkinter", "customtkinter", "PIL", "requests", "json", "zipfile", 
+            "tkinter", "customtkinter","threading" ,"PIL", "requests", "json", "zipfile", 
             "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
             "datetime", "colorama", "selenium", "math", "os", "time"
         ],
