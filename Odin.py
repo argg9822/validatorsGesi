@@ -221,8 +221,11 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
             print("App actualizada con éxito")
             
             # Detiene la barra de progreso y cierra la ventana
+             # Detiene la barra de progreso
             progress_bar.stop()
-            vie_actualizaion.destroy()
+
+            # Cierra la ventana en el hilo principal
+            vie_actualizaion.after(0, vie_actualizaion.destroy)
             
             return
         else:
