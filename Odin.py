@@ -212,7 +212,6 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     progress_bar.pack(pady=20 ,padx = 25)
     progress_bar.start()
 
-    vie_actualizaion.mainloop()
     
     def proceso_actualizacion():
         
@@ -231,6 +230,9 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
         
     hilo_actualizacion = threading.Thread(target=proceso_actualizacion)
     hilo_actualizacion.start()
+    
+    vie_actualizaion.mainloop()
+    
 
    
     

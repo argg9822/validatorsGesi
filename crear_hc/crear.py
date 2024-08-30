@@ -24,7 +24,7 @@ print(hojas)
 nombres = wb.get_sheet_by_name('Hoja1')
 wb.close()
 
-def usuario_login(self, driver):
+def usuario_login( driver):
     dialog = customtkinter.CTkToplevel()
     dialog.title("Datos de Usuario")
     dialog.transient()
