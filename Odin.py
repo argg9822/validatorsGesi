@@ -190,20 +190,7 @@ def actualizar_aplicacion():
 
 def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     # Descarga y aplica los cambios
-    ventana_actualizacion.destroy()
-     # Crear una nueva ventana para mostrar el progreso
-    ventana_progreso = ctk.CTkToplevel()
-    ventana_progreso.title("Actualización en Proceso")
-    ventana_progreso.geometry("300x150")
     
-    # Etiqueta de progreso
-    etiqueta_progreso = ctk.CTkLabel(ventana_progreso, text="Actualizando...")
-    etiqueta_progreso.pack(pady=20)
-    
-    # Barra de progreso (o círculo de progreso)
-    progreso = ctk.CTkProgressBar(ventana_progreso, orientation="horizontal", mode="indeterminate")
-    progreso.pack(pady=10, padx=20)
-    progreso.start() 
     
     print("Actualiz en proceso")
     
@@ -218,9 +205,7 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     else:
         print("Error al descargar los cambios")
         
-    # Detener la animación y cerrar la ventana de progreso
-    progreso.stop()
-    ventana_progreso.destroy()
+
     
     
    
