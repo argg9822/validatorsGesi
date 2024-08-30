@@ -214,6 +214,7 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
 
    
     def proceso_actualizacion():
+        vie_actualizaion.mainloop()
         if descargar_cambios(ultima_version):
             aplicar_cambios()
             guardar_version_actual(ultima_version)
@@ -231,8 +232,7 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     hilo_actualizacion.start()
 
     # Inicia el bucle principal de la nueva ventana
-    vie_actualizaion.mainloop()
-   
+    
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización
 
