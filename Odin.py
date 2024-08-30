@@ -218,13 +218,15 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
             aplicar_cambios()
             guardar_version_actual(ultima_version)
             print("App actualizada con éxito")
+            
+            # Detiene la barra de progreso y cierra la ventana
+            progress_bar.stop()
+            vie_actualizaion.destroy()
+            
+            return
         else:
             print("Error al descargar los cambios")
         
-        # Detiene la barra de progreso y cierra la ventana
-        progress_bar.stop()
-        vie_actualizaion.destroy()
-
     hilo_actualizacion = threading.Thread(target=proceso_actualizacion)
     hilo_actualizacion.start()
 
