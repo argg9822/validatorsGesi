@@ -24,7 +24,7 @@ print(hojas)
 nombres = wb.get_sheet_by_name('Hoja1')
 wb.close()
 
-def usuario_login( driver):
+def usuario_login(driver):
     dialog = customtkinter.CTkToplevel()
     dialog.title("Datos de Usuario")
     dialog.transient()
@@ -114,16 +114,14 @@ def hc_crear(self):
         time.sleep(1)
         element_continuar=driver.find_element("xpath", '/html/body/div/div[3]/p[2]/a').click() #DESPLEGAR continuar
         time.sleep(3)
-        usuario_login(self, driver)
+        usuario_login(driver)
     except :
         # Si el botón no se encuentra, pasa a la siguiente parte del código
         print("El botón no se encontró, continúa con el código.")
-        usuario_login(self, driver)
+        usuario_login(driver)
     
     
       
-    
-
 def next(driver):
     element = driver.find_element("xpath", '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
     time.sleep(4)
