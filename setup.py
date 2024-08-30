@@ -13,6 +13,7 @@ include_files = [
     ("bases.json", "bases.json"),
     ("crear_hc", "crear_hc"),
     ("funciones.py", "funciones.py"),
+    ("logo.ico", "logo.ico")
     
 ]
 
@@ -21,7 +22,7 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"  # Omitir consola de comandos en aplicaciones GUI en Windows
 # Ejecutable configurado con Win32GUI
-executables = [Executable("Odin.py", base=base, icon="img/logo.ico")]
+executables = [Executable("Odin.py", base=base, icon="logo.ico")]
 # Configuración de cx_Freeze
 setup(
     name="Odin",
