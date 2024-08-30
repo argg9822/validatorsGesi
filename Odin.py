@@ -206,9 +206,7 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
         print("Error al descargar los cambios")
         
 
-    
-    
-   
+
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización
 
