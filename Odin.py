@@ -7,9 +7,6 @@ from PIL import Image, ImageTk
 import sys
 import shutil
 import tkinter as tk
-import customtkinter as ctk
-import threading
-
 
 VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
 
@@ -192,51 +189,14 @@ def actualizar_aplicacion():
 def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     # Descarga y aplica los cambios
     ventana_actualizacion.destroy()
-     # Crear una nueva ventana para mostrar el progreso
-    vie_actualizaion = tk.Tk()
-    vie_actualizaion.title("Actualizar validador")
-    vie_actualizaion.geometry("280x100")
+    print("Actualiz en proceso")
     
-    # Agrega el logo de la aplicación
-    vie_actualizaion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
-
-    # Centra la ventana en la pantalla
-    pantalla_ancho = vie_actualizaion.winfo_screenwidth()
-    pantalla_alto = vie_actualizaion.winfo_screenheight()
-    x = (pantalla_ancho / 2) - (280 / 2)
-    y = (pantalla_alto / 2) - (100 / 2)
-    vie_actualizaion.geometry(f"280x100+{int(x)}+{int(y)}")
-
-    # Configura la etiqueta y la barra de progreso
-    label_actualizacion = tk.Label(vie_actualizaion, text="Actualizando app Odin \n Por favor espere", font=("Arial", 12), bg="#f0f0f0")
-    label_actualizacion.pack(pady=5)
-
-    progress_bar = ctk.CTkProgressBar(vie_actualizaion, orientation="horizontal", mode="indeterminate", width=300)
-    progress_bar.pack(pady=20 ,padx = 25)
-    progress_bar.start()
-
-   
-    def proceso_actualizacion():
-        if descargar_cambios(ultima_version):
-            aplicar_cambios()
-            guardar_version_actual(ultima_version)
-            print("App actualizada con éxito")
-        else:
-            print("Error al descargar los cambios")
-        
-        # Detiene la barra de progreso y cierra la ventana
-        progress_bar.stop()
-        vie_actualizaion.destroy()
-
-    hilo_actualizacion = threading.Thread(target=proceso_actualizacion)
-    hilo_actualizacion.start()
-
-    # Inicia el bucle principal de la nueva ventana
-    vie_actualizaion.mainloop()
-        
- 
-    
-    
+    if descargar_cambios(ultima_version):
+        aplicar_cambios()
+        guardar_version_actual(ultima_version)
+        print("App actualizada con exito")
+    else:
+        print("Error al descargar los cambios")
    
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización
