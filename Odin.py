@@ -9,8 +9,6 @@ import shutil
 import tkinter as tk
 import customtkinter as ctk
 import threading
-import os
-import sys
 
 VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
 
@@ -158,8 +156,7 @@ def actualizar_aplicacion():
             ventana_actualizacion.geometry(f"300x150+{int(x)}+{int(y)}")
 
             # Agrega el logo de la aplicación
-            ruta_icono = os.path.join(os.path.dirname(__file__), "img", "logo.ico")
-            ventana_actualizacion.wm_iconbitmap(ruta_icono)
+            ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
 
             # Crea un label para mostrar el mensaje de actualización
             label_actualizacion = tk.Label(ventana_actualizacion, text="Hay una actualización disponible.", font=("Arial", 12), bg="#f0f0f0")
@@ -259,8 +256,7 @@ def main():
     canvas.pack()
 
     # Cargar y mostrar el logo
-    logo_path = os.path.join(os.path.dirname(__file__), "img",  "intro.png")
-    
+    logo_path = os.path.join(os.path.dirname(sys.executable), "img", "intro.png")
     logo_image = Image.open(logo_path).convert("RGBA")  # Asegúrate de que el logo tenga fondo transparente
     logo_photo = ImageTk.PhotoImage(logo_image)
 
