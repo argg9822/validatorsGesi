@@ -260,8 +260,6 @@ def preguntaDescarga():
         self.logo_label = customtkinter.CTkLabel(self.sidebar_frame, text="Validar Bases", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
-    
-        
         # Crear botones dinámicamente según las categorías en el diccionario
         for i, category in enumerate(self.bases.keys(), start=1):
             button = customtkinter.CTkButton(

@@ -212,9 +212,10 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     progress_bar.pack(pady=20 ,padx = 25)
     progress_bar.start()
 
-   
+    vie_actualizaion.mainloop()
+    
     def proceso_actualizacion():
-        vie_actualizaion.mainloop()
+        
         if descargar_cambios(ultima_version):
             aplicar_cambios()
             guardar_version_actual(ultima_version)
@@ -231,7 +232,7 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     hilo_actualizacion = threading.Thread(target=proceso_actualizacion)
     hilo_actualizacion.start()
 
-    # Inicia el bucle principal de la nueva ventana
+   
     
 def main():
     actualizar_aplicacion()  # Llama a la función de actualización
