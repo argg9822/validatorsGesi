@@ -196,6 +196,9 @@ def actualizar_aplicacion_sí(ventana_actualizacion, ultima_version):
     vie_actualizaion = tk.Tk()
     vie_actualizaion.title("Actualizar validador")
     vie_actualizaion.geometry("280x100")
+    
+    # Agrega el logo de la aplicación
+    vie_actualizaion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
 
     # Centra la ventana en la pantalla
     pantalla_ancho = vie_actualizaion.winfo_screenwidth()
