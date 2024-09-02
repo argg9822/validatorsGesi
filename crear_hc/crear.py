@@ -96,6 +96,7 @@ def esperacapcha(driver):
     
 
 def capchacompletado(driver, dialog):
+    dialog.destroy
     next(driver)
     
 def hc_crear(self):

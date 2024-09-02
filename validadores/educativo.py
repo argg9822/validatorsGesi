@@ -571,6 +571,8 @@ def prevencionPag1(sheet):
         ultima_fila = sheet.max_row
         celdas_pintadas_rojo = 0
         
+        
+        
         #validador de campos por la edad 
         for i in range(2, ultima_fila + 1):
             FechaIntervencion = sheet.cell(i, 3).value
