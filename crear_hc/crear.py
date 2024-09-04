@@ -11,6 +11,9 @@ import datetime
 import customtkinter
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 import tkinter as tk
@@ -275,10 +278,23 @@ def llenar(Datos, driver):
             Base = Select(driver.find_element("id", 'Id_Base'))
             Base.select_by_visible_text(Datos[4])
             driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
-            driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
-            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
+           
+            button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+            )
+
+            # Ahora puedes hacer clic en el botón
+            button.click()
+            
+            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click() # /html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input
             time.sleep(2)
-            driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
+            
+            button2 = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+            )
+
+            # Ahora puedes hacer clic en el botón
+            button2.click()
             exito = True
         except (NoSuchElementException, TimeoutException, WebDriverException) as e:
             print(f"Error en llenar: {e}")
