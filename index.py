@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter
 import subprocess
-from validadores import institucional, educativo, comunitario
+from validadores import  educativo
 from crear_hc import crear
 import sys
 from colorama import init, Fore, Style
@@ -20,39 +20,27 @@ from tkinter import PhotoImage
 
 class App(customtkinter.CTk):
     
-   
     def codigoejem(self, valuebase, basejson):
-        
-        print(basejson)
-        
+        #print(basejson)
         with open('codigoInsert.py', 'r') as plantilla_file:
             codigo_plantilla = plantilla_file.read()
-        
         # Reemplazo manual del marcador de posición
         codigo_personalizado = codigo_plantilla.replace("{PLACEHOLDER}", repr(valuebase))
-        
         #  crear funciones nesaciarias 
-        self.funcionesgenerales(self, basejson)
-        
+        self.funcionesgenerales(basejson)
         return codigo_personalizado
-
 
     def funcionesgenerales(self, valuebase,):
         print ("Gener codigo para insertar parametros" )
      
     def __init__(self):
-        
-        
         super().__init__()
-        
         try:
             with open('bases.json', 'r') as f:
                 self.bases = json.load(f)
         except FileNotFoundError:
             self.bases = {}
             
-        
-       
         # Configure window
         self.title("Odin")
         self.geometry(f"{1010}x{450}")
@@ -86,8 +74,7 @@ class App(customtkinter.CTk):
         self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
-                                                               command=self.change_scaling_event)
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
 
         # Create textbox
@@ -104,7 +91,6 @@ class App(customtkinter.CTk):
         self.textbox.configure(
             font=("Consolas", 12)  # Fuente monoespaciada
         )
-        
         
         self.textbox.insert("1.0", "Bienvenido a la línea de registro Odin\n")
         self.textbox.insert("1.0", "...\n")
@@ -145,7 +131,6 @@ class App(customtkinter.CTk):
         self.addvalidador_menu = tk.Menu(self.obsiones_menu, tearoff=0)
         self.obsiones_menu.add_cascade(label="Agregar validador", menu=self.addvalidador_menu)
         
-         
         for i, category in enumerate(self.bases.keys(), start=1):
             self.addvalidador_menu.add_command(
                 label=category,
@@ -166,13 +151,10 @@ class App(customtkinter.CTk):
     def openxcel(self):
         # Especifica la ruta relativa al archivo Excel
         file_path = os.path.join(os.path.dirname(__file__), 'crear_hc', 'crearIndividualfinal.xlsx')
-        
         # Abre el archivo con el programa predeterminado (Excel)
         os.startfile(file_path)
         
-        
     def aventanaadd(self, cat):
-        print('ejecutar nueva ventana')
         # Crear una ventana de diálogo para editar el diccionario
         dialog = customtkinter.CTkToplevel(self)
         dialog.title(f"Agregar nueva validacion para {cat}")
@@ -180,12 +162,11 @@ class App(customtkinter.CTk):
         dialog.transient(self)
         dialog.grab_set()
         dialog.focus()
-        
         label = customtkinter.CTkLabel(dialog, text=f"Nombre de la base para agregar nuevo parametro")
         label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
         
         # crear select
-        opciones = ["sesiones pagina 1", "sesiones pagina 2", "Osesiones pagina 3"]  # reemplaza con tu lista de opciones
+        opciones = ["sesiones pagina 1", "sesiones pagina 2"]  # reemplaza con tu lista de opciones
         opcion_seleccionada = tk.StringVar()
         combobox = customtkinter.CTkComboBox(dialog, values=opciones)
         combobox.grid(row=0, column=1, padx=10, pady=5, sticky="w")
@@ -557,9 +538,9 @@ class App(customtkinter.CTk):
                 print(f"Inicializando la base de: {base} \n Por favor espere..."  )
                 educativo.setBase(base)
                 print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-            elif script_path == "laboral":
+            elif script_path == "comnunitario":
                 print(f"Inicializando la base de: {base} \n Por favor espere..."  )
-                laboral.setBase(base)
+                comunitario.setBase(base)
 
         return callback
 

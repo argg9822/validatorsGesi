@@ -31,7 +31,7 @@ setup(
     options={"build_exe": {
         "include_files": include_files,
         "packages": [
-            "tkinter", "customtkinter","threading" ,"PIL", "requests", "json", "zipfile", 
+            "tkinter", "tkinter.tix", "customtkinter","threading" ,"PIL", "requests", "json", "zipfile", 
             "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
             "datetime", "colorama", "selenium", "math", "os", "time"
         ],
@@ -40,7 +40,7 @@ setup(
             "tkinter.filedialog", "tkinter.messagebox", "tkinter.simpledialog", 
             "openpyxl.styles", "openpyxl.utils", "selenium", "selenium.webdriver.common.keys", "selenium.webdriver.common.by", 
             "selenium.webdriver.common.action_chains", "selenium.common.exceptions"
-        ],
-        "excludes": ["tkinter.tix"]  # Excluir dependencias innecesarias, puedes volver a agregar `ttk` si lo necesitas.
+        ]
+         
     }},
 )

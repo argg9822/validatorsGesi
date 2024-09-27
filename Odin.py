@@ -24,11 +24,14 @@ def center_window(window, width, height):
     window.geometry(f'{width}x{height}+{x}+{y}')
 
 def obtener_ultima_version():
-    url = "https://api.github.com/repos/argg9822/validatorsGesi/releases/latest"
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        url = "https://api.github.com/repos/argg9822/validatorsGesi/releases/latest"
+        response = requests.get(url, timeout=5)  # Agrega un timeout de 5 segundos
+        response.raise_for_status()  # Lanza una excepción si la respuesta tiene un código de error HTTP
         return response.json()["tag_name"]
-    return None
+    except requests.exceptions.Timeout:
+        print("La solicitud ha agotado el tiempo de espera.")
+    
 
 def leer_version_actual():
     if os.path.exists(VERSION_FILE):
