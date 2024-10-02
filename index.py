@@ -27,7 +27,7 @@ class App(customtkinter.CTk):
         # Reemplazo manual del marcador de posición
         codigo_personalizado = codigo_plantilla.replace("{PLACEHOLDER}", repr(valuebase))
         #  crear funciones nesaciarias 
-        self.funcionesgenerales(basejson)
+        #self.funcionesgenerales(basejson)
         return codigo_personalizado
 
     def funcionesgenerales(self, valuebase,):
@@ -145,14 +145,21 @@ class App(customtkinter.CTk):
     #///////////////////////////////////////////////////////////////////////
     
     def crearhc(self):
-        print('crear fichas hc')
+        #print('crear fichas hc')
         crear.hc_crear(self)
     
     def openxcel(self):
         # Especifica la ruta relativa al archivo Excel
         file_path = os.path.join(os.path.dirname(__file__), 'crear_hc', 'crearIndividualfinal.xlsx')
-        # Abre el archivo con el programa predeterminado (Excel)
-        os.startfile(file_path)
+        
+        # Verifica si el archivo existe antes de intentar abrirlo
+        if os.path.exists(file_path):
+            # Abre el archivo con el programa predeterminado (Excel)
+            os.startfile(file_path)
+        else:
+            print(f"El archivo no existe en la ruta: {file_path}")
+            
+            
         
     def aventanaadd(self, cat):
         # Crear una ventana de diálogo para editar el diccionario

@@ -4,7 +4,7 @@ AppName=Odin
 AppVersion=1.0
 DefaultDirName={pf}\Odin
 DefaultGroupName=Odin
-OutputBaseFilename=OdinIstaller
+OutputBaseFilename=OdinInstaller
 OutputDir=D:\Perfil\Documentos\Odin
 Compression=lzma
 SolidCompression=yes
@@ -12,8 +12,8 @@ SetupIconFile=D:\Perfil\Documentos\validatorsGesi\img\logo.ico
 
 [Files]
 ; Archivos que se incluirán en el instalador
+; Asegúrate de que la ruta de 'Source' es la correcta según la estructura generada por cx_Freeze
 Source: "build\exe.win-amd64-3.12\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "install_dependencies.bat"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Tasks]
 ; Opciones adicionales durante la instalación
@@ -28,8 +28,6 @@ Name: "{userdesktop}\Odin"; Filename: "{app}\Odin.exe"; Tasks: desktopicon; Icon
 [Run]
 ; Ejecutar la aplicación después de la instalación
 Filename: "{app}\Odin.exe"; Description: "Ejecutar Odin"; Flags: nowait postinstall skipifsilent
-; Ejecutar el script de instalación de dependencias
-Filename: "{tmp}\install_dependencies.bat"; Parameters: ""; Flags: runhidden
 
 [UninstallDelete]
 ; Borrar archivos al desinstalar

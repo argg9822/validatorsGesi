@@ -1,5 +1,5 @@
 @echo off
-echo Installing dependencies...
+python -m ensurepip --upgrade
+python -m pip install --upgrade pip
 pip install -r requirements.txt
-echo Dependencies installed successfully!
 pause
