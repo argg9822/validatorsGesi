@@ -6,22 +6,22 @@ from cx_Freeze import setup, Executable
 include_files = [
     ("img", "img"),
     ("validadores", "validadores"),
+    ("crear_hc", "crear_hc"),
     ("index.py", "index.py"),
     ("index1.py", "index1.py"),
     ("__version__.py", "__version__.py"),
     ("version.txt", "version.txt"),
     ("bases.json", "bases.json"),
-    ("crear_hc", "crear_hc"),
-    ("funciones.py", "funciones.py"),
-    
 ]
 
 # Configuración de base solo para Windows
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"  # Omitir consola de comandos en aplicaciones GUI en Windows
+
 # Ejecutable configurado con Win32GUI
 executables = [Executable("Odin.py", base=base, icon="img/logo.ico")]
+
 # Configuración de cx_Freeze
 setup(
     name="Odin",
@@ -31,16 +31,19 @@ setup(
     options={"build_exe": {
         "include_files": include_files,
         "packages": [
-            "tkinter", "tkinter.tix", "customtkinter","threading" ,"PIL", "requests", "json", "zipfile", 
-            "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
+            "tkinter", "tkinter.tix", "customtkinter", "threading", "PIL", "requests", "json", 
+            "zipfile", "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
             "datetime", "colorama", "selenium", "math", "os", "time"
         ],
         "includes": [
-            "validadores", "img", "colorama", "__version__", 
+            "validadores", "crear_hc", "img", "colorama", "__version__", 
             "tkinter.filedialog", "tkinter.messagebox", "tkinter.simpledialog", 
-            "openpyxl.styles", "openpyxl.utils", "selenium", "selenium.webdriver.common.keys", "selenium.webdriver.common.by", 
-            "selenium.webdriver.common.action_chains", "selenium.common.exceptions"
-        ]
-         
+            "openpyxl.styles", "openpyxl.utils", "selenium", "selenium.webdriver.common.keys", 
+            "selenium.webdriver.common.by", "selenium.webdriver.common.action_chains", 
+            "selenium.common.exceptions", "selenium.webdriver.chrome.webdriver",  # Incluye el módulo webdriver
+            "selenium.webdriver.support.ui", "selenium.webdriver.support.expected_conditions", 
+            "selenium.webdriver.common.action_chains"
+        ],
+        "include_msvcr": True,
     }},
 )

@@ -16,6 +16,8 @@ import tkinter as tk
 from tkinter import simpledialog
 from tkinter import messagebox
 from tkinter import PhotoImage
+import win32com.client as win32
+import time
 
 
 class App(customtkinter.CTk):
@@ -149,17 +151,41 @@ class App(customtkinter.CTk):
         crear.hc_crear(self)
     
     def openxcel(self):
+
         # Especifica la ruta relativa al archivo Excel
         file_path = os.path.join(os.path.dirname(__file__), 'crear_hc', 'crearIndividualfinal.xlsx')
         
         # Verifica si el archivo existe antes de intentar abrirlo
         if os.path.exists(file_path):
-            # Abre el archivo con el programa predeterminado (Excel)
-            os.startfile(file_path)
+            # Abre Excel y el archivo especificado
+            excel = win32.Dispatch('Excel.Application')
+            workbook = excel.Workbooks.Open(file_path)
+            
+            # Haz visible Excel para que el usuario pueda editar el archivo
+            excel.Visible = True
+
+            # Mostrar ventana de confirmación usando tkinter
+            root = tk.Tk()
+            root.withdraw()  # Oculta la ventana principal
+            
+            # Abre un cuadro de diálogo que espera confirmación
+            messagebox.showinfo("Edición de Excel", "Por favor, edite el archivo y presione OK cuando termine.")
+            
+            time.sleep(1)
+
+            # Guarda el archivo (sobrescribiendo el existente) y cierra Excel
+            try:
+                workbook.Save()  # Esto sobrescribe el archivo actual, no crea uno nuevo
+                workbook.Close()
+                excel.Quit()
+                print(f"Archivo guardado y cerrado correctamente: {file_path}")
+            except Exception as e:
+                print(f"Error al guardar el archivo: {e}")
+                workbook.Close(False)  # Cierra sin guardar si hay un error
+                excel.Quit()
         else:
             print(f"El archivo no existe en la ruta: {file_path}")
-            
-            
+
         
     def aventanaadd(self, cat):
         # Crear una ventana de diálogo para editar el diccionario

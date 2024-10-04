@@ -1,22 +1,17 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog, ttk
 import openpyxl
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill, numbers
+from openpyxl.utils import get_column_letter
+import pandas as pd
 import re
 import shutil
-from openpyxl.styles import PatternFill
-from openpyxl import load_workbook
-import pandas as pd
-import tkinter.simpledialog as simpledialog
 from colorama import init, Fore, Style
 import os
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import numbers
 import datetime
-
-import tkinter as tk
-from tkinter import ttk
-import re
 import time
+
 
 
 def mostrar_ventana_progreso(titulo, max_val):
