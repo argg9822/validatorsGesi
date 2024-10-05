@@ -178,22 +178,32 @@ def si(driver, dialog):
                 Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
                 print(f"Se ingresaron los datos {Datos}")
                 DatosCrearSi(Datos, driver)
-                   # Guardar
+                
+                if not DatosCrearSi(Datos, driver):
+                    raise ValueError("No se pudo llenar correctamente el formulario, campos vacíos.")
+                
+                
+                # Guardar
                 driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
                 
                 # Confirmación del guardado
-                Ok1 = driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
+                Ok1 = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+                )
+                Ok1.click()
                 
                 # Nuevo registro
                 driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
                 
-                # Confirmación del nuevo registro
-                Ok1 = driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
+                Ok1 = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+                )
+                Ok1.click()
                     
-            driver.quit() 
             print(f"Se crearon {total_filas} en la herramienta de control")
         except Exception as e:
             print(f"Error en intento {attempts}: {str(e)}")
+            driver.refresh()
             if attempts == max_retries:
                 print(f"Error persistente después de {max_retries} intentos. Revisar el formulario o conexión.")
             else:
@@ -213,12 +223,16 @@ def DatosCrearSi(Datos, driver):
     element_fecha4.send_keys(Datos[1])
     element_NoActua = driver.find_element("id", 'Nro_actualizacion')
     element_NoActua.send_keys('1')
-    llenar(Datos, driver)
+    
+    if not llenar(Datos, driver):
+        return False
+    
+    return True
     
             
 
 def llenar(Datos, driver):
-   
+    try:
         # Intentar llenar los campos del formulario
         Espacio = Select(driver.find_element("id", 'Espacio_fic'))
         Espacio.select_by_visible_text('1 -Hogar')
@@ -247,7 +261,25 @@ def llenar(Datos, driver):
         
         Base = Select(driver.find_element("id", 'Id_Base'))
         Base.select_by_visible_text(Datos[4])
-            
+        
+            # Verificar que todos los campos estén llenos
+        if (not element_ficha.get_attribute('value') or
+            not profesional.get_attribute('value') or
+            not element_fecha.get_attribute('value') or
+            not element_fecha2.get_attribute('value') or
+            not PERFIL.first_selected_option.text or
+            not Base.first_selected_option.text):
+            return False  # Si algún campo está vacío, retornar False
+        
+        return True  # Retorna True si todos los campos están llenos
+    
+    
+    except Exception as e:
+        print(f"Error al llenar el formulario: {str(e)}")
+        return False  # Retorna False si ocurre una excepción
+    
+    
+           
          
 
             
