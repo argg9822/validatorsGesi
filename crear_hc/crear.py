@@ -165,8 +165,9 @@ def si(driver, dialog):
     while attempts < max_retries and not success:
         try:
             attempts += 1
-            
+
             for i in range(1, total_filas + 1):
+                # Extracción de datos de las filas
                 ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
                 ficha1 = ficha.value
                 fecha1 = fecha.value
@@ -176,39 +177,65 @@ def si(driver, dialog):
                 perfil1 = perfil.value
                 base1 = base.value
                 Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
-                print(f"Se ingresaron los datos {Datos}")
-                DatosCrearSi(Datos, driver)
-                
-                if not DatosCrearSi(Datos, driver):
-                    raise ValueError("No se pudo llenar correctamente el formulario, campos vacíos.")
-                
-                
-                # Guardar
-                driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
-                
-                # Confirmación del guardado
-                Ok1 = WebDriverWait(driver, 2).until(
-                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
-                )
-                Ok1.click()
-                
-                # Nuevo registro
-                driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
-                
-                Ok1 = WebDriverWait(driver, 2).until(
-                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
-                )
-                Ok1.click()
-                    
-            print(f"Se crearon {total_filas} en la herramienta de control")
+                print(f"Intentando ingresar datos: {Datos}")
+
+                intentos_dato = 0
+                while intentos_dato < max_retries:
+                    try:
+                        # Intento de llenado de datos
+                        if not DatosCrearSi(Datos, driver):
+                            print("Error en DatosCrearSi, refrescando página...")
+                            driver.refresh()
+                            time.sleep(3)
+                            Ok1 = driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
+                            raise ValueError("No se pudo llenar correctamente el formulario, campos vacíos.")
+                        else:
+                            # Guardar
+                            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
+                            # Confirmación del guardado
+                           
+                            
+                            Ok1 = WebDriverWait(driver, 2).until(
+                                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+                            )
+                            Ok1.click()
+                            
+                           
+
+                            # Nuevo registro
+                            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
+                            
+                           
+                            
+                            # Confirmación de nuevo registro
+                            Ok1 = WebDriverWait(driver, 2).until(
+                                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+                            )
+                            Ok1.click()
+
+                            # Si el registro fue exitoso, salir del bucle de reintentos
+                            break  
+
+                    except Exception as e:
+                        intentos_dato += 1
+                        print(f"Error al intentar ingresar {Datos}: {str(e)} - Reintento {intentos_dato}")
+                        if intentos_dato == max_retries:
+                            print(f"Fallo persistente en datos {Datos} después de {max_retries} intentos.")
+
+            print(f"Se crearon {total_filas} registros en la herramienta de control")
+            success = True  # Marcar como éxito si se completan todos los registros sin error
+
         except Exception as e:
-            print(f"Error en intento {attempts}: {str(e)}")
+            print(f"Error en intento general {attempts}: {str(e)}")
             driver.refresh()
+            time.sleep(3)  # Espera unos segundos antes de reintentar
+            Ok1 = WebDriverWait(driver, 2).until(
+                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+            )
+            Ok1.click()
             if attempts == max_retries:
                 print(f"Error persistente después de {max_retries} intentos. Revisar el formulario o conexión.")
-            else:
-                time.sleep(2)  # Espera unos segundos antes de reintentar
-    
+
 
     
 def DatosCrearSi(Datos, driver):
@@ -240,8 +267,7 @@ def llenar(Datos, driver):
         Espacio = Select(driver.find_element("id", 'Espacio_fic'))
         Espacio.select_by_visible_text(Datos[3])
         
-        element_ficha = driver.find_element("id", 'Ficha_fic')
-        element_ficha.clear()  # Limpiar cualquier texto previo
+        element_ficha = driver.find_element("id", 'Ficha_fic') # Limpiar cualquier texto previo
         element_ficha.send_keys(Datos[0])
         
         profesional = driver.find_element("id", 'Nombre_profesional')
@@ -256,11 +282,22 @@ def llenar(Datos, driver):
         element_fecha2.clear()
         element_fecha2.send_keys(Datos[1])
         
+        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+        Espacio.select_by_visible_text('1 -Hogar')
+        
+        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+        Espacio.select_by_visible_text(Datos[3])
+        
         PERFIL = Select(driver.find_element("id", 'Id_perfil'))
         PERFIL.select_by_visible_text(Datos[5])
         
         Base = Select(driver.find_element("id", 'Id_Base'))
         Base.select_by_visible_text(Datos[4])
+        
+                            
+        element_ficha = driver.find_element("id", 'Ficha_fic') # Limpiar cualquier texto previo
+        element_ficha.clear()
+        element_ficha.send_keys(Datos[0])
         
             # Verificar que todos los campos estén llenos
         if (not element_ficha.get_attribute('value') or
