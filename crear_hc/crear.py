@@ -79,6 +79,7 @@ def login(user, password, dialog, driver):
     
 
 def esperacapcha(driver):
+    
     dialog = customtkinter.CTkToplevel()
     dialog.title("Esperando a Captcha")
     dialog.attributes("-topmost", True)
@@ -137,6 +138,7 @@ def next(driver):
     duplicar_ficha = driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click()
     time.sleep(1)
     Ok1 = driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
+    
     iniciar(driver)
     
 def iniciar(driver):
@@ -158,85 +160,40 @@ def si(driver, dialog):
     dialog.destroy()  # Asegúrate de cerrar el diálogo correctamente
     total_filas = nombres.max_row
     
-    max_retries = 3  # Número máximo de intentos
-    attempts = 0
-    success = False
-    
-    while attempts < max_retries and not success:
-        try:
-            attempts += 1
+   
+    for i in range(1, total_filas + 1):
+        
+        # Extracción de datos de las filas
+        ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
+        ficha1 = ficha.value
+        fecha1 = fecha.value
+        formato = fecha1.strftime('%d/%m/%Y')
+        profesional1 = profesional.value
+        Entorno1 = entorno.value
+        perfil1 = perfil.value
+        base1 = base.value
+        Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
+        print(f"Intentando ingresar datos: {Datos}")
 
-            for i in range(1, total_filas + 1):
-                # Extracción de datos de las filas
-                ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
-                ficha1 = ficha.value
-                fecha1 = fecha.value
-                formato = fecha1.strftime('%d/%m/%Y')
-                profesional1 = profesional.value
-                Entorno1 = entorno.value
-                perfil1 = perfil.value
-                base1 = base.value
-                Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
-                print(f"Intentando ingresar datos: {Datos}")
+        DatosCrearSi(Datos, driver)
+                          
+        # Confirmación del guardado
+        
+        Ok1 = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+        )
 
-                intentos_dato = 0
-                while intentos_dato < max_retries:
-                    try:
-                        # Intento de llenado de datos
-                        if not DatosCrearSi(Datos, driver):
-                            print("Error en DatosCrearSi, refrescando página...")
-                            driver.refresh()
-                            time.sleep(3)
-                            Ok1 = driver.find_element("xpath", '/html/body/div[2]/div/div[3]/button[1]').click()
-                            raise ValueError("No se pudo llenar correctamente el formulario, campos vacíos.")
-                        else:
-                            # Guardar
-                            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
-                            # Confirmación del guardado
-                           
-                            
-                            Ok1 = WebDriverWait(driver, 2).until(
-                                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
-                            )
-                            Ok1.click()
-                            
-                           
+        Ok1.click()
+        # Nuevo registro
+        driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
+        
+        # Confirmación de nuevo registro
+        Ok1 = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
+        )
+        Ok1.click()
 
-                            # Nuevo registro
-                            driver.find_element("xpath", '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
-                            
-                           
-                            
-                            # Confirmación de nuevo registro
-                            Ok1 = WebDriverWait(driver, 2).until(
-                                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
-                            )
-                            Ok1.click()
-
-                            # Si el registro fue exitoso, salir del bucle de reintentos
-                            break  
-
-                    except Exception as e:
-                        intentos_dato += 1
-                        print(f"Error al intentar ingresar {Datos}: {str(e)} - Reintento {intentos_dato}")
-                        if intentos_dato == max_retries:
-                            print(f"Fallo persistente en datos {Datos} después de {max_retries} intentos.")
-
-            print(f"Se crearon {total_filas} registros en la herramienta de control")
-            success = True  # Marcar como éxito si se completan todos los registros sin error
-
-        except Exception as e:
-            print(f"Error en intento general {attempts}: {str(e)}")
-            driver.refresh()
-            time.sleep(3)  # Espera unos segundos antes de reintentar
-            Ok1 = WebDriverWait(driver, 2).until(
-                EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
-            )
-            Ok1.click()
-            if attempts == max_retries:
-                print(f"Error persistente después de {max_retries} intentos. Revisar el formulario o conexión.")
-
-
+               
     
 def DatosCrearSi(Datos, driver):
 
@@ -250,30 +207,41 @@ def DatosCrearSi(Datos, driver):
     element_fecha4.send_keys(Datos[1])
     element_NoActua = driver.find_element("id", 'Nro_actualizacion')
     element_NoActua.send_keys('1')
+   
     
-    if not llenar(Datos, driver):
-        return False
+    llenar(Datos, driver)
     
-    return True
+    # Guardar
+    driver.find_element("xpath", ' /html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
     
             
 
 def llenar(Datos, driver):
     try:
-        # Intentar llenar los campos del formulario
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text('1 -Hogar')
-        
+        # Manejo del select Espacio
         Espacio = Select(driver.find_element("id", 'Espacio_fic'))
         Espacio.select_by_visible_text(Datos[3])
         
-        element_ficha = driver.find_element("id", 'Ficha_fic') # Limpiar cualquier texto previo
+        # Llenar ficha
+        element_ficha = driver.find_element("id", 'Ficha_fic')
+        element_ficha.clear()
         element_ficha.send_keys(Datos[0])
         
+        # Primera secuencia de Espacio
+        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+        Espacio.select_by_visible_text('1 -Hogar')
+        
+        # Llenar nombre del profesional
         profesional = driver.find_element("id", 'Nombre_profesional')
         profesional.clear()
         profesional.send_keys(Datos[2])
         
+        # Espacio nuevamente
+        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+        Espacio.select_by_visible_text(Datos[3])
+        
+        
+        # Llenar fechas
         element_fecha = driver.find_element("id", 'Fecha_ingreso')
         element_fecha.clear()
         element_fecha.send_keys(Datos[1])
@@ -282,39 +250,39 @@ def llenar(Datos, driver):
         element_fecha2.clear()
         element_fecha2.send_keys(Datos[1])
         
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text('1 -Hogar')
+        # Seleccionar perfil
+        perfil = Select(driver.find_element("id", 'Id_perfil'))
+        perfil.select_by_visible_text(Datos[5])
         
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text(Datos[3])
+        # Manejo del select Base con reintento
+        max_retries = 5
+        retry_delay = 2  # segundos entre intentos
         
-        PERFIL = Select(driver.find_element("id", 'Id_perfil'))
-        PERFIL.select_by_visible_text(Datos[5])
-        
-        Base = Select(driver.find_element("id", 'Id_Base'))
-        Base.select_by_visible_text(Datos[4])
-        
-                            
-        element_ficha = driver.find_element("id", 'Ficha_fic') # Limpiar cualquier texto previo
-        element_ficha.clear()
-        element_ficha.send_keys(Datos[0])
-        
-            # Verificar que todos los campos estén llenos
-        if (not element_ficha.get_attribute('value') or
-            not profesional.get_attribute('value') or
-            not element_fecha.get_attribute('value') or
-            not element_fecha2.get_attribute('value') or
-            not PERFIL.first_selected_option.text or
-            not Base.first_selected_option.text):
-            return False  # Si algún campo está vacío, retornar False
-        
-        return True  # Retorna True si todos los campos están llenos
-    
+        for attempt in range(max_retries):
+            try:
+                Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+                Espacio.select_by_visible_text(Datos[3])
+                time.sleep(2)
+                
+                Base = Select(driver.find_element("id", 'Id_Base'))
+                Base.select_by_visible_text(Datos[4])
+                
+                print(f"Elemento 'Id_Base' encontrado y seleccionado en el intento {attempt + 1}.")
+                break
+            except NoSuchElementException:
+                print(f"Intento {attempt + 1} fallido: 'Id_Base' no encontrado.")
+                time.sleep(retry_delay)
+        else:
+            raise Exception("No se pudo encontrar el elemento 'Id_Base' después de varios intentos.")
     
     except Exception as e:
-        print(f"Error al llenar el formulario: {str(e)}")
-        return False  # Retorna False si ocurre una excepción
+        print(f"Error al llenar el formulario: {e}")
     
+    
+    
+                        
+
+        
     
            
          
