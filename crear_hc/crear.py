@@ -218,27 +218,17 @@ def DatosCrearSi(Datos, driver):
 
 def llenar(Datos, driver):
     try:
-        # Manejo del select Espacio
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text(Datos[3])
         
         # Llenar ficha
         element_ficha = driver.find_element("id", 'Ficha_fic')
         element_ficha.clear()
         element_ficha.send_keys(Datos[0])
         
-        # Primera secuencia de Espacio
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text('1 -Hogar')
-        
+    
         # Llenar nombre del profesional
         profesional = driver.find_element("id", 'Nombre_profesional')
         profesional.clear()
         profesional.send_keys(Datos[2])
-        
-        # Espacio nuevamente
-        Espacio = Select(driver.find_element("id", 'Espacio_fic'))
-        Espacio.select_by_visible_text(Datos[3])
         
         
         # Llenar fechas
@@ -255,14 +245,23 @@ def llenar(Datos, driver):
         perfil.select_by_visible_text(Datos[5])
         
         # Manejo del select Base con reintento
-        max_retries = 5
-        retry_delay = 2  # segundos entre intentos
+        max_retries = 10
+        retry_delay = 1  # segundos entre intentos
         
         for attempt in range(max_retries):
             try:
+                
+                # Primera secuencia de Espacio
+                Espacio = Select(driver.find_element("id", 'Espacio_fic'))
+                Espacio.select_by_visible_text('1 -Hogar')
+                
+                time.sleep(1)
+                
                 Espacio = Select(driver.find_element("id", 'Espacio_fic'))
                 Espacio.select_by_visible_text(Datos[3])
-                time.sleep(2)
+                
+                time.sleep(1)
+                
                 
                 Base = Select(driver.find_element("id", 'Id_Base'))
                 Base.select_by_visible_text(Datos[4])
