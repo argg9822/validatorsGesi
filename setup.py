@@ -1,8 +1,13 @@
 import sys
-import cx_Freeze
 from cx_Freeze import setup, Executable
+import site
+import os
 
-# Archivos a incluir en el paquete
+
+# Definir las rutas completas a los paquetes
+colorama_path = r'C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\colorama'
+PIL_path = r'C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\PIL'
+
 include_files = [
     ("img", "img"),
     ("validadores", "validadores"),
@@ -12,6 +17,8 @@ include_files = [
     ("__version__.py", "__version__.py"),
     ("version.txt", "version.txt"),
     ("bases.json", "bases.json"),
+    (colorama_path, 'colorama'),  # Usando la ruta completa para colorama
+    (PIL_path, 'PIL'),  # Usando la ruta completa para PIL
 ]
 
 # Configuración de base solo para Windows
@@ -34,6 +41,7 @@ setup(
             "tkinter", "tkinter.tix", "customtkinter", "threading", "PIL", "requests", "json", 
             "zipfile", "subprocess", "sys", "openpyxl", "pandas", "re", "shutil", 
             "datetime", "colorama", "selenium", "math", "os", "time"
+            
         ],
         "includes": [
             "validadores", "crear_hc", "img", "colorama", "__version__", 
@@ -42,7 +50,8 @@ setup(
             "selenium.webdriver.common.by", "selenium.webdriver.common.action_chains", 
             "selenium.common.exceptions", "selenium.webdriver.chrome.webdriver",  # Incluye el módulo webdriver
             "selenium.webdriver.support.ui", "selenium.webdriver.support.expected_conditions", 
-            "selenium.webdriver.common.action_chains"
+            "selenium.webdriver.common.action_chains","PIL.Image", "PIL.ImageTk", "tkinter.filedialog", "tkinter.messagebox",
+            "win32com", "win32com.client",
         ],
         "include_msvcr": True,
     }},
