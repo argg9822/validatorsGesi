@@ -4,7 +4,6 @@ import openpyxl
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, numbers
 from openpyxl.utils import get_column_letter
-import pandas as pd
 import re
 import shutil
 from colorama import init, Fore, Style
