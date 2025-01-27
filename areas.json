@@ -1,0 +1,94 @@
+{
+    "EDUCATIVO": [
+        {
+            "nombre": "Sesiones pag 1",
+            "reglas": []
+        },
+        {
+            "nombre": "Sesiones pagina 2",
+            "reglas": []
+        },
+        {
+            "nombre": "Sesiones Pag 3 (individuos)",
+            "reglas": [
+                {
+                    "columna": "NACIONALIDAD",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "TIPO DOCUMENTO",
+                    "valor_dependiente": "3- TI",
+                    "valor_esperado": "COL"
+                },
+                {
+                    "columna": "NACIONALIDAD",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "TIPO DOCUMENTO",
+                    "valor_dependiente": "2- RC",
+                    "valor_esperado": "COL"
+                },
+                {
+                    "columna": "NACIONALIDAD",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "TIPO DOCUMENTO",
+                    "valor_dependiente": "1- CC",
+                    "valor_esperado": "COL"
+                },
+                {
+                    "columna": "G\u00c9NERO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "SEXO",
+                    "valor_dependiente": "2- Mujer",
+                    "valor_esperado": "2- Femenino"
+                },
+                {
+                    "columna": "G\u00c9NERO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "SEXO",
+                    "valor_dependiente": "1- Hombre",
+                    "valor_esperado": "1- Masculino"
+                },
+                {
+                    "columna": "PDI",
+                    "tipo": "dependiente_error",
+                    "columna_dependiente": "NACIONALIDAD",
+                    "valor_dependiente": "VEN",
+                    "valor_esperado": "14- No Aplica"
+                },
+                {
+                    "columna": "NACIONALIDAD",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "TIPO DOCUMENTO",
+                    "valor_dependiente": "5- NUIP",
+                    "valor_esperado": "COL"
+                },
+                {
+                    "columna": "NOMBRES Y APELLIDOS COMPLETOS",
+                    "tipo": "regex",
+                    "patron": "^[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+(?:\\s[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+)*$"
+                },
+                {
+                    "columna": "DOCUMENTO",
+                    "tipo": "dependiente longitud",
+                    "columna_dependiente": "TIPO DOCUMENTO",
+                    "valor_dependiente": "3- TI",
+                    "valor_esperado": "<= 10"
+                },
+                {
+                    "columna": "ESTADO CIVIL",
+                    "tipo": "dependiente edad positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "0,13",
+                    "valor_esperado": "6- No aplica"
+                },
+                {
+                    "columna": "ESTADO CIVIL",
+                    "tipo": "dependiente edad error",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "14,100",
+                    "valor_esperado": "6- No aplica"
+                }
+            ]
+        }
+    ]
+}

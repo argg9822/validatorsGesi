@@ -103,7 +103,7 @@ def capchacompletado(driver, dialog):
     dialog.destroy
     next(driver)
     
-def hc_crear(self):
+def hc_crear():
 
     driver = webdriver.Edge()
     driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
