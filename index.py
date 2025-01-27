@@ -193,7 +193,7 @@ def agregar_regla(area, validador):
     ctk.CTkLabel(modal, text="Seleccione el tipo de regla:").pack(pady=10)
     tipo_regla_menu = ctk.CTkOptionMenu(
         modal, 
-        values=["longitud", "numerico", "regex", "unico", "dependiente_positivo", "dependiente_error" ,"no_vacio", "dependiente longitud", "dependiente edad", "dependiente edad error"], 
+        values=["longitud", "numerico", "patron", "unico", "dependiente_positivo", "dependiente_error" ,"no_vacio", "dependiente longitud", "dependiente edad", "dependiente edad error"], 
         variable=tipo_regla_var
     )
     tipo_regla_menu.pack(pady=10)
@@ -222,14 +222,14 @@ def agregar_regla(area, validador):
                 return
             nueva_regla = {"columna": columna, "tipo": "numerico", "condicion": condicion}
         
-        elif tipo_regla == "regex":
+        elif tipo_regla == "patron":
             columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar para que no tenga caracteres especiales (por ejemplo, Nombres):")
             if not columna:
                 return
             patron = simpledialog.askstring("Expresión Regular", "Ingrese el patrón regex (ejemplo: \\d{3}-\\d{2}-\\d{4}):")
             if not patron:
                 return
-            nueva_regla = {"columna": columna, "tipo": "regex", "patron": patron}
+            nueva_regla = {"columna": columna, "tipo": "patron", "patron": patron}
         
         elif tipo_regla == "unico":
             columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar para qvalores unicos (por ejemplo, Nombres):")
@@ -453,7 +453,12 @@ def analizar_excel(validador):
                         try:
                             operador, valor = regla["condicion"].split(" ")
                             valor = int(valor)
-
+                            print(operador)
+                            print(valor)
+                            
+                            # Convertir la columna a numérico, forzando errores a NaN
+                            df[columna] = pd.to_numeric(df[columna], errors='coerce')
+                            
                             if operador == "mayor":
                                 violaciones = df[columna][df[columna] > valor]
                             elif operador == "menor":
@@ -467,7 +472,7 @@ def analizar_excel(validador):
                         except ValueError:
                             pass
 
-                    elif tipo == "regex":
+                    elif tipo == "patron":
                         patron = regla["patron"]
                         # Normalizar los datos
                         df[columna] = df[columna].astype(str).str.strip()

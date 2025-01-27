@@ -2,7 +2,28 @@
     "EDUCATIVO": [
         {
             "nombre": "Sesiones pag 1",
-            "reglas": []
+            "reglas": [
+                {
+                    "columna": "TEL\u00c9FONO",
+                    "tipo": "longitud",
+                    "condicion": "<= 10"
+                },
+                {
+                    "columna": "N\u00daMERO",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "EJE GENERADOR",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "PLACA",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                }
+            ]
         },
         {
             "nombre": "Sesiones pagina 2",
