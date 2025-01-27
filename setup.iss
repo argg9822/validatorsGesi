@@ -9,7 +9,8 @@ OutputDir=D:\Perfil\Documentos\Odin
 Compression=lzma
 SolidCompression=yes
 SetupIconFile=D:\Perfil\Documentos\validatorsGesi\img\logo.ico
-PrivilegesRequired=admin ; Requiere privilegios de administrador para instalar en "Archivos de programa"
+PrivilegesRequired=admin 
+; Requiere privilegios de administrador para instalar en "Archivos de programa"
 
 [Files]
 ; Archivos que se incluirán en el instalador

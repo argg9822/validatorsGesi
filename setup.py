@@ -12,6 +12,8 @@ include_files = [
     "__version__.py",  # Archivo de versión
     "version.txt",  # Texto con la versión
     "bases.json",  # Archivo de bases
+    "C:/Users/Gesi-Educativo/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/assets/themes/blue.json",
+    "C:/Users/Gesi-Educativo/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/assets/themes/dark-blue.json",  # Si tienes otros temas
 ]
 
 # Configuración base solo para Windows
@@ -50,11 +52,8 @@ setup(
                 "selenium.webdriver.chrome.webdriver", "selenium.webdriver.support.ui",
                 "selenium.webdriver.support.expected_conditions", "PIL.Image", "PIL.ImageTk",
                 "win32com", "win32com.client"
-            ],
-            "zip_include_packages": ["*"],  # Incluir todos los paquetes en un archivo ZIP
-            "zip_exclude_packages": [],  # Excluir paquetes específicos si es necesario
+            ], 
             "include_msvcr": True,  # Incluir las librerías de Visual C++
-            "optimize": 2,  # Optimización del bytecode
         }
     },
 )
