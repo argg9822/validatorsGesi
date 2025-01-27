@@ -85,9 +85,9 @@ try:
                 print(f"Archivo {index_py_path} reemplazado en {destination_path}")
                 index_found = True
                 
-            if not index_found and 'bases.json' in files:
-                index_py_path = os.path.join(root, 'bases.json')
-                destination_path = os.path.join(current_dir, 'bases.json')
+            if not index_found and 'areas.json' in files:
+                index_py_path = os.path.join(root, 'areas.json')
+                destination_path = os.path.join(current_dir, 'areas.json')
                 shutil.move(index_py_path, destination_path)
                 print(f"Archivo {index_py_path} reemplazado en {destination_path}")
                 index_found = True
