@@ -111,5 +111,122 @@
                 }
             ]
         }
+    ],
+    "INSTITUCIONAL": [
+        {
+            "nombre": "Sesiones pag 3",
+            "reglas": [
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "tipo": "dependiente edad positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "18,110",
+                    "valor_esperado": "1- CC"
+                },
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "tipo": "dependiente edad positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "7,17",
+                    "valor_esperado": "3- TI"
+                },
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "tipo": "dependiente edad positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "0,6",
+                    "valor_esperado": "2- RC"
+                },
+                {
+                    "columna": "N\u00daMERO DE DOCUMENTO",
+                    "tipo": "dependiente longitud",
+                    "columna_dependiente": "TIPO DE DOCUMENTO",
+                    "valor_dependiente": "1- CC",
+                    "valor_esperado": "<= 10"
+                },
+                {
+                    "columna": "NOMBRES Y APELLIDOS COMPLETOS",
+                    "tipo": "patron",
+                    "patron": "^[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+(?:\\s[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+)*$"
+                },
+                {
+                    "columna": "GENERO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "SEXO",
+                    "valor_dependiente": "2- Mujer",
+                    "valor_esperado": "2- Femenino"
+                },
+                {
+                    "columna": "GENERO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "SEXO",
+                    "valor_dependiente": "1- Hombre",
+                    "valor_esperado": "1- Masculino"
+                },
+                {
+                    "columna": "ESTADO CIVIL",
+                    "tipo": "dependiente edad error",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "14,110",
+                    "valor_esperado": "6- No aplica"
+                },
+                {
+                    "columna": "ESTADO CIVIL",
+                    "tipo": "dependiente edad positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "0,13",
+                    "valor_esperado": "6- No aplica"
+                },
+                {
+                    "columna": "POBLACI\u00d3N DIFERENCIAL Y DE INCLUSI\u00d3N",
+                    "tipo": "dependiente_error",
+                    "columna_dependiente": "NACION.*",
+                    "valor_dependiente": "Colombia",
+                    "valor_esperado": "13- Migrante"
+                },
+                {
+                    "columna": "NACION.*",
+                    "tipo": "dependiente_error",
+                    "columna_dependiente": "POBLACI\u00d3N DIFERENCIAL Y DE INCLUSI\u00d3N",
+                    "valor_dependiente": "13- Migrante",
+                    "valor_esperado": "Colombia"
+                },
+                {
+                    "columna": "EDAD",
+                    "tipo": "numerico",
+                    "condicion": "mayor 110"
+                }
+            ]
+        },
+        {
+            "nombre": "Sesiones pag 1",
+            "reglas": [
+                {
+                    "columna": "NUMERO",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "EJE_GENERADOR",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "PLACA",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "TEL\u00c9FONO",
+                    "tipo": "longitud",
+                    "condicion": "<= 10"
+                }
+            ]
+        }
     ]
 }

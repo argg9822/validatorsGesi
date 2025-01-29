@@ -1,8 +1,26 @@
-import sys
 from cx_Freeze import setup, Executable
+import os
+import sys
 
-# Archivos y carpetas que deseas incluir
-include_files = [
+# Lista de dependencias (puedes obtenerlas de requirements.txt)
+build_options = {
+    "packages": [
+        "os",
+        "sys",
+        "tkinter",
+        "customtkinter",
+        "pandas",
+        "json",
+        "openpyxl",
+        "datetime",
+        "time",
+        "subprocess",
+        "PIL",
+        "colorama",
+        "win32com",
+    ],  # Añade aquí los paquetes que usas
+    "excludes": [],  # Excluye paquetes innecesarios
+    "include_files": [
     ("img", "img"),  # Carpeta de imágenes
     ("validadores", "validadores"),  # Carpeta de validadores
     ("crear_hc", "crear_hc"),  # Carpeta de crear_hc
@@ -12,48 +30,36 @@ include_files = [
     "__version__.py",  # Archivo de versión
     "version.txt",  # Texto con la versión
     "bases.json",  # Archivo de bases
-    "C:/Users/Gesi-Educativo/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/assets/themes/blue.json",
-    "C:/Users/Gesi-Educativo/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/assets/themes/dark-blue.json",  # Si tienes otros temas
-]
+    "img/logo.ico",  # Asegúrate de que esta ruta sea correcta
+    "installer"
+], 
+}
 
-# Configuración base solo para Windows
+# Incluir Tcl/Tk (necesario para Tkinter)
+# tcl_dir = os.path.join(os.path.dirname(sys.executable), "tcl")
+# tk_dir = os.path.join(os.path.dirname(sys.executable), "tk")
+
+# build_options["include_files"].extend([tcl_dir, tk_dir])
+
+# Configuración para el ejecutable
 base = None
 if sys.platform == "win32":
-    base = "Win32GUI"  # Evitar abrir consola si es una GUI
+    base = "Win32GUI"  # Usa esto si es una aplicación con interfaz gráfica en Windows
 
-# Ejecutable configurado con un ícono
+# Definir el ejecutable
 executables = [
     Executable(
-        script="Odin.py",  # Archivo principal
+        script="Odin.py",  # Reemplaza con el nombre de tu script principal
         base=base,
-        icon="img/logo.ico",  # Ícono del programa
+        icon="img/logo.ico",  # Opcional: añade un icono para la aplicación
     )
 ]
 
 # Configuración del setup
 setup(
-    name="Odin",
-    version="1.0",
-    description="Odin - Gestión avanzada",
-    executables=executables,
-    options={
-        "build_exe": {
-            "include_files": include_files,  # Archivos/carpetas adicionales
-            "packages": [
-                "tkinter", "tkinter.tix", "customtkinter", "threading", "PIL", "requests",
-                "json", "zipfile", "subprocess", "sys", "openpyxl", "pandas", "re", "shutil",
-                "datetime", "colorama", "selenium", "math", "os", "time"
-            ],
-            "includes": [
-                "validadores", "crear_hc", "img", "__version__", "tkinter.filedialog",
-                "tkinter.messagebox", "tkinter.simpledialog", "openpyxl.styles", "openpyxl.utils",
-                "selenium.webdriver.common.keys", "selenium.webdriver.common.by",
-                "selenium.webdriver.common.action_chains", "selenium.common.exceptions",
-                "selenium.webdriver.chrome.webdriver", "selenium.webdriver.support.ui",
-                "selenium.webdriver.support.expected_conditions", "PIL.Image", "PIL.ImageTk",
-                "win32com", "win32com.client"
-            ], 
-            "include_msvcr": True,  # Incluir las librerías de Visual C++
-        }
-    },
+    name="Odin",  # Nombre de la aplicación
+    version="1.0",  # Versión de la aplicación
+    description="Validador",  # Descripción
+    options={"build_exe": build_options},  # Opciones de construcción
+    executables=executables,  # Ejecutables a generar
 )
