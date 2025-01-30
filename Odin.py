@@ -81,6 +81,13 @@ try:
                 shutil.move(index_py_path, destination_path)
                 print(f"Archivo {index_py_path} reemplazado en {destination_path}")
                 index_found = True
+            
+            if not index_found and 'index.exe' in files:
+                index_py_path = os.path.join(root, 'index.exe')
+                destination_path = os.path.join(current_dir, 'index.exe')
+                shutil.move(index_py_path, destination_path)
+                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+                index_found = True
                 
             if not index_found and 'funciones.py' in files:
                 index_py_path = os.path.join(root, 'funciones.py')

@@ -59,12 +59,15 @@ try:
 
     # Función para agregar un área
     def agregar_area():
-        nueva_area = simpledialog.askstring("Agregar Área", "Ingrese el nombre del entorno:")
-        if nueva_area:
+        nueva_area =ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
+        
+        nueva_area_result = nueva_area.get_input()
+        print(nueva_area_result)
+        if nueva_area_result:
             if nueva_area in areas:
                 messagebox.showerror("Error", "El entorno ya existe.")
                 return
-            areas[nueva_area] = []  # Cada área comienza con una lista vacía de validadores
+            areas[nueva_area_result] = []  # Cada área comienza con una lista vacía de validadores
             guardar_areas()
             actualizar_botones_areas()
 
@@ -132,11 +135,13 @@ try:
 
     # Función para agregar un validador a un área
     def agregar_validador(area):
-        nombre_validador = simpledialog.askstring("Agregar Validador", "Ingrese el nombre del validador:")
-        if not nombre_validador:
+        nombre_validador = ctk.CTkInputDialog(title="Agregar Validador", text="Ingrese el nombre del validador:")
+        
+        nombre_validador_result = nombre_validador.get_input()
+        if not nombre_validador_result:
             return
         
-        nuevo_validador = {"nombre": nombre_validador, "reglas": []}  # Inicialmente sin reglas
+        nuevo_validador = {"nombre": nombre_validador_result, "reglas": []}  # Inicialmente sin reglas
         areas[area].append(nuevo_validador)
         guardar_areas()
         seleccionar_area(area)
@@ -199,7 +204,7 @@ try:
         ctk.CTkLabel(modal, text="Seleccione el tipo de regla:").pack(pady=10)
         tipo_regla_menu = ctk.CTkOptionMenu(
             modal, 
-            values=["longitud", "numerico", "patron", "unico", "dependiente_positivo", "dependiente_error" ,"no_vacio", "dependiente longitud", "dependiente edad", "dependiente edad error"], 
+            values=["longitud", "numerico", "patron", "unico", "dependiente_positivo", "dependiente_error" ,"no_vacio", "dependiente longitud", "dependiente edad positivo", "dependiente edad error"], 
             variable=tipo_regla_var
         )
         tipo_regla_menu.pack(pady=10)
@@ -210,191 +215,299 @@ try:
             
             if tipo_regla == "longitud":
                 
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar por longitud (por ejemplo, Cedula):")
-                if not columna:
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar por longitud (por ejemplo, Cedula):")
+                columna_result = columna.get_input()
+
+                # Verificar si no se ingresó nada
+                if not columna_result:
                     return
-                condicion = simpledialog.askstring("Longitud", "Ingrese la longitud máxima (ejemplo: 10):")
                 
-                if not condicion:
+                condicion2 = ctk.CTkInputDialog(title="Longitud", text="Ingrese la longitud máxima (ejemplo: 10):")
+                columna_result2 = condicion2.get_input()
+
+                if not columna_result2:
                     return
-                nueva_regla = {"columna": columna, "tipo": "longitud", "condicion": f"<= {condicion}"}
+                
+                nueva_regla = {"columna": columna_result, "tipo": "longitud", "condicion": f"<= {columna_result2}"}
             
             elif tipo_regla == "numerico":
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar numerico (por ejemplo, Telefono):")
-                if not columna:
+                
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar numerico (por ejemplo, Telefono):")
+                columna_result = columna.get_input()
+                if not columna_result:
                     return
-                condicion = simpledialog.askstring("Numerico", "Ingrese la condición (ejemplo: 'mayor  5'):")
-                if not condicion:
+                
+                condicion2 = ctk.CTkInputDialog(title="Numerico", text="Ingrese la condición (ejemplo: 'mayor  5'):")
+                condicion2_result = condicion2.get_input()
+                if not condicion2_result:
                     return
-                nueva_regla = {"columna": columna, "tipo": "numerico", "condicion": condicion}
+                nueva_regla = {"columna": columna_result, "tipo": "numerico", "condicion": condicion2_result}
             
             elif tipo_regla == "patron":
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar para que no tenga caracteres especiales (por ejemplo, Nombres):")
-                if not columna:
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar para que no tenga caracteres especiales (por ejemplo, Nombres):")
+                columna_result = columna.get_input()
+                if not columna_result:
                     return
-                patron = simpledialog.askstring("Expresión Regular", "Ingrese el patrón regex (ejemplo: \\d{3}-\\d{2}-\\d{4}):")
-                if not patron:
+                
+                patron = ctk.CTkInputDialog(title="Expresión Regular", text="Ingrese el patrón regex (ejemplo: \\d{3}-\\d{2}-\\d{4}):")
+                patron_result = patron.get_input()
+                if not patron_result:
                     return
-                nueva_regla = {"columna": columna, "tipo": "patron", "patron": patron}
+                
+                nueva_regla = {"columna": columna_result, "tipo": "patron", "patron": patron_result}
             
             elif tipo_regla == "unico":
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar para qvalores unicos (por ejemplo, Nombres):")
-                if not columna:
-                    return  
-                nueva_regla = {"columna": columna, "tipo": "unico"}
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar para qvalores unicos (por ejemplo, Nombres):")
+                columna_result = columna.get_input()
+                if not columna_result:
+                    return
+                nueva_regla = {"columna": columna_result, "tipo": "unico"}
             
             elif tipo_regla == "dependiente_positivo":
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar  (por ejemplo, Telefono):")
-                if not columna:
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar  (por ejemplo, Telefono):")
+                columna_result = columna.get_input()
+                if not columna_result:
                     return
                 
-                columna_dependiente = simpledialog.askstring("Columna Dependiente", "¿De qué columna depende esta regla? (por ejemplo, A):")
-                if not columna_dependiente:
-                    return
-                valor_dependiente = simpledialog.askstring("Valor Dependiente", "¿Qué valor debe tener la columna dependiente? (ejemplo: 50):")
-                if not valor_dependiente:
-                    return
-                valor_dependiente = float(valor_dependiente) if valor_dependiente.replace('.', '', 1).isdigit() else valor_dependiente
+                columna_dependiente = ctk.CTkInputDialog(title="Columna Dependiente", text="¿De qué columna depende esta regla? (por ejemplo, A):")
+                columna_dependiente_result = columna_dependiente.get_input()
                 
-                valor_esperado = simpledialog.askstring("Valor Esperado", "¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: 51):")
+                if not columna_dependiente_result:
+                    return
                 
-                if not valor_esperado:
+                valor_dependiente = ctk.CTkInputDialog(title="Valor Dependiente", text="¿Qué valor debe tener la columna dependiente? (ejemplo: 50):")
+                valor_dependiente_result = valor_dependiente.get_input()
+                if not valor_dependiente_result:
+                    return
+                
+                valor_dependiente = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente
+                
+                valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: 51):")
+                valor_esperado_result = valor_esperado.get_input()
+                if not valor_esperado_result:
                     return
                 
                 nueva_regla = {
-                    "columna": columna, 
+                    "columna": columna_result, 
                     "tipo": "dependiente positivo", 
-                    "columna_dependiente": columna_dependiente, 
+                    "columna_dependiente": columna_dependiente_result, 
                     "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": valor_esperado
+                    "valor_esperado": valor_esperado_result
                 }
                 
             elif tipo_regla == "dependiente_error":
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar numerico (por ejemplo, Telefono):")
-                if not columna:
+                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar numerico (por ejemplo, Telefono):")
+                columna_result = columna.get_input()
+                if not columna_result:
                     return
                 
-                columna_dependiente = simpledialog.askstring("Columna Dependiente", "¿De qué columna depende esta regla? (por ejemplo, A):")
-                if not columna_dependiente:
+                columna_dependiente = ctk.CTkInputDialog(title="Columna Dependiente", text="¿De qué columna depende esta regla? (por ejemplo, A):")
+                columna_dependiente_result = columna_dependiente.get_input()
+                if not columna_dependiente_result:
                     return
-                valor_dependiente = simpledialog.askstring("Valor Dependiente", "¿Qué valor debe tener la columna dependiente? (ejemplo: VEN):")
-                if not valor_dependiente:
-                    return
-                valor_dependiente = float(valor_dependiente) if valor_dependiente.replace('.', '', 1).isdigit() else valor_dependiente
                 
-                valor_esperado = simpledialog.askstring("Valor Esperado", "¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: NO APLICA):")
-                if not valor_esperado:
+                valor_dependiente = ctk.CTkInputDialog(title="Valor Dependiente", text="¿Qué valor debe tener la columna dependiente? (ejemplo: VEN):")
+                valor_dependiente_result = valor_dependiente.get_input()
+                if not valor_dependiente_result:
+                    return
+                
+                valor_dependiente_result = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente_result
+                
+                valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: NO APLICA):")
+                valor_esperado_result = valor_esperado.get_input()
+
+                if not valor_esperado_result:
                     return
                 
                 nueva_regla = {
-                    "columna": columna, 
+                    "columna": columna_result, 
                     "tipo": "dependiente_error", 
-                    "columna_dependiente": columna_dependiente, 
-                    "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": valor_esperado
+                    "columna_dependiente": columna_dependiente_result, 
+                    "valor_dependiente": valor_dependiente_result, 
+                    "valor_esperado": valor_esperado_result
                 }
                 
                 
             elif tipo_regla == "no_vacio":
-                columnas = simpledialog.askstring(
-                    "No Vacío", 
-                    "Ingrese las columnas que no pueden estar vacías, separadas por comas (ejemplo: A, B, C):"
+                columnas = ctk.CTkInputDialog(
+                    title="No Vacío", 
+                    text="Ingrese las columnas que no pueden estar vacías, separadas por comas (ejemplo: A, B, C):"
                 )
-                if not columnas:
+                columnas_resultado = columnas.get_input()
+
+                if not columnas_resultado:
                     return
+                
                 columna = "Ficha_fic"
-                columnas = [col.strip() for col in columnas.split(",") if col.strip()]
-                nueva_regla = {"columna": columna, "tipo": "no_vacio", "columnas": columnas}
-            
+                columnas_resultado = [col.strip() for col in columnas_resultado.split(",") if col.strip()]
+                nueva_regla = {"columna": columna, "tipo": "no_vacio", "columnas": columnas_resultado}
+
             
             elif tipo_regla == "dependiente longitud":
-                
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar (por ejemplo, DOCUMENTO):")
-                if not columna:
+                columna = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la columna a validar (por ejemplo, DOCUMENTO):"
+                )
+                columna_resultado = columna.get_input()
+                if not columna_resultado:
                     return
                 
-                columna_dependiente = simpledialog.askstring("Columna Dependiente", "¿De qué columna depende esta regla? (por ejemplo, TIPO DOCUMENTO ):")
-                if not columna_dependiente:
-                    return 
-                
-                valor_dependiente = simpledialog.askstring("Valor Dependiente", "¿Qué valor debe tener la columna dependiente? (ejemplo: 3- TI):")
-                if not valor_dependiente:
+                columna_dependiente = ctk.CTkInputDialog(
+                    title="Columna Dependiente", 
+                    text="¿De qué columna depende esta regla? (por ejemplo, TIPO DOCUMENTO):"
+                )
+                columna_dependiente_resultado = columna_dependiente.get_input()
+                if not columna_dependiente_resultado:
                     return
-                
-                valor_esperado = simpledialog.askstring("Valor Esperado", "Que cantidad de digitos debe tener la columna a validar (por ejemplo: 10)")
-                if not valor_esperado:
+
+                valor_dependiente = ctk.CTkInputDialog(
+                    title="Valor Dependiente", 
+                    text="¿Qué valor debe tener la columna dependiente? (ejemplo: 3- TI):"
+                )
+                valor_dependiente_resultado = valor_dependiente.get_input()
+                if not valor_dependiente_resultado:
                     return
-                
+
+                valor_esperado = ctk.CTkInputDialog(
+                    title="Valor Esperado", 
+                    text="¿Qué cantidad de dígitos debe tener la columna a validar (por ejemplo: 10)?"
+                )
+                valor_esperado_resultado = valor_esperado.get_input()
+                if not valor_esperado_resultado:
+                    return
+
                 nueva_regla = {
-                    "columna": columna,
+                    "columna": columna_resultado,
                     "tipo": "dependiente longitud",
-                    "columna_dependiente": columna_dependiente,
-                    "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": f"<= {valor_esperado}"
+                    "columna_dependiente": columna_dependiente_resultado,
+                    "valor_dependiente": valor_dependiente_resultado,
+                    "valor_esperado": f"<= {valor_esperado_resultado}"
                 }
+
             
             elif tipo_regla == "dependiente edad positivo":
-                
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):")
-                if not columna:
+                columna = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):"
+                )
+                columna_resultado = columna.get_input()
+                if not columna_resultado:
                     return
                 
-                columna_dependiente = simpledialog.askstring("Columna Dependiente", "¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO ):")
-                if not columna_dependiente:
-                    return 
-                
-                valor_dependiente = simpledialog.askstring("Valor Dependiente", "indique la edad o rango de edades separados por coma mierda (por ejemplo: 7,17 )")
-                if not valor_dependiente:
+                columna_dependiente = ctk.CTkInputDialog(
+                    title="Columna Dependiente", 
+                    text="¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO):"
+                )
+                columna_dependiente_resultado = columna_dependiente.get_input()
+                if not columna_dependiente_resultado:
+                    return
+
+                valor_dependiente = ctk.CTkInputDialog(
+                    title="Valor Dependiente", 
+                    text="Indique la edad o rango de edades separados por coma (por ejemplo: 7,17):"
+                )
+                valor_dependiente_resultado = valor_dependiente.get_input()
+                if not valor_dependiente_resultado:
+                    return
+
+                valor_esperado = ctk.CTkInputDialog(
+                    title="Valor Esperado", 
+                    text="Valor esperado según la edad:"
+                )
+                valor_esperado_resultado = valor_esperado.get_input()
+                if not valor_esperado_resultado:
+                    return
+
+                Columna_para_fecha = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la columna sobre la cual se calculará la edad (por ejemplo, Fecha_intervencion):"
+                )
+                Columna_para_fecha_resultado = Columna_para_fecha.get_input()
+                if not Columna_para_fecha_resultado:
                     return
                 
-                valor_esperado = simpledialog.askstring("Valor Esperado", "valor esperado segun la edad")
-                if not valor_esperado:
-                    return
+                nacionalidad = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la nacionalidad (por ejemplo, Col):"
+                )
                 
-                Columna_para_fecha = simpledialog.askstring("Agregar Regla", "Ingrese la columna sobre la cual se calculara la edad (por ejemplo, Fecha_intervencion):")
-                if not valor_esperado:
+                nacionalidad_resultado = nacionalidad.get_input()
+                if not nacionalidad_resultado:
                     return
-                
+                    
+
                 nueva_regla = {
-                    "columna": columna,
+                    "columna": columna_resultado,
+                    "nacionalidad": nacionalidad_resultado,
                     "tipo": "dependiente edad positivo",
-                    "Fecha_int": Columna_para_fecha,
-                    "columna_dependiente": columna_dependiente,
-                    "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": valor_esperado
+                    "Fecha_int": Columna_para_fecha_resultado,
+                    "columna_dependiente": columna_dependiente_resultado,
+                    "valor_dependiente": valor_dependiente_resultado,
+                    "valor_esperado": valor_esperado_resultado
                 }
+
                 
             elif tipo_regla == "dependiente edad error":
-                
-                columna = simpledialog.askstring("Agregar Regla", "Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):")
-                if not columna:
+                columna = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):"
+                )
+                columna_resultado = columna.get_input()
+                if not columna_resultado:
                     return
                 
-                columna_dependiente = simpledialog.askstring("Columna Dependiente", "¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO ):")
-                if not columna_dependiente:
-                    return 
-                
-                valor_dependiente = simpledialog.askstring("Valor Dependiente", "indique la edad o rango de edades separados por coma mierda (por ejemplo: 7,17 )")
-                if not valor_dependiente:
+                columna_dependiente = ctk.CTkInputDialog(
+                    title="Columna Dependiente", 
+                    text="¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO):"
+                )
+                columna_dependiente_resultado = columna_dependiente.get_input()
+                if not columna_dependiente_resultado:
+                    return
+
+                valor_dependiente = ctk.CTkInputDialog(
+                    title="Valor Dependiente", 
+                    text="Indique la edad o rango de edades separados por coma (por ejemplo: 7,17):"
+                )
+                valor_dependiente_resultado = valor_dependiente.get_input()
+                if not valor_dependiente_resultado:
+                    return
+
+                valor_esperado = ctk.CTkInputDialog(
+                    title="Valor Esperado", 
+                    text="Ingrese el valor que es error:"
+                )
+                valor_esperado_resultado = valor_esperado.get_input()
+                if not valor_esperado_resultado:
+                    return
+
+                Columna_para_fecha = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la columna sobre la cual se calculará la edad (por ejemplo, Fecha_intervencion):"
+                )
+                Columna_para_fecha_resultado = Columna_para_fecha.get_input()
+                if not Columna_para_fecha_resultado:
                     return
                 
-                valor_esperado = simpledialog.askstring("Valor Esperado", "Ingrese el valor que es error ")
-                if not valor_esperado:
-                    return
+                nacionalidad = ctk.CTkInputDialog(
+                    title="Agregar Regla", 
+                    text="Ingrese la nacionalidad (por ejemplo, colombia):"
+                )
                 
-                Columna_para_fecha = simpledialog.askstring("Agregar Regla", "Ingrese la columna sobre la cual se calculara la edad (por ejemplo, Fecha_intervencion):")
-                if not valor_esperado:
+                nacionalidad_resultado = nacionalidad.get_input()
+                if not nacionalidad_resultado:
                     return
-                
+                  
+
                 nueva_regla = {
-                    "columna": columna,
+                    "columna": columna_resultado,
                     "tipo": "dependiente edad error",
-                    "Fecha_int": Columna_para_fecha,
-                    "columna_dependiente": columna_dependiente,
-                    "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": valor_esperado
+                    "nacionalidad": nacionalidad_resultado,
+                    "Fecha_int": Columna_para_fecha_resultado,
+                    "columna_dependiente": columna_dependiente_resultado,
+                    "valor_dependiente": valor_dependiente_resultado,
+                    "valor_esperado": valor_esperado_resultado
                 }
-                        
+     
             else:
                 messagebox.showerror("Error", "Tipo de regla no reconocido.")
                 return
@@ -599,14 +712,18 @@ try:
                                 messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
                                 
                         elif tipo == "dependiente edad positivo":
-                            
                             columna_dependiente = regla.get("columna_dependiente")  # Fecha de nacimiento
-                            valor_dependiente = regla.get("valor_dependiente" ) # Rango o edad específica
+                            valor_dependiente = regla.get("valor_dependiente")  # Rango o edad específica
                             valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
                             fecha_intervencion = regla.get("Fecha_int")  # Columna con la fecha de referencia
-                        
+                            nacionalidad = regla.get("nacionalidad")  # Columna para filtrar primero por nacionalidad 
+
                             # Verificar que las columnas necesarias estén en el DataFrame
                             if columna in df.columns and columna_dependiente in df.columns and fecha_intervencion in df.columns:
+                                # Filtrar por nacionalidad si es que se ha especificado
+                                if nacionalidad and nacionalidad in df.columns:
+                                    df = df[df[nacionalidad] == valor_dependiente]  # Filtrar por la nacionalidad deseada
+
                                 # Convertir las columnas a datetime si no lo están
                                 df[columna_dependiente] = pd.to_datetime(df[columna_dependiente], errors='coerce')
                                 df[fecha_intervencion] = pd.to_datetime(df[fecha_intervencion], errors='coerce')
@@ -638,10 +755,11 @@ try:
                                     ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill
                                     ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_intervencion) + 1).fill = rojo_fill
                                     ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    
+
                             else:
                                 # Mostrar mensaje de advertencia si las columnas no existen
                                 print(f"Advertencia: Una de las columnas especificadas no existe en el archivo Excel.")
+
                                             
                         elif tipo == "dependiente edad error":
                             
@@ -771,9 +889,16 @@ try:
             
     # Configuración inicial de la ventana principal
     ctk.set_appearance_mode("Dark")  # Modo oscuro
+    customtkinter.deactivate_automatic_dpi_awareness() # escalado automatico
     ventana = ctk.CTk()
     ventana.title("Odin Validadores")
     ventana.geometry("800x600")
+    
+    # Cambiar el ícono de la ventana
+    icon = PhotoImage(file="img/logo.png")  # Ruta a tu ícono personalizado
+    ventana.iconphoto(False, icon)
+    
+    ventana.iconbitmap("img/logo.ico")
 
     # Crear un menú
     menu_bar = Menu(ventana)
@@ -785,15 +910,12 @@ try:
     menu_archivo.add_command(label="Salir", command=ventana.quit)
     menu_bar.add_cascade(label="Archivo", menu=menu_archivo)
 
-
     # Menú "Crear_Hc"
     crear_hc_menu = Menu(menu_bar, tearoff=0)
     icon = PhotoImage(file="img/icons/icono_excel.png")  
     crear_hc_menu.add_command(label="Editar",  command=openxcel, image=icon)
     crear_hc_menu.add_command(label="Ejecutar", command=crearhc)
     menu_bar.add_cascade(label="Crear Hc", menu=crear_hc_menu)
-
-
 
     # Crear dos paneles: izquierdo y derecho
     frame_izquierdo = ctk.CTkFrame(ventana, width=200)
