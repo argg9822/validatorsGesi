@@ -22,6 +22,13 @@ Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "index.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "error_log.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "__version__.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\customtkinter\*"; DestDir: "{app}\customtkinter"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\darkdetect\*"; DestDir: "{app}\darkdetect"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\packaging\*"; DestDir: "{app}\packaging"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\*"; DestDir: "{app}\packaging"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\*"; DestDir: "{app}\numpy"; Flags: ignoreversion recursesubdirs
+
+
 
 
 [Icons]

@@ -33,10 +33,6 @@ from tkinter import PhotoImage
 import win32com.client as win32
 import time
 
-
-
-
-
 log_file = "error_log.txt"
 
 def log_error(error_message):
@@ -776,7 +772,7 @@ try:
     # Configuración inicial de la ventana principal
     ctk.set_appearance_mode("Dark")  # Modo oscuro
     ventana = ctk.CTk()
-    ventana.title("Gestión de Áreas y Validadores")
+    ventana.title("Odin Validadores")
     ventana.geometry("800x600")
 
     # Crear un menú

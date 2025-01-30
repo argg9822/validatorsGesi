@@ -16,7 +16,11 @@ try:
 
     def open_main_window(splash_root):
         splash_root.destroy()  # Cierra la pantalla de inicio
-        os.system(f'pythonw {os.path.abspath("index.py")}')  # Ejecuta index.py sin mostrar la consola
+        # Ruta al ejecutable `index.exe`
+        script_path = os.path.join(os.path.dirname(sys.executable), "index.exe")
+        
+        # Ejecuta el ejecutable de forma independiente
+        os.system(f'"{script_path}"')
 
     def center_window(window, width, height):
         screen_width = window.winfo_screenwidth()
