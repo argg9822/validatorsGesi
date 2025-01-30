@@ -384,7 +384,6 @@ try:
                     "valor_esperado": f"<= {valor_esperado_resultado}"
                 }
 
-            
             elif tipo_regla == "dependiente edad positivo":
                 columna = ctk.CTkInputDialog(
                     title="Agregar Regla", 
