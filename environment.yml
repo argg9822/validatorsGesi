@@ -1,0 +1,10 @@
+name: validators_env
+dependencies:
+  - python=3.9  # Especifica la versión de Python
+  - numpy       # Para operaciones matemáticas
+  - pandas      # Para manejo de datos
+  - flask       # Si usas Flask como framework web
+  - pip         # Incluye pip para instalar librerías adicionales
+  - pip:
+      - customtkinter  # Instalado con pip
+      - matplotlib     # Para gráficos (si es necesario)
