@@ -524,7 +524,7 @@ try:
 
     # Función para editar una regla
     def editar_regla(area, validador, regla):
-        nueva_regla = ctk.CTkInputDialog(title="Editar Regla", text=f"Modificar regla: {regla}")
+        nueva_regla = ctk.CTkInputDialog(title="Editar Regla de base", text=f"Modificar regla: {regla}")
         nueva_regla_input = nueva_regla.get_input()
         if nueva_regla_input:
             indice = validador["reglas"].index(regla)
