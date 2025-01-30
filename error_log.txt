@@ -1,0 +1,12 @@
+bitmap "c:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\img\logo.ico" not definedTraceback (most recent call last):
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 314, in <module>
+    main()
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 252, in main
+    actualizar_aplicacion()  # Llama a la función de actualización
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 169, in actualizar_aplicacion
+    ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
+  File "c:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2156, in wm_iconbitmap
+    return self.tk.call('wm', 'iconbitmap', self._w, bitmap)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_tkinter.TclError: bitmap "c:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\img\logo.ico" not defined
