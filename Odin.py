@@ -88,7 +88,9 @@ try:
                 shutil.move(index_py_path, destination_path)
                 print(f"Archivo {index_py_path} reemplazado en {destination_path}")
                 index_found = True
-                
+            
+           
+           
             if not index_found and 'funciones.py' in files:
                 index_py_path = os.path.join(root, 'funciones.py')
                 destination_path = os.path.join(current_dir, 'funciones.py')
@@ -245,6 +247,7 @@ try:
                 
                 return
             else:
+                
                 print("Error al descargar los cambios")
             
         hilo_actualizacion = threading.Thread(target=proceso_actualizacion)
@@ -253,8 +256,6 @@ try:
         vie_actualizaion.mainloop()
         
 
-    
-        
     def main():
         actualizar_aplicacion()  # Llama a la función de actualización
 
