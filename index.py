@@ -528,7 +528,7 @@ try:
         nueva_regla_input = nueva_regla.get_input()
         if nueva_regla_input:
             indice = validador["reglas"].index(regla)
-            validador["reglas"][indice] = nueva_regla
+            validador["reglas"][indice] = nueva_regla_input
             guardar_areas()
             gestionar_validador(area, validador)
 
