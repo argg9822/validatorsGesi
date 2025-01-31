@@ -19,9 +19,7 @@ Source: "dist\index.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "logo.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "img\*"; DestDir: "{app}\img"; Flags: ignoreversion recursesubdirs
 Source: "areas.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bases.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "crear_hc\*"; DestDir: "{app}\crear_hc"; Flags: ignoreversion recursesubdirs
-Source: "validadores\*"; DestDir: "{app}\validadores"; Flags: ignoreversion recursesubdirs
 Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "index.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "analizar_exel.py"; DestDir: "{app}"; Flags: ignoreversion

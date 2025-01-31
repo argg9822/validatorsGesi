@@ -28,12 +28,7 @@
         {
             "nombre": "Sesiones pagina 2",
             "reglas": [
-                "VB",
-                {
-                    "columna": "col",
-                    "tipo": "longitud",
-                    "condicion": "<= 10"
-                }
+               
             ]
         },
         {
