@@ -24,6 +24,8 @@ Source: "crear_hc\*"; DestDir: "{app}\crear_hc"; Flags: ignoreversion recursesub
 Source: "validadores\*"; DestDir: "{app}\validadores"; Flags: ignoreversion recursesubdirs
 Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "index.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "analizar_exel.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "reglas.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "error_log.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "__version__.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\site-packages\customtkinter\*"; DestDir: "{app}\customtkinter"; Flags: ignoreversion recursesubdirs

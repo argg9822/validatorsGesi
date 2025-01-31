@@ -89,7 +89,6 @@ try:
             'index.py': None,
             'analizar_exel.py': None,
             'reglas.py': None,
-            'index.exe': None,
             'areas.json': None,
             'validadores': None,
             'crear_hc': None,
