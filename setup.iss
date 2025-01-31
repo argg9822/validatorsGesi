@@ -1,9 +1,9 @@
 [Setup]
 AppName=Odin
 AppVersion=1.0
-DefaultDirName={autopf}\OdinIntaller
+DefaultDirName={autopf}\OdinIstaller
 OutputDir=dist
-OutputBaseFilename=OdinIntaller
+OutputBaseFilename=OdinIstaller
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=admin

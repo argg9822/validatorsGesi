@@ -63,59 +63,95 @@ try:
         current_dir = os.path.dirname(os.path.abspath(zip_path))
         
         # Extraer el ZIP en una carpeta temporal
-        temp_dir = os.path.join(current_dir, "temp_extract")
-        try:
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(temp_dir)
-        except Exception as e:
-            print(f"Error al extraer el ZIP: {e}")
-            return
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            temp_dir = os.path.join(current_dir, "temp_extract")
+            zip_ref.extractall(temp_dir)
 
-        # Función para mover archivos o carpetas
-        def mover_y_reemplazar(origen, destino):
-            try:
-                if os.path.exists(destino):
-                    if os.path.isdir(destino):
-                        shutil.rmtree(destino)
-                    else:
-                        os.remove(destino)
-                shutil.move(origen, destino)
-                print(f"Reemplazado: {origen} -> {destino}")
-            except Exception as e:
-                print(f"Error al reemplazar {origen}: {e}")
+        # Variables para almacenar rutas encontradas
+        index_found = False
+        validadores_found = False
+        img_found = False
 
-        # Variables de búsqueda
-        elementos = {
-            'index.py': None,
-            'analizar_exel.py': None,
-            'reglas.py': None,
-            'areas.json': None,
-            'validadores': None,
-            'crear_hc': None,
-            'img': None,
-        }
-
-        # Buscar elementos en la carpeta temporal
+        # Buscar los archivos y carpetas dentro de las carpetas extraídas
         for root, dirs, files in os.walk(temp_dir):
-            for file_name in files:
-                if file_name in elementos:
-                    elementos[file_name] = os.path.join(root, file_name)
-            for dir_name in dirs:
-                if dir_name in elementos:
-                    elementos[dir_name] = os.path.join(root, dir_name)
+            # Buscar y reemplazar index.py
+            if not index_found and 'index.py' in files:
+                index_py_path = os.path.join(root, 'index.py')
+                destination_path = os.path.join(current_dir, 'index.py')
+                shutil.move(index_py_path, destination_path)
+                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+                index_found = True
+            
+            if not index_found and 'reglas.py' in files:
+                index_py_path = os.path.join(root, 'reglas.exe')
+                destination_path = os.path.join(current_dir, 'reglas.exe')
+                shutil.move(index_py_path, destination_path)
+                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+                index_found = True
+                
+            if not index_found and 'analizar_exel.py' in files:
+                index_py_path = os.path.join(root, 'analizar_exel.exe')
+                destination_path = os.path.join(current_dir, 'analizar_exel.exe')
+                shutil.move(index_py_path, destination_path)
+                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+                index_found = True
+            
+           
+            if not index_found and 'areas.json' in files:
+                index_py_path = os.path.join(root, 'areas.json')
+                destination_path = os.path.join(current_dir, 'areas.json')
+                shutil.move(index_py_path, destination_path)
+                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
+                index_found = True
 
-        # Mover y reemplazar elementos encontrados
-        for elemento, ruta_origen in elementos.items():
-            if ruta_origen:
-                destino = os.path.join(current_dir, elemento)
-                mover_y_reemplazar(ruta_origen, destino)
+            # Buscar y reemplazar la carpeta validadores
+            if not validadores_found and 'validadores' in dirs:
+                validadores_path = os.path.join(root, 'validadores')
+                destination_path = os.path.join(current_dir, 'validadores')
+
+                # Si la carpeta ya existe, eliminarla antes de reemplazarla
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)
+
+                # Mover la carpeta validadores al destino
+                shutil.move(validadores_path, destination_path)
+                print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
+                validadores_found = True
+                
+            # Buscar y reemplazar la carpeta validadores
+            if not validadores_found and 'crear_hc' in dirs:
+                validadores_path = os.path.join(root, 'crear_hc')
+                destination_path = os.path.join(current_dir, 'crear_hc')
+
+                # Si la carpeta ya existe, eliminarla antes de reemplazarla
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)
+
+                # Mover la carpeta validadores al destino
+                shutil.move(validadores_path, destination_path)
+                print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
+                validadores_found = True
+                
+            # Buscar y reemplazar la carpeta img
+            if not img_found and 'img' in dirs:
+                img_path = os.path.join(root, 'img')
+                destination_path = os.path.join(current_dir, 'img')
+
+                # Si la carpeta ya existe, eliminarla antes de reemplazarla
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)
+
+                # Mover la carpeta img al destino
+                shutil.move(img_path, destination_path)
+                print(f"Carpeta {img_path} reemplazada en {destination_path}")
+                img_found = True
+
+            # Detener la búsqueda si ya se encontraron index.py, validadores, y img
+            if index_found and validadores_found and img_found:
+                break
 
         # Eliminar la carpeta temporal
-        try:
-            shutil.rmtree(temp_dir)
-            print(f"Carpeta temporal eliminada: {temp_dir}")
-        except Exception as e:
-            print(f"Error al eliminar la carpeta temporal: {e}")
+        shutil.rmtree(temp_dir)
         
     def actualizar_aplicacion():
         version_actual = leer_version_actual()
