@@ -27,7 +27,14 @@
         },
         {
             "nombre": "Sesiones pagina 2",
-            "reglas": []
+            "reglas": [
+                "VB",
+                {
+                    "columna": "col",
+                    "tipo": "longitud",
+                    "condicion": "<= 10"
+                }
+            ]
         },
         {
             "nombre": "Sesiones Pag 3 (individuos)",

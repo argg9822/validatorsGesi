@@ -33,6 +33,9 @@ from tkinter import PhotoImage
 import win32com.client as win32
 import time
 
+from reglas import crear_regla
+from analizar_exel import analizar_excel_2
+
 log_file = "error_log.txt"
 
 def log_error(error_message):
@@ -190,9 +193,6 @@ try:
 
     # Función para agregar una regla a un validador
     def agregar_regla(area, validador):
-        
-    
-        
         # Crear una ventana modal
         modal = ctk.CTkToplevel()
         modal.title("Seleccionar Tipo de Regla")
@@ -213,627 +213,71 @@ try:
             tipo_regla = tipo_regla_var.get()
             modal.destroy()  # Cerrar la ventana modal
             
-            if tipo_regla == "longitud":
-                
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar por longitud (por ejemplo, Cedula):")
-                columna_result = columna.get_input()
-
-                # Verificar si no se ingresó nada
-                if not columna_result:
-                    return
-                
-                condicion2 = ctk.CTkInputDialog(title="Longitud", text="Ingrese la longitud máxima (ejemplo: 10):")
-                columna_result2 = condicion2.get_input()
-
-                if not columna_result2:
-                    return
-                
-                nueva_regla = {"columna": columna_result, "tipo": "longitud", "condicion": f"<= {columna_result2}"}
+            # Llamar a la función del archivo reglas.py
+            crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
             
-            elif tipo_regla == "numerico":
-                
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar numerico (por ejemplo, Telefono):")
-                columna_result = columna.get_input()
-                if not columna_result:
-                    return
-                
-                condicion2 = ctk.CTkInputDialog(title="Numerico", text="Ingrese la condición (ejemplo: 'mayor  5'):")
-                condicion2_result = condicion2.get_input()
-                if not condicion2_result:
-                    return
-                nueva_regla = {"columna": columna_result, "tipo": "numerico", "condicion": condicion2_result}
-            
-            elif tipo_regla == "patron":
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar para que no tenga caracteres especiales (por ejemplo, Nombres):")
-                columna_result = columna.get_input()
-                if not columna_result:
-                    return
-                
-                patron = ctk.CTkInputDialog(title="Expresión Regular", text="Ingrese el patrón regex (ejemplo: \\d{3}-\\d{2}-\\d{4}):")
-                patron_result = patron.get_input()
-                if not patron_result:
-                    return
-                
-                nueva_regla = {"columna": columna_result, "tipo": "patron", "patron": patron_result}
-            
-            elif tipo_regla == "unico":
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar para qvalores unicos (por ejemplo, Nombres):")
-                columna_result = columna.get_input()
-                if not columna_result:
-                    return
-                nueva_regla = {"columna": columna_result, "tipo": "unico"}
-            
-            elif tipo_regla == "dependiente_positivo":
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar  (por ejemplo, Telefono):")
-                columna_result = columna.get_input()
-                if not columna_result:
-                    return
-                
-                columna_dependiente = ctk.CTkInputDialog(title="Columna Dependiente", text="¿De qué columna depende esta regla? (por ejemplo, A):")
-                columna_dependiente_result = columna_dependiente.get_input()
-                
-                if not columna_dependiente_result:
-                    return
-                
-                valor_dependiente = ctk.CTkInputDialog(title="Valor Dependiente", text="¿Qué valor debe tener la columna dependiente? (ejemplo: 50):")
-                valor_dependiente_result = valor_dependiente.get_input()
-                if not valor_dependiente_result:
-                    return
-                
-                valor_dependiente = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente
-                
-                valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: 51):")
-                valor_esperado_result = valor_esperado.get_input()
-                if not valor_esperado_result:
-                    return
-                
-                nueva_regla = {
-                    "columna": columna_result, 
-                    "tipo": "dependiente positivo", 
-                    "columna_dependiente": columna_dependiente_result, 
-                    "valor_dependiente": valor_dependiente, 
-                    "valor_esperado": valor_esperado_result
-                }
-                
-            elif tipo_regla == "dependiente_error":
-                columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar numerico (por ejemplo, Telefono):")
-                columna_result = columna.get_input()
-                if not columna_result:
-                    return
-                
-                columna_dependiente = ctk.CTkInputDialog(title="Columna Dependiente", text="¿De qué columna depende esta regla? (por ejemplo, A):")
-                columna_dependiente_result = columna_dependiente.get_input()
-                if not columna_dependiente_result:
-                    return
-                
-                valor_dependiente = ctk.CTkInputDialog(title="Valor Dependiente", text="¿Qué valor debe tener la columna dependiente? (ejemplo: VEN):")
-                valor_dependiente_result = valor_dependiente.get_input()
-                if not valor_dependiente_result:
-                    return
-                
-                valor_dependiente_result = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente_result
-                
-                valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: NO APLICA):")
-                valor_esperado_result = valor_esperado.get_input()
-
-                if not valor_esperado_result:
-                    return
-                
-                nueva_regla = {
-                    "columna": columna_result, 
-                    "tipo": "dependiente_error", 
-                    "columna_dependiente": columna_dependiente_result, 
-                    "valor_dependiente": valor_dependiente_result, 
-                    "valor_esperado": valor_esperado_result
-                }
-                
-                
-            elif tipo_regla == "no_vacio":
-                columnas = ctk.CTkInputDialog(
-                    title="No Vacío", 
-                    text="Ingrese las columnas que no pueden estar vacías, separadas por comas (ejemplo: A, B, C):"
-                )
-                columnas_resultado = columnas.get_input()
-
-                if not columnas_resultado:
-                    return
-                
-                columna = "Ficha_fic"
-                columnas_resultado = [col.strip() for col in columnas_resultado.split(",") if col.strip()]
-                nueva_regla = {"columna": columna, "tipo": "no_vacio", "columnas": columnas_resultado}
-
-            
-            elif tipo_regla == "dependiente longitud":
-                columna = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la columna a validar (por ejemplo, DOCUMENTO):"
-                )
-                columna_resultado = columna.get_input()
-                if not columna_resultado:
-                    return
-                
-                columna_dependiente = ctk.CTkInputDialog(
-                    title="Columna Dependiente", 
-                    text="¿De qué columna depende esta regla? (por ejemplo, TIPO DOCUMENTO):"
-                )
-                columna_dependiente_resultado = columna_dependiente.get_input()
-                if not columna_dependiente_resultado:
-                    return
-
-                valor_dependiente = ctk.CTkInputDialog(
-                    title="Valor Dependiente", 
-                    text="¿Qué valor debe tener la columna dependiente? (ejemplo: 3- TI):"
-                )
-                valor_dependiente_resultado = valor_dependiente.get_input()
-                if not valor_dependiente_resultado:
-                    return
-
-                valor_esperado = ctk.CTkInputDialog(
-                    title="Valor Esperado", 
-                    text="¿Qué cantidad de dígitos debe tener la columna a validar (por ejemplo: 10)?"
-                )
-                valor_esperado_resultado = valor_esperado.get_input()
-                if not valor_esperado_resultado:
-                    return
-
-                nueva_regla = {
-                    "columna": columna_resultado,
-                    "tipo": "dependiente longitud",
-                    "columna_dependiente": columna_dependiente_resultado,
-                    "valor_dependiente": valor_dependiente_resultado,
-                    "valor_esperado": f"<= {valor_esperado_resultado}"
-                }
-
-            elif tipo_regla == "dependiente edad positivo":
-                columna = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):"
-                )
-                columna_resultado = columna.get_input()
-                if not columna_resultado:
-                    return
-                
-                columna_dependiente = ctk.CTkInputDialog(
-                    title="Columna Dependiente", 
-                    text="¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO):"
-                )
-                columna_dependiente_resultado = columna_dependiente.get_input()
-                if not columna_dependiente_resultado:
-                    return
-
-                valor_dependiente = ctk.CTkInputDialog(
-                    title="Valor Dependiente", 
-                    text="Indique la edad o rango de edades separados por coma (por ejemplo: 7,17):"
-                )
-                valor_dependiente_resultado = valor_dependiente.get_input()
-                if not valor_dependiente_resultado:
-                    return
-
-                valor_esperado = ctk.CTkInputDialog(
-                    title="Valor Esperado", 
-                    text="Valor esperado según la edad:"
-                )
-                valor_esperado_resultado = valor_esperado.get_input()
-                if not valor_esperado_resultado:
-                    return
-
-                Columna_para_fecha = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la columna sobre la cual se calculará la edad (por ejemplo, Fecha_intervencion):"
-                )
-                Columna_para_fecha_resultado = Columna_para_fecha.get_input()
-                if not Columna_para_fecha_resultado:
-                    return
-                
-                nacionalidad = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la nacionalidad (por ejemplo, Col):"
-                )
-                
-                nacionalidad_resultado = nacionalidad.get_input()
-                if not nacionalidad_resultado:
-                    return
-                    
-
-                nueva_regla = {
-                    "columna": columna_resultado,
-                    "nacionalidad": nacionalidad_resultado,
-                    "tipo": "dependiente edad positivo",
-                    "Fecha_int": Columna_para_fecha_resultado,
-                    "columna_dependiente": columna_dependiente_resultado,
-                    "valor_dependiente": valor_dependiente_resultado,
-                    "valor_esperado": valor_esperado_resultado
-                }
-
-                
-            elif tipo_regla == "dependiente edad error":
-                columna = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):"
-                )
-                columna_resultado = columna.get_input()
-                if not columna_resultado:
-                    return
-                
-                columna_dependiente = ctk.CTkInputDialog(
-                    title="Columna Dependiente", 
-                    text="¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO):"
-                )
-                columna_dependiente_resultado = columna_dependiente.get_input()
-                if not columna_dependiente_resultado:
-                    return
-
-                valor_dependiente = ctk.CTkInputDialog(
-                    title="Valor Dependiente", 
-                    text="Indique la edad o rango de edades separados por coma (por ejemplo: 7,17):"
-                )
-                valor_dependiente_resultado = valor_dependiente.get_input()
-                if not valor_dependiente_resultado:
-                    return
-
-                valor_esperado = ctk.CTkInputDialog(
-                    title="Valor Esperado", 
-                    text="Ingrese el valor que es error:"
-                )
-                valor_esperado_resultado = valor_esperado.get_input()
-                if not valor_esperado_resultado:
-                    return
-
-                Columna_para_fecha = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la columna sobre la cual se calculará la edad (por ejemplo, Fecha_intervencion):"
-                )
-                Columna_para_fecha_resultado = Columna_para_fecha.get_input()
-                if not Columna_para_fecha_resultado:
-                    return
-                
-                nacionalidad = ctk.CTkInputDialog(
-                    title="Agregar Regla", 
-                    text="Ingrese la nacionalidad (por ejemplo, colombia):"
-                )
-                
-                nacionalidad_resultado = nacionalidad.get_input()
-                if not nacionalidad_resultado:
-                    return
-                  
-
-                nueva_regla = {
-                    "columna": columna_resultado,
-                    "tipo": "dependiente edad error",
-                    "nacionalidad": nacionalidad_resultado,
-                    "Fecha_int": Columna_para_fecha_resultado,
-                    "columna_dependiente": columna_dependiente_resultado,
-                    "valor_dependiente": valor_dependiente_resultado,
-                    "valor_esperado": valor_esperado_resultado
-                }
-     
-            else:
-                messagebox.showerror("Error", "Tipo de regla no reconocido.")
-                return
-
-            validador["reglas"].append(nueva_regla)
-            guardar_areas()
-            gestionar_validador(area, validador)
-
         # Botón para confirmar la selección
         confirmar_btn = ctk.CTkButton(modal, text="Confirmar", command=confirmar_tipo_regla)
         confirmar_btn.pack(pady=20)
-
         modal.protocol("WM_DELETE_WINDOW", modal.destroy)  # Permite cerrar la ventana con la 'X'
-
 
     # Función para editar una regla
     def editar_regla(area, validador, regla):
-        nueva_regla = ctk.CTkInputDialog(title="Editar Regla de base", text=f"Modificar regla: {regla}")
-        nueva_regla_input = nueva_regla.get_input()
-        if nueva_regla_input:
-            indice = validador["reglas"].index(regla)
-            validador["reglas"][indice] = nueva_regla_input
+        indice = validador["reglas"].index(regla)
+        # Crear una ventana emergente para editar los campos
+        def guardar_ediciones():
+            # Actualizar los campos con los valores editados
+            for campo, entry in entradas.items():
+                validador["reglas"][indice][campo] = entry.get()
             guardar_areas()
             gestionar_validador(area, validador)
+            ventana_edicion.destroy()
+
+        # Crear la ventana de edición
+        ventana_edicion = ctk.CTkToplevel()
+        ventana_edicion.title("Editar Regla de base")
+        
+        ventana_edicion.lift() 
+        ventana_edicion.focus_set()
+        # Obtener el tamaño de la pantalla
+        ancho_ventana = 400  # Ancho deseado para la ventana emergente
+        alto_ventana = 300   # Alto deseado para la ventana emergente
+
+        # Obtener las dimensiones de la pantalla
+        screen_width = ventana_edicion.winfo_screenwidth()
+        screen_height = ventana_edicion.winfo_screenheight()
+
+        # Calcular la posición centrada
+        posicion_x = (screen_width // 2) - (ancho_ventana // 2)
+        posicion_y = (screen_height // 2) - (alto_ventana // 2)
+
+        # Establecer la geometría de la ventana emergente (centrada)
+        ventana_edicion.geometry(f"{ancho_ventana}x{alto_ventana}+{posicion_x}+{posicion_y}")
+
+        
+        # Diccionario para almacenar las entradas de texto
+        entradas = {}
+        
+        # Mostrar los campos de la regla en el cuadro de edición
+        for campo, valor in regla.items():
+            if isinstance(valor, str):  # Mostrar solo los campos que son strings
+                # Crear un label y una entrada para cada campo
+                ctk.CTkLabel(ventana_edicion, text=f"Modificar {campo}:").pack(padx=10, pady=5)
+                entry = ctk.CTkEntry(ventana_edicion)
+                entry.insert(0, valor)  # Colocar el valor actual en la entrada
+                entry.pack(padx=10, pady=5)
+                entradas[campo] = entry
+
+        # Crear el botón de guardar
+        guardar_button = ctk.CTkButton(ventana_edicion, text="Guardar cambios", command=guardar_ediciones)
+        guardar_button.pack(padx=10, pady=10)
+
+        # Mostrar la ventana de edición
+        ventana_edicion.mainloop()
 
 
     def analizar_excel(validador):
-        archivo_excel = filedialog.askopenfilename(
-            title="Seleccionar archivo Excel",
-            filetypes=[("Archivos Excel", "*.xlsx *.xls")]
-        )
-        if archivo_excel:
-            try:
-                # Leer el archivo Excel
-                df = pd.read_excel(archivo_excel)
-
-                # Cargar el archivo Excel en openpyxl para aplicar formato
-                wb = openpyxl.load_workbook(archivo_excel)
-                ws = wb.active
-
-                # Color de fondo rojo para las celdas que no cumplen con la condición
-                rojo_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-
-                for regla in validador["reglas"]:
-                    columna = regla.get("columna")
-                
-                    
-                    tipo = regla.get("tipo")
-
-                    if columna in df.columns:
-                        col_idx = df.columns.get_loc(columna) + 1  # Obtener el índice de la columna en openpyxl (1-based)
-                        
-                        if tipo == "longitud":
-                            max_longitud = int(regla["condicion"].split("<= ")[1])
-                            violaciones = df[columna][df[columna].astype(str).str.len() > max_longitud]
-                            for idx in violaciones.index:
-                                # Marcar en rojo las celdas que violan la regla de longitud
-                                ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
-                                ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                
-
-                        elif tipo == "numerico":
-                            try:
-                                operador, valor = regla["condicion"].split(" ")
-                                valor = int(valor)
-                                print(operador)
-                                print(valor)
-                                
-                                # Convertir la columna a numérico, forzando errores a NaN
-                                df[columna] = pd.to_numeric(df[columna], errors='coerce')
-                                
-                                if operador == "mayor":
-                                    violaciones = df[columna][df[columna] > valor]
-                                elif operador == "menor":
-                                    violaciones = df[columna][df[columna] < valor]
-
-                                for idx in violaciones.index:
-                                    ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    
-
-                            except ValueError:
-                                pass
-
-                        elif tipo == "patron":
-                            patron = regla["patron"]
-                            # Normalizar los datos
-                            df[columna] = df[columna].astype(str).str.strip()
-                            
-                            # Filtrar las filas que no cumplen con el patrón
-                            violaciones = df[columna][df[columna].str.fullmatch(patron) == False]
-                            
-                            for idx in violaciones.index:
-                                ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo
-                                ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                
-
-                        elif tipo == "unico":
-                            duplicados = df[columna][df[columna].duplicated()]
-                            for idx in duplicados.index:
-                                ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
-                                ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                # Marcar en rojo
-
-                        elif tipo == "dependiente positivo":
-                            columna_dependiente = regla.get("columna_dependiente")
-                            valor_dependiente = regla.get("valor_dependiente")
-                            valor_esperado = regla.get("valor_esperado")
-                            columna_dependiente1 = regla.get("columna_dependiente")
-                            idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
-                            if columna_dependiente in df.columns:
-                                # Filtrar las filas donde la columna dependiente tenga el valor esperado
-                                filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
-
-                                # Filtrar las filas que NO cumplen con el valor esperado en la columna principal
-                                violaciones = filas_dependientes[filas_dependientes[columna] != valor_esperado]
-
-                                # Solo marcar en rojo las filas que no cumplen con la condición
-                                for idx in violaciones.index:
-                                    # Marcar en rojo las celdas que no cumplen la condición (solo las filas con violaciones)
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  
-                                    ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
-                                    
-                                    
-                            else:
-                                messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
-                                
-                        elif tipo == "no_vacio":
-                            columnas = regla.get("columnas")
-                            print("Columnas a verificar:", columnas)  # Imprimir para verificar las columnas
-
-                            # Asegúrate de que 'columna' sea una lista
-                            if isinstance(columnas, str):  # Si 'columna' es una cadena en lugar de lista
-                                columnas = [columnas]  # Convertirla en una lista
-                            
-                            for columna in columnas:
-                                if columna in df.columns:
-                                    col_idx = df.columns.get_loc(columna) + 1  # Obtener el índice de la columna en openpyxl (1-based)
-                                    print(f"Índice de columna '{columna}': {col_idx}")
-                                    # Filtrar las filas que tienen valores vacíos en la columna
-                                    violaciones = df[df[columna].isnull() | (df[columna] == "")]
-                                    print(f"Violaciones encontradas en columna '{columna}': {violaciones.index.tolist()}")
-                                    for idx in violaciones.index:
-                                        print(f"Marcando fila {idx} en columna {columna}")  # Imprimir para depurar
-                                        # Marcar en rojo las celdas que tienen valores vacíos en la columna principal
-                                        ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                        ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo otra celda relacionada, si es necesario
-                                else:
-                                    messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
-
-                        elif tipo == "dependiente_error":
-                        
-                            columna_dependiente = regla.get("columna_dependiente")
-                            valor_dependiente = regla.get("valor_dependiente")
-                            valor_esperado = regla.get("valor_esperado")
-                            columna_dependiente1 = regla.get("columna_dependiente")
-                            idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
-                            if columna_dependiente in df.columns:
-                                # Filtrar las filas donde la columna dependiente tenga el valor esperado
-                                filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
-
-                                # Filtrar las filas que NO cumplen con el valor esperado en la columna principal
-                                violaciones = filas_dependientes[filas_dependientes[columna] == valor_esperado]
-
-                                # Solo marcar en rojo las filas que no cumplen con la condición
-                                for idx in violaciones.index:
-                                    # Marcar en rojo las celdas que no cumplen la condición (solo las filas con violaciones)
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
-                                    
-                                
-                                    
-                            else:
-                                messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
-                            
-                        elif tipo == "dependiente longitud":
-                        
-                            columna_dependiente = regla.get("columna_dependiente")
-                            valor_dependiente = regla.get("valor_dependiente")
-                            valor_esperado = regla.get("valor_esperado")
-                            columna_dependiente1 = regla.get("columna_dependiente")
-                            idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
-                            if columna_dependiente in df.columns:
-                                # Filtrar las filas donde la columna dependiente tenga el valor esperado
-                                filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
-                                
-                                max_longitud = int(regla["valor_esperado"].split("<= ")[1])
-                                
-                                violaciones = filas_dependientes[filas_dependientes[columna] .astype(str).str.len() > max_longitud]
-                                
-                                for idx in violaciones.index:
-                                    # Marcar en rojo las celdas que violan la regla de longitud
-                                    ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
-        
-                            else:
-                                messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
-                                
-                        elif tipo == "dependiente edad positivo":
-                            columna_dependiente = regla.get("columna_dependiente")  # Fecha de nacimiento
-                            valor_dependiente = regla.get("valor_dependiente")  # Rango o edad específica
-                            valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
-                            fecha_intervencion = regla.get("Fecha_int")  # Columna con la fecha de referencia
-                            nacionalidad = regla.get("nacionalidad")  # Columna para filtrar primero por nacionalidad 
-
-                            # Verificar que las columnas necesarias estén en el DataFrame
-                            if columna in df.columns and columna_dependiente in df.columns and fecha_intervencion in df.columns:
-                                # Filtrar por nacionalidad si es que se ha especificado
-                                if nacionalidad and nacionalidad in df.columns:
-                                    df = df[df[nacionalidad] == valor_dependiente]  # Filtrar por la nacionalidad deseada
-
-                                # Convertir las columnas a datetime si no lo están
-                                df[columna_dependiente] = pd.to_datetime(df[columna_dependiente], errors='coerce')
-                                df[fecha_intervencion] = pd.to_datetime(df[fecha_intervencion], errors='coerce')
-
-                                # Calcular la edad usando la fecha de referencia
-                                df["edad_calculada"] = df.apply(
-                                    lambda row: calcular_edad(row[columna_dependiente], row[fecha_intervencion]) 
-                                    if pd.notnull(row[columna_dependiente]) and pd.notnull(row[fecha_intervencion]) else None, axis=1
-                                )
-
-                                # Identificar filas que no cumplen con la regla
-                                if "," in valor_dependiente:  # Rango de edades (e.g., "0,13")
-                                    min_edad, max_edad = map(int, valor_dependiente.split(","))
-                                    violaciones = df[
-                                        (df["edad_calculada"] >= min_edad) &
-                                        (df["edad_calculada"] <= max_edad) &
-                                        (df[columna] != valor_esperado)
-                                    ]
-                                else:  # Edad específica (e.g., "14")
-                                    edad_especifica = int(valor_dependiente)
-                                    violaciones = df[
-                                        (df["edad_calculada"] == edad_especifica) &
-                                        (df[columna] != valor_esperado)
-                                    ]
-
-                                # Marcar las celdas que no cumplen con la regla
-                                for idx in violaciones.index:
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_intervencion) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-
-                            else:
-                                # Mostrar mensaje de advertencia si las columnas no existen
-                                print(f"Advertencia: Una de las columnas especificadas no existe en el archivo Excel.")
-
-                                            
-                        elif tipo == "dependiente edad error":
-                            
-                            columna_dependiente = regla.get("columna_dependiente")  # Fecha de nacimiento
-                            valor_dependiente = regla.get("valor_dependiente" ) # Rango o edad específica
-                            valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
-                            fecha_intervencion = regla.get("Fecha_int")  # Columna con la fecha de referencia
-                        
-                            # Verificar que las columnas necesarias estén en el DataFrame
-                            if columna in df.columns and columna_dependiente in df.columns and fecha_intervencion in df.columns:
-                                # Convertir las columnas a datetime si no lo están
-                                df[columna_dependiente] = pd.to_datetime(df[columna_dependiente], errors='coerce')
-                                df[fecha_intervencion] = pd.to_datetime(df[fecha_intervencion], errors='coerce')
-
-                                # Calcular la edad usando la fecha de referencia
-                                df["edad_calculada"] = df.apply(
-                                    lambda row: calcular_edad(row[columna_dependiente], row[fecha_intervencion]) 
-                                    if pd.notnull(row[columna_dependiente]) and pd.notnull(row[fecha_intervencion]) else None, axis=1
-                                )
-
-                                # Identificar filas que no cumplen con la regla
-                                if "," in valor_dependiente:  # Rango de edades (e.g., "0,13")
-                                    min_edad, max_edad = map(int, valor_dependiente.split(","))
-                                    violaciones = df[
-                                        (df["edad_calculada"] >= min_edad) &
-                                        (df["edad_calculada"] <= max_edad) &
-                                        (df[columna] == valor_esperado)
-                                    ]
-                                else:  # Edad específica (e.g., "14")
-                                    edad_especifica = int(valor_dependiente)
-                                    violaciones = df[
-                                        (df["edad_calculada"] == edad_especifica) &
-                                        (df[columna] == valor_esperado)
-                                    ]
-
-                                # Marcar las celdas que no cumplen con la regla
-                                for idx in violaciones.index:
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_intervencion) + 1).fill = rojo_fill
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    
-                            else:
-                                # Mostrar mensaje de advertencia si las columnas no existen
-                                print(f"Advertencia: Una de las columnas especificadas no existe en el archivo Excel.")
-                                                            
-                    else: 
-                        messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
-
-                # Guardar el nuevo archivo Excel con las celdas marcadas
-                nuevo_archivo = filedialog.asksaveasfilename(
-                    title="Guardar archivo Excel con validaciones",
-                    defaultextension=".xlsx",
-                    filetypes=[("Archivos Excel", "*.xlsx")]
-                )
-
-                if nuevo_archivo:
-                    wb.save(nuevo_archivo)
-                    messagebox.showinfo("Éxito", "Se ha creado un nuevo archivo con las validaciones marcadas en rojo.")
-
-            except Exception as e:
-                messagebox.showerror("Error", f"No se pudo analizar el archivo Excel:\n{e}")
-
-
-
-
-    def calcular_edad(fecha_nacimiento, fecha_referencia):
-    
-        edad = fecha_referencia.year - fecha_nacimiento.year
-        if (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
-            edad -= 1
-            
-        return edad
-
+        analizar_excel_2(validador)
 
     # Función para eliminar un área
     def eliminar_area(area):
