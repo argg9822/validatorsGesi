@@ -69,8 +69,11 @@ try:
 
         # Variables para almacenar rutas encontradas
         index_found = False
+        reglas_found = False
+        analizar_exel_found = False
         validadores_found = False
         img_found = False
+        areas_found = False
 
         # Buscar los archivos y carpetas dentro de las carpetas extraídas
         for root, dirs, files in os.walk(temp_dir):
@@ -82,42 +85,29 @@ try:
                 print(f"Archivo {index_py_path} reemplazado en {destination_path}")
                 index_found = True
             
-            if not index_found and 'reglas.py' in files:
-                index_py_path = os.path.join(root, 'reglas.exe')
+            if not reglas_found and 'reglas.py' in files:
+                reglas_py_path = os.path.join(root, 'reglas.exe')
                 destination_path = os.path.join(current_dir, 'reglas.exe')
-                shutil.move(index_py_path, destination_path)
-                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
-                index_found = True
+                shutil.move(reglas_py_path, destination_path)
+                print(f"Archivo {reglas_py_path} reemplazado en {destination_path}")
+                reglas_found = True
                 
-            if not index_found and 'analizar_exel.py' in files:
-                index_py_path = os.path.join(root, 'analizar_exel.exe')
+            if not analizar_exel_found and 'analizar_exel.py' in files:
+                analizar_py_path = os.path.join(root, 'analizar_exel.exe')
                 destination_path = os.path.join(current_dir, 'analizar_exel.exe')
-                shutil.move(index_py_path, destination_path)
-                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
-                index_found = True
+                shutil.move(analizar_py_path, destination_path)
+                print(f"Archivo {analizar_py_path} reemplazado en {destination_path}")
+                analizar_exel_found = True
             
            
-            if not index_found and 'areas.json' in files:
-                index_py_path = os.path.join(root, 'areas.json')
+            if not areas_found and 'areas.json' in files:
+                areas_py_path = os.path.join(root, 'areas.json')
                 destination_path = os.path.join(current_dir, 'areas.json')
-                shutil.move(index_py_path, destination_path)
-                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
-                index_found = True
+                shutil.move(areas_py_path, destination_path)
+                print(f"Archivo {areas_py_path} reemplazado en {destination_path}")
+                areas_found = True
 
-            # Buscar y reemplazar la carpeta validadores
-            if not validadores_found and 'validadores' in dirs:
-                validadores_path = os.path.join(root, 'validadores')
-                destination_path = os.path.join(current_dir, 'validadores')
-
-                # Si la carpeta ya existe, eliminarla antes de reemplazarla
-                if os.path.exists(destination_path):
-                    shutil.rmtree(destination_path)
-
-                # Mover la carpeta validadores al destino
-                shutil.move(validadores_path, destination_path)
-                print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
-                validadores_found = True
-                
+                           
             # Buscar y reemplazar la carpeta validadores
             if not validadores_found and 'crear_hc' in dirs:
                 validadores_path = os.path.join(root, 'crear_hc')
@@ -147,7 +137,7 @@ try:
                 img_found = True
 
             # Detener la búsqueda si ya se encontraron index.py, validadores, y img
-            if index_found and validadores_found and img_found:
+            if index_found and validadores_found and img_found and reglas_found and analizar_exel_found and reglas_found:
                 break
 
         # Eliminar la carpeta temporal
