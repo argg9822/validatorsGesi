@@ -28,7 +28,11 @@
         {
             "nombre": "Sesiones pagina 2",
             "reglas": [
-               
+                {
+                    "columna": "nv",
+                    "tipo": "patron",
+                    "patron": "nv"
+                }
             ]
         },
         {

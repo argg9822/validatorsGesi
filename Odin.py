@@ -67,78 +67,79 @@ try:
             temp_dir = os.path.join(current_dir, "temp_extract")
             zip_ref.extractall(temp_dir)
 
+        # Identificar la carpeta raíz que contiene los archivos
+        extracted_folders = [os.path.join(temp_dir, folder) for folder in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, folder))]
+        
+        # Asumir que la carpeta raíz es la única dentro de "temp_extract"
+        if len(extracted_folders) == 1:
+            root_folder = extracted_folders[0]
+        else:
+            print("Error: Estructura del ZIP inesperada")
+            return
+
         # Variables para almacenar rutas encontradas
-        index_found = False
-        reglas_found = False
-        analizar_exel_found = False
+        
         validadores_found = False
         img_found = False
-        areas_found = False
+        necesarios = False
+        
 
-        # Buscar los archivos y carpetas dentro de las carpetas extraídas
-        for root, dirs, files in os.walk(temp_dir):
-            # Buscar y reemplazar index.py
-            if not index_found and 'index.py' in files:
-                index_py_path = os.path.join(root, 'index.py')
-                destination_path = os.path.join(current_dir, 'index.py')
-                shutil.move(index_py_path, destination_path)
-                print(f"Archivo {index_py_path} reemplazado en {destination_path}")
-                index_found = True
+        # Buscar los archivos y carpetas dentro de todas las subcarpetas de la carpeta raíz
+        for root, dirs, files in os.walk(root_folder):
             
-            if not reglas_found and 'reglas.py' in files:
-                reglas_py_path = os.path.join(root, 'reglas.exe')
-                destination_path = os.path.join(current_dir, 'reglas.exe')
-                shutil.move(reglas_py_path, destination_path)
-                print(f"Archivo {reglas_py_path} reemplazado en {destination_path}")
-                reglas_found = True
-                
-            if not analizar_exel_found and 'analizar_exel.py' in files:
-                analizar_py_path = os.path.join(root, 'analizar_exel.exe')
-                destination_path = os.path.join(current_dir, 'analizar_exel.exe')
-                shutil.move(analizar_py_path, destination_path)
-                print(f"Archivo {analizar_py_path} reemplazado en {destination_path}")
-                analizar_exel_found = True
-            
-           
-            if not areas_found and 'areas.json' in files:
-                areas_py_path = os.path.join(root, 'areas.json')
-                destination_path = os.path.join(current_dir, 'areas.json')
-                shutil.move(areas_py_path, destination_path)
-                print(f"Archivo {areas_py_path} reemplazado en {destination_path}")
-                areas_found = True
+            if not necesarios and 'crc_princ' in dirs:
+                validadores_path = os.path.join(root, 'crc_princ')
+                destination_path = os.path.join(current_dir, 'crc_princ')
 
-                           
-            # Buscar y reemplazar la carpeta validadores
+                if os.path.exists(destination_path):
+                    shutil.rmtree(destination_path)
+
+                shutil.move(validadores_path, destination_path)
+                print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
+                necesarios = True
+            
+
             if not validadores_found and 'crear_hc' in dirs:
                 validadores_path = os.path.join(root, 'crear_hc')
                 destination_path = os.path.join(current_dir, 'crear_hc')
 
-                # Si la carpeta ya existe, eliminarla antes de reemplazarla
                 if os.path.exists(destination_path):
                     shutil.rmtree(destination_path)
 
-                # Mover la carpeta validadores al destino
                 shutil.move(validadores_path, destination_path)
                 print(f"Carpeta {validadores_path} reemplazada en {destination_path}")
                 validadores_found = True
-                
-            # Buscar y reemplazar la carpeta img
+
             if not img_found and 'img' in dirs:
                 img_path = os.path.join(root, 'img')
                 destination_path = os.path.join(current_dir, 'img')
 
-                # Si la carpeta ya existe, eliminarla antes de reemplazarla
                 if os.path.exists(destination_path):
                     shutil.rmtree(destination_path)
 
-                # Mover la carpeta img al destino
                 shutil.move(img_path, destination_path)
                 print(f"Carpeta {img_path} reemplazada en {destination_path}")
                 img_found = True
 
-            # Detener la búsqueda si ya se encontraron index.py, validadores, y img
-            if index_found and validadores_found and img_found and reglas_found and analizar_exel_found and reglas_found:
+            # Si todos los archivos y carpetas se encontraron, detener la búsqueda
+            if necesarios and validadores_found and img_found :
                 break
+
+        # Verificar si faltó algún archivo o carpeta
+        missing_items = []
+        
+        
+        if not validadores_found:
+            missing_items.append("crear_hc (carpeta)")
+        if not img_found:
+            missing_items.append("img (carpeta)")
+        
+
+        if missing_items:
+            # Mostrar mensaje de error con CustomTkinter
+            mostrar_error(missing_items)
+        else:
+            print("\nTodos los elementos han sido reemplazados correctamente.")
 
         # Eliminar la carpeta temporal
         shutil.rmtree(temp_dir)
@@ -243,7 +244,22 @@ try:
         hilo_actualizacion.start()
         
         vie_actualizaion.mainloop()
-        
+    
+    def mostrar_error(missing_items):
+    # Crear una ventana emergente para mostrar el error
+        ventana_error = ctk.CTkToplevel()
+        ventana_error.title("Error")
+        ventana_error.geometry("400x300")
+
+        label = ctk.CTkLabel(ventana_error, text="No se encontraron los siguientes elementos:", font=("Arial", 14))
+        label.pack(pady=10)
+
+        for item in missing_items:
+            item_label = ctk.CTkLabel(ventana_error, text=f" - {item}", font=("Arial", 12))
+            item_label.pack()
+
+        cerrar_button = ctk.CTkButton(ventana_error, text="Cerrar", command=ventana_error.destroy)
+        cerrar_button.pack(pady=20)
 
     def main():
         actualizar_aplicacion()  # Llama a la función de actualización

@@ -32,9 +32,10 @@ from tkinter import messagebox
 from tkinter import PhotoImage
 import win32com.client as win32
 import time
+from modal_helper import mostrar_modal
 
-from reglas import crear_regla
-from analizar_exel import analizar_excel_2
+from crc_princ.reglas import crear_regla
+from crc_princ.analizar_exel import analizar_excel_2
 
 log_file = "error_log.txt"
 
@@ -193,33 +194,21 @@ try:
 
     # Función para agregar una regla a un validador
     def agregar_regla(area, validador):
-        # Crear una ventana modal
-        modal = ctk.CTkToplevel()
-        modal.title("Seleccionar Tipo de Regla")
-        modal.geometry("300x200")
-        modal.grab_set()  # Bloquea la ventana principal hasta que se cierre esta
-
+      
         tipo_regla_var = ctk.StringVar(value="longitud")  # Valor predeterminado
 
-        ctk.CTkLabel(modal, text="Seleccione el tipo de regla:").pack(pady=10)
-        tipo_regla_menu = ctk.CTkOptionMenu(
-            modal, 
-            values=["longitud", "numerico", "patron", "unico", "dependiente_positivo", "dependiente_error" ,"no_vacio", "dependiente longitud", "dependiente edad positivo", "dependiente edad error"], 
-            variable=tipo_regla_var
-        )
-        tipo_regla_menu.pack(pady=10)
+        def callback(tipo_regla):
+            """
+            Callback que se ejecuta al confirmar el tipo de regla.
 
-        def confirmar_tipo_regla():
-            tipo_regla = tipo_regla_var.get()
-            modal.destroy()  # Cerrar la ventana modal
-            
+            Args:
+                tipo_regla (str): Tipo de regla seleccionada.
+            """
             # Llamar a la función del archivo reglas.py
             crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
-            
-        # Botón para confirmar la selección
-        confirmar_btn = ctk.CTkButton(modal, text="Confirmar", command=confirmar_tipo_regla)
-        confirmar_btn.pack(pady=20)
-        modal.protocol("WM_DELETE_WINDOW", modal.destroy)  # Permite cerrar la ventana con la 'X'
+
+        # Mostrar el modal
+        mostrar_modal(tipo_regla_var, callback)
 
     # Función para editar una regla
     def editar_regla(area, validador, regla):
