@@ -32,7 +32,7 @@ from tkinter import messagebox
 from tkinter import PhotoImage
 import win32com.client as win32
 import time
-from modal_helper import mostrar_modal
+from crc_princ.modal_helper import mostrar_modal
 
 from crc_princ.reglas import crear_regla
 from crc_princ.analizar_exel import analizar_excel_2
@@ -267,7 +267,8 @@ try:
 
     def analizar_excel(validador):
         analizar_excel_2(validador)
-
+        
+    
     # Función para eliminar un área
     def eliminar_area(area):
         if messagebox.askyesno("Confirmar", f"¿Desea eliminar el área '{area}'?"):
@@ -354,7 +355,7 @@ try:
     frame_izquierdo = ctk.CTkFrame(ventana, width=200)
     frame_izquierdo.pack(side="left", fill="y", padx=10, pady=10)
 
-    frame_derecho = ctk.CTkFrame(ventana)
+    frame_derecho = ctk.CTkScrollableFrame(ventana)
     frame_derecho.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
     # Cargar las áreas y crear los botones en el panel izquierdo

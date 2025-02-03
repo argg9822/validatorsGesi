@@ -20,7 +20,7 @@ def mostrar_modal(tipo_regla_var, callback):
         values=[
             "longitud", "numerico", "patron", "unico",
             "dependiente_positivo", "dependiente_error", "no_vacio",
-            "dependiente longitud", "dependiente edad positivo", "dependiente edad error"
+            "dependiente longitud", "dependiente edad positivo", "dependiente edad error", "fechas menor/mayor que", "dependiente_Vacio"
         ],
         variable=tipo_regla_var
     )

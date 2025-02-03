@@ -55,6 +55,7 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         nueva_regla = {"columna": columna_result, "tipo": "unico"}
     
     elif tipo_regla == "dependiente_positivo":
+        
         columna = ctk.CTkInputDialog(title="Agregar Regla", text="Ingrese la columna a validar  (por ejemplo, Telefono):")
         columna_result = columna.get_input()
         if not columna_result:
@@ -71,8 +72,6 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         if not valor_dependiente_result:
             return
         
-        valor_dependiente = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente
-        
         valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: 51):")
         valor_esperado_result = valor_esperado.get_input()
         if not valor_esperado_result:
@@ -82,7 +81,7 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
             "columna": columna_result, 
             "tipo": "dependiente positivo", 
             "columna_dependiente": columna_dependiente_result, 
-            "valor_dependiente": valor_dependiente, 
+            "valor_dependiente": valor_dependiente_result, 
             "valor_esperado": valor_esperado_result
         }
         
@@ -102,8 +101,7 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         if not valor_dependiente_result:
             return
         
-        valor_dependiente_result = float(valor_dependiente_result) if valor_dependiente_result.replace('.', '', 1).isdigit() else valor_dependiente_result
-        
+       
         valor_esperado = ctk.CTkInputDialog(title="Valor Esperado", text="¿Qué valor debe tener la columna a validar si la columna dependiente tiene este valor? (ejemplo: NO APLICA):")
         valor_esperado_result = valor_esperado.get_input()
 
@@ -218,18 +216,28 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         
         nacionalidad = ctk.CTkInputDialog(
             title="Agregar Regla", 
-            text="Ingrese la nacionalidad (por ejemplo, Col):"
+            text="Ingrese el nombre de la columna de nacion  (por ejemplo, Nacionalidad):"
         )
         
         nacionalidad_resultado = nacionalidad.get_input()
         if not nacionalidad_resultado:
+            return
+        
+        nacionalidad_value = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese el nombre la nacionalidad esperada  (por ejemplo, Col):"
+        )
+        
+        nacionalidad_resultado_value = nacionalidad_value.get_input()
+        if not nacionalidad_resultado_value:
             return
             
 
         nueva_regla = {
             "columna": columna_resultado,
             "nacionalidad": nacionalidad_resultado,
-            "tipo": "dependiente edad positivo",
+            "nacionalidad_value": nacionalidad_resultado_value,
+            "tipo": "dependiente_edad_positivo",
             "Fecha_int": Columna_para_fecha_resultado,
             "columna_dependiente": columna_dependiente_resultado,
             "valor_dependiente": valor_dependiente_resultado,
@@ -287,15 +295,95 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         if not nacionalidad_resultado:
             return
         
+        
+        nacionalidad_value = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese el nombre la nacionalidad esperada  (por ejemplo, Col):"
+        )
+        
+        nacionalidad_resultado_value = nacionalidad_value.get_input()
+        if not nacionalidad_resultado_value:
+            return
+            
 
         nueva_regla = {
             "columna": columna_resultado,
             "tipo": "dependiente edad error",
             "nacionalidad": nacionalidad_resultado,
+            "nacionalidad_value": nacionalidad_resultado_value,
             "Fecha_int": Columna_para_fecha_resultado,
             "columna_dependiente": columna_dependiente_resultado,
             "valor_dependiente": valor_dependiente_resultado,
             "valor_esperado": valor_esperado_resultado
+        }
+    
+    elif tipo_regla == "fechas menor/mayor que":
+        columna = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese la columna a validar (por ejemplo, FECHA DE SESION):"
+        )
+        columna_resultado = columna.get_input()
+        if not columna_resultado:
+            return
+        
+        
+        # Crear un input de tipo select para valor_resultado
+          # Ejemplo de opciones
+        valor_select = ctk.CTkInputDialog(
+            title="Seleccionar Valor", 
+            text="Singrese si es menor o mayor (ejemplo: > , <):",
+        )
+        valor_resultado = valor_select.get_input()
+        if not valor_resultado:
+            return
+        
+        fecha_comparar = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese la columna a compartar (fecha intervencion):"
+        )
+        fecha_comparar_resultado = fecha_comparar.get_input()
+        if not fecha_comparar_resultado:
+            return
+        nueva_regla = {
+            "columna": columna_resultado,
+            "tipo": "fechas menor/mayor que",
+            "comparacion": valor_resultado,
+            "fecha_comparar": fecha_comparar_resultado
+        }
+    
+    elif tipo_regla == "dependiente_Vacio":
+        columna = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese la columna a validar (por ejemplo, ESTADO CIVIL):"
+        )
+        columna_resultado = columna.get_input()
+        if not columna_resultado:
+            return
+        
+        columna_dependiente = ctk.CTkInputDialog(
+            title="Columna Dependiente", 
+            text="¿De qué columna depende esta regla? (por ejemplo, FECHA DE NACIMIENTO):"
+        )
+        
+        
+        columna_dependiente_resultado = columna_dependiente.get_input()
+        if not columna_dependiente_resultado:   
+            return
+        
+        valor_dependiente = ctk.CTkInputDialog(
+            title="Valor Dependiente", 
+            text="Ingrese el valor para el campo se cosidera vacio (por ejemplo, sin dato):"
+        )
+        
+        valor_dependiente_resultado = valor_dependiente.get_input() 
+        if not valor_dependiente_resultado:
+            return
+             
+        nueva_regla = {
+            "columna": columna_resultado,
+            "tipo": "dependiente_vacio",
+            "columna_dependiente": columna_dependiente_resultado,
+            "valor_dependiente": valor_dependiente_resultado
         }
 
     else:

@@ -88,11 +88,6 @@
                     "valor_esperado": "COL"
                 },
                 {
-                    "columna": "NOMBRES Y APELLIDOS COMPLETOS",
-                    "tipo": "regex",
-                    "patron": "^[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+(?:\\s[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+)*$"
-                },
-                {
                     "columna": "DOCUMENTO",
                     "tipo": "dependiente longitud",
                     "columna_dependiente": "TIPO DOCUMENTO",
@@ -114,6 +109,147 @@
                     "columna_dependiente": "FECHA DE NACIMIENTO",
                     "valor_dependiente": "14,100",
                     "valor_esperado": "6- No aplica"
+                },
+                {
+                    "columna": "NOMBRES Y APELLIDOS COMPLETOS",
+                    "tipo": "patron",
+                    "patron": "^[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+(?:\\s[A-Z\u00d1\u00c1\u00c9\u00cd\u00d3\u00da]+)*$"
+                }
+            ]
+        },
+        {
+            "nombre": "Gestion del riesgo salud mental",
+            "reglas": [
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "nacionalidad": "NACIONALIDAD",
+                    "nacionalidad_value": "50",
+                    "tipo": "dependiente_edad_positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "0,6",
+                    "valor_esperado": "2- RC"
+                },
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "nacionalidad": "NACIONALIDAD",
+                    "nacionalidad_value": "50",
+                    "tipo": "dependiente_edad_positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "7,17",
+                    "valor_esperado": "3- TI"
+                },
+                {
+                    "columna": "TIPO DE DOCUMENTO",
+                    "nacionalidad": "NACIONALIDAD",
+                    "nacionalidad_value": "50",
+                    "tipo": "dependiente_edad_positivo",
+                    "Fecha_int": "Fecha_intervencion",
+                    "columna_dependiente": "FECHA DE NACIMIENTO",
+                    "valor_dependiente": "18,500",
+                    "valor_esperado": "1- CC"
+                },
+                {
+                    "columna": "1ER. NOMBRE",
+                    "tipo": "patron",
+                    "patron": "^[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1]+$"
+                },
+                {
+                    "columna": "2DO. NOMBRE",
+                    "tipo": "patron",
+                    "patron": "^$|^[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1]+$"
+                },
+                {
+                    "columna": "1ER. APELLIDO",
+                    "tipo": "patron",
+                    "patron": "^[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1]+$"
+                },
+                {
+                    "columna": "2DO. APELLIDO",
+                    "tipo": "patron",
+                    "patron": "^$|^[A-Z\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1]+$"
+                },
+                {
+                    "columna": "N\u00b0 DOCUMENTO",
+                    "tipo": "dependiente longitud",
+                    "columna_dependiente": "TIPO DE DOCUMENTO",
+                    "valor_dependiente": "1- CC",
+                    "valor_esperado": "<= 10"
+                },
+                {
+                    "columna": "N\u00b0 DOCUMENTO",
+                    "tipo": "dependiente longitud",
+                    "columna_dependiente": "TIPO DE DOCUMENTO",
+                    "valor_dependiente": "3- TI",
+                    "valor_esperado": "<= 10"
+                },
+                {
+                    "columna": "N\u00b0 DOCUMENTO",
+                    "tipo": "dependiente longitud",
+                    "columna_dependiente": "TIPO DE DOCUMENTO",
+                    "valor_dependiente": "2- RC",
+                    "valor_esperado": "<= 10"
+                },
+                {
+                    "columna": "SEXO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "GENERO",
+                    "valor_dependiente": "2- Mujer",
+                    "valor_esperado": "2- Femenino"
+                },
+                {
+                    "columna": "SEXO",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "GENERO",
+                    "valor_dependiente": "1- Hombre",
+                    "valor_esperado": "1- Masculino"
+                },
+                {
+                    "columna": "ETAPA GESTACI\u00d3N",
+                    "tipo": "dependiente positivo",
+                    "columna_dependiente": "SEXO",
+                    "valor_dependiente": "1- Hombre",
+                    "valor_esperado": "5- No aplica"
+                },
+                {
+                    "columna": "ETAPA GESTACI\u00d3N",
+                    "tipo": "patron",
+                    "patron": "^(?!\\s*$).+"
+                },
+                {
+                    "columna": "N\u00daMERO",
+                    "tipo": "numerico",
+                    "condicion": "220"
+                },
+                {
+                    "columna": "TEL\u00c9FONO 1",
+                    "tipo": "longitud",
+                    "condicion": "<= 10"
+                },
+                {
+                    "columna": "FECHA SESI\u00d3N 1",
+                    "tipo": "fechas menor/mayor que",
+                    "comparacion": "<",
+                    "fecha_comparar": "Fecha_intervencion"
+                },
+                {
+                    "columna": "FECHA SESI\u00d3N 2",
+                    "tipo": "fechas menor/mayor que",
+                    "comparacion": "<",
+                    "fecha_comparar": "FECHA SESI\u00d3N 1"
+                },
+                {
+                    "columna": "FECHA SESI\u00d3N 3",
+                    "tipo": "fechas menor/mayor que",
+                    "comparacion": "<",
+                    "fecha_comparar": "FECHA SESI\u00d3N 2"
+                },
+                {
+                    "columna": "FECHA SESI\u00d3N 4",
+                    "tipo": "fechas menor/mayor que",
+                    "comparacion": "<",
+                    "fecha_comparar": "FECHA SESI\u00d3N 3"
                 }
             ]
         }

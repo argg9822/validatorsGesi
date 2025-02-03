@@ -5,7 +5,7 @@ a = Analysis(
     ['index.py'],
     pathex=[],
     binaries=[],
-    datas=[('img', 'img'), ('areas.json', '.'), ('bases.json', '.'), ('crear_hc', 'crear_hc'), ('validadores', 'validadores'), ('version.txt', '.'), ('index.py', '.'), ('analizar_exel.py', '.'), ('reglas.py', '.'), ('error_log.txt', '.'), ('__version__.py', '.')],
+    datas=[('img', 'img'), ('areas.json', '.'), ('bases.json', '.'), ('crear_hc', 'crear_hc'), ('crc_princ', 'crc_princ'), ('validadores', 'validadores'), ('version.txt', '.'), ('index.py', '.'), ('error_log.txt', '.'), ('__version__.py', '.')],
     hiddenimports=['pkg_resources', 'pkg_resources.py2_warn', 'pkg_resources.extern'],
     hookspath=[],
     hooksconfig={},

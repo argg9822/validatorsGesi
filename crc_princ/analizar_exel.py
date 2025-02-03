@@ -30,6 +30,7 @@ def analizar_excel_2(validador):
                 if columna in df.columns:
                     col_idx = df.columns.get_loc(columna) + 1  # Obtener el índice de la columna en openpyxl (1-based)
                     
+
                     if tipo == "longitud":
                         max_longitud = int(regla["condicion"].split("<= ")[1])
                         violaciones = df[columna][df[columna].astype(str).str.len() > max_longitud]
@@ -37,6 +38,7 @@ def analizar_excel_2(validador):
                             # Marcar en rojo las celdas que violan la regla de longitud
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                        ws.auto_filter.ref = None
                             
 
                     elif tipo == "numerico":
@@ -57,6 +59,7 @@ def analizar_excel_2(validador):
                             for idx in violaciones.index:
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                            ws.auto_filter.ref = None
                                 
 
                         except ValueError:
@@ -64,6 +67,7 @@ def analizar_excel_2(validador):
 
                     elif tipo == "patron":
                         patron = regla["patron"]
+                        df_original = df.copy()
                         # Normalizar los datos
                         df[columna] = df[columna].astype(str).str.strip()
                         
@@ -73,6 +77,8 @@ def analizar_excel_2(validador):
                         for idx in violaciones.index:
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                        df = df_original.copy()
+                        ws.auto_filter.ref = None
                             
 
                     elif tipo == "unico":
@@ -80,6 +86,7 @@ def analizar_excel_2(validador):
                         for idx in duplicados.index:
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                        ws.auto_filter.ref = None
                             # Marcar en rojo
 
                     elif tipo == "dependiente positivo":
@@ -88,7 +95,7 @@ def analizar_excel_2(validador):
                         valor_esperado = regla.get("valor_esperado")
                         columna_dependiente1 = regla.get("columna_dependiente")
                         idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
+                        df_original = df.copy()
                         if columna_dependiente in df.columns:
                             # Filtrar las filas donde la columna dependiente tenga el valor esperado
                             filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
@@ -102,33 +109,27 @@ def analizar_excel_2(validador):
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  
                                 ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
+                            df = df_original.copy()
+                            ws.auto_filter.ref = None
                                 
-                                
+   
+     
                         else:
                             messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
                             
                     elif tipo == "no_vacio":
                         columnas = regla.get("columnas")
-                        print("Columnas a verificar:", columnas)  # Imprimir para verificar las columnas
-
+                       
                         # Asegúrate de que 'columna' sea una lista
                         if isinstance(columnas, str):  # Si 'columna' es una cadena en lugar de lista
                             columnas = [columnas]  # Convertirla en una lista
                         
-                        for columna in columnas:
-                            if columna in df.columns:
-                                col_idx = df.columns.get_loc(columna) + 1  # Obtener el índice de la columna en openpyxl (1-based)
-                                print(f"Índice de columna '{columna}': {col_idx}")
-                                # Filtrar las filas que tienen valores vacíos en la columna
-                                violaciones = df[df[columna].isnull() | (df[columna] == "")]
-                                print(f"Violaciones encontradas en columna '{columna}': {violaciones.index.tolist()}")
-                                for idx in violaciones.index:
-                                    print(f"Marcando fila {idx} en columna {columna}")  # Imprimir para depurar
-                                    # Marcar en rojo las celdas que tienen valores vacíos en la columna principal
-                                    ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-                                    ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo otra celda relacionada, si es necesario
-                            else:
-                                messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
+                        for col_idx, columna in enumerate(columnas, start=1):  # Enumerar las columnas con índice
+                            if not columna.strip():  # Verifica si está vacía o contiene solo espacios
+                                ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
+                                ws.cell(row=idx + 2, column=2).fill = rojo_fill
+                            ws.auto_filter.ref = None
+                                
 
                     elif tipo == "dependiente_error":
                     
@@ -137,7 +138,7 @@ def analizar_excel_2(validador):
                         valor_esperado = regla.get("valor_esperado")
                         columna_dependiente1 = regla.get("columna_dependiente")
                         idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
+                        df_original = df.copy()
                         if columna_dependiente in df.columns:
                             # Filtrar las filas donde la columna dependiente tenga el valor esperado
                             filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
@@ -151,6 +152,8 @@ def analizar_excel_2(validador):
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
+                            df = df_original.copy()
+                            ws.auto_filter.ref = None
                                 
                             
                                 
@@ -164,7 +167,7 @@ def analizar_excel_2(validador):
                         valor_esperado = regla.get("valor_esperado")
                         columna_dependiente1 = regla.get("columna_dependiente")
                         idx_dependiente1 = df.columns.get_loc(columna_dependiente1) + 1
-
+                        df_original = df.copy()
                         if columna_dependiente in df.columns:
                             # Filtrar las filas donde la columna dependiente tenga el valor esperado
                             filas_dependientes = df[df[columna_dependiente] == valor_dependiente]
@@ -178,33 +181,49 @@ def analizar_excel_2(validador):
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
-    
+                            df = df_original.copy()
+                            ws.auto_filter.ref = None
+
                         else:
                             messagebox.showinfo("Advertencia", f"Columna dependiente '{columna_dependiente}' no encontrada en el archivo Excel.")
                             
-                    elif tipo == "dependiente edad positivo":
+                    elif tipo == "dependiente_edad_positivo":
                         columna_dependiente = regla.get("columna_dependiente")  # Fecha de nacimiento
                         valor_dependiente = regla.get("valor_dependiente")  # Rango o edad específica
                         valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
                         fecha_intervencion = regla.get("Fecha_int")  # Columna con la fecha de referencia
-                        nacionalidad = regla.get("nacionalidad")  # Columna para filtrar primero por nacionalidad 
-
+                        nacionalidad = regla.get("nacionalidad") 
+                        valor_esperado_nacionalidad = regla.get("nacionalidad_value")# Columna para filtrar primero por nacionalidad dato puede ser "Colombia" o 50
+                        
+                        df_original = df.copy()
                         # Verificar que las columnas necesarias estén en el DataFrame
                         if columna in df.columns and columna_dependiente in df.columns and fecha_intervencion in df.columns:
+                            
+                            
                             # Filtrar por nacionalidad si es que se ha especificado
                             if nacionalidad and nacionalidad in df.columns:
-                                df = df[df[nacionalidad] == valor_dependiente]  # Filtrar por la nacionalidad deseada
+                                df[nacionalidad] = df[nacionalidad].astype(str)  # Convertir la columna a texto
+                                valor_esperado_nacionalidad = str(valor_esperado_nacionalidad)  # Convertir el valor esperado a texto
 
+                                # Filtrar los datos
+                                df = df[df[nacionalidad] == valor_esperado_nacionalidad] # Filtrar por la nacionalidad deseada
+
+                        
                             # Convertir las columnas a datetime si no lo están
                             df[columna_dependiente] = pd.to_datetime(df[columna_dependiente], errors='coerce')
                             df[fecha_intervencion] = pd.to_datetime(df[fecha_intervencion], errors='coerce')
 
-                            # Calcular la edad usando la fecha de referencia
-                            df["edad_calculada"] = df.apply(
-                                lambda row: calcular_edad(row[columna_dependiente], row[fecha_intervencion]) 
-                                if pd.notnull(row[columna_dependiente]) and pd.notnull(row[fecha_intervencion]) else None, axis=1
-                            )
-
+                         
+                            if columna_dependiente in df.columns and fecha_intervencion in df.columns:
+                                df["edad_calculada"] = df.apply(
+                                    lambda row: calcular_edad(row[columna_dependiente], row[fecha_intervencion]) 
+                                    if pd.notnull(row[columna_dependiente]) and pd.notnull(row[fecha_intervencion]) else None, axis=1
+                                )
+                            else:
+                                print("Una de las columnas no existe en el DataFrame.")
+                            
+                        
+                            
                             # Identificar filas que no cumplen con la regla
                             if "," in valor_dependiente:  # Rango de edades (e.g., "0,13")
                                 min_edad, max_edad = map(int, valor_dependiente.split(","))
@@ -226,7 +245,9 @@ def analizar_excel_2(validador):
                                 ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_intervencion) + 1).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
-
+                            df = df_original.copy()
+                            ws.auto_filter.ref = None
+                            
                         else:
                             # Mostrar mensaje de advertencia si las columnas no existen
                             print(f"Advertencia: Una de las columnas especificadas no existe en el archivo Excel.")
@@ -238,7 +259,7 @@ def analizar_excel_2(validador):
                         valor_dependiente = regla.get("valor_dependiente" ) # Rango o edad específica
                         valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
                         fecha_intervencion = regla.get("Fecha_int")  # Columna con la fecha de referencia
-                    
+                        df_original = df.copy()
                         # Verificar que las columnas necesarias estén en el DataFrame
                         if columna in df.columns and columna_dependiente in df.columns and fecha_intervencion in df.columns:
                             # Convertir las columnas a datetime si no lo están
@@ -272,11 +293,64 @@ def analizar_excel_2(validador):
                                 ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_intervencion) + 1).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                            
+                            df = df_original.copy()
+                            ws.auto_filter.ref = None
+                            
                                 
                         else:
                             # Mostrar mensaje de advertencia si las columnas no existen
                             print(f"Advertencia: Una de las columnas especificadas no existe en el archivo Excel.")
-                                                        
+                            
+                    elif tipo == "fechas menor/mayor que":
+                        # Fecha con la que se compara
+                        fecha_comparar = regla.get("fecha_comparar")
+                        comparacion = regla.get("comparacion")
+                        
+                        # Asegurarse de que las columnas son tipo datetime
+                        df[columna] = pd.to_datetime(df[columna], errors="coerce")
+                        df[fecha_comparar] = pd.to_datetime(df[fecha_comparar], errors="coerce")
+
+                        # Eliminar filas con valores vacíos o NaT en las columnas relevantes
+                        df = df.dropna(subset=[columna])
+
+                        # Aplicar la comparación según el operador
+                        if comparacion == ">":
+                            violaciones = df[df[columna] > df[fecha_comparar]]
+                        elif comparacion == "<":
+                            violaciones = df[df[columna] < df[fecha_comparar]]
+                        else:
+                            raise ValueError("Tipo de comparación no válido. Use '>' o '<'.")
+
+                        # Resaltar en rojo las violaciones en el archivo Excel
+                        for idx in violaciones.index:
+                            # Colorear las celdas de las columnas involucradas
+                            ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
+                            ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_comparar) + 1).fill = rojo_fill
+                            ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en columna fija (columna 2)
+                        ws.auto_filter.ref = None
+
+                    elif tipo == "dependiente_vacio" :
+                        
+                        patron = "^.+$"
+                        columna_dependiente = regla.get("columna_dependiente")
+                        valor_dependiente = regla.get("valor_dependiente")
+                        
+                         # Filtrar el DataFrame para las filas donde columna_dependiente coincide con valor_dependiente
+                        df_filtrado = df[df[columna_dependiente] == valor_dependiente]
+
+                        # Verificar violaciones al patrón (celdas vacías o que no cumplen con el patrón)
+                        violaciones = df_filtrado[~df_filtrado[columna].astype(str).str.fullmatch(patron, na=False)]
+
+                        # Iterar sobre las filas con violaciones
+                        for idx in violaciones.index:
+                            # Colorear las celdas de las columnas involucradas
+                            ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill  # Columna verificada
+                            ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill  # Columna dependiente
+                            ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar columna fija (columna 2)
+                        df = df_original.copy()  
+                        ws.auto_filter.ref = None
+                        
                 else: 
                     messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
 
@@ -296,9 +370,10 @@ def analizar_excel_2(validador):
 
 
 def calcular_edad(fecha_nacimiento, fecha_referencia):
+    
 
-    edad = fecha_referencia.year - fecha_nacimiento.year
-    if (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
-        edad -= 1
-        
-    return edad
+        edad = fecha_referencia.year - fecha_nacimiento.year
+        if (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+            edad -= 1
+
+        return edad
