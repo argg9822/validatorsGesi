@@ -19,16 +19,26 @@ from tkinter import filedialog
 import tkinter as tk
 from tkinter import messagebox
 
+nombres = None  # Variable global para almacenar la hoja de Excel
 
 def seleccionar_archivo():
-    # Abre un cuadro de diálogo para seleccionar un archivo
+    global nombres  # Indica que vamos a usar la variable global
     archivo = filedialog.askopenfilename(
         title="Seleccionar archivo de Excel",
         filetypes=[("Archivos de Excel", "*.xlsx;*.xls")]
     )
-    return archivo
+    
+    if archivo:  # Verifica si se seleccionó un archivo
+        wb = load_workbook(archivo)
+        hojas = wb.sheetnames  # Cambia a sheetnames en lugar de get_sheet_names
+        print(hojas)
+        nombres = wb['Hoja1']  # Cambia a wb['Hoja1'] en lugar de get_sheet_by_name
+        wb.close()
+    else:
+        print("No se seleccionó ningún archivo.")
 
 def usuario_login(driver):
+    seleccionar_archivo()
     dialog = customtkinter.CTkToplevel()
     dialog.title("Datos de Usuario")
     dialog.transient()
@@ -105,19 +115,6 @@ def capchacompletado(driver, dialog):
     next(driver)
     
 def hc_crear():
-    
-    # Llama a la función para seleccionar el archivo
-    filesheet = seleccionar_archivo()
-    
-    if not filesheet:  # Verifica si se seleccionó un archivo
-        print("No se seleccionó ningún archivo.")
-        return
-    
-    wb = load_workbook(filesheet)
-    hojas = wb.sheetnames  # Cambia a sheetnames en lugar de get_sheet_names
-    print(hojas)
-    nombres = wb['Hoja1']  # Cambia a wb['Hoja1'] en lugar de get_sheet_by_name
-    wb.close()
 
     driver = webdriver.Edge()
     driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
