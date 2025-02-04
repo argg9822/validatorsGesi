@@ -43,10 +43,10 @@ def analizar_excel_2(validador):
 
                     elif tipo == "numerico":
                         try:
+                            df_original = df.copy()
                             operador, valor = regla["condicion"].split(" ")
                             valor = int(valor)
-                            print(operador)
-                            print(valor)
+                            
                             
                             # Convertir la columna a numérico, forzando errores a NaN
                             df[columna] = pd.to_numeric(df[columna], errors='coerce')
@@ -59,6 +59,8 @@ def analizar_excel_2(validador):
                             for idx in violaciones.index:
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                                
+                            df = df_original.copy()
                             ws.auto_filter.ref = None
                                 
 
@@ -306,7 +308,7 @@ def analizar_excel_2(validador):
                         # Fecha con la que se compara
                         fecha_comparar = regla.get("fecha_comparar")
                         comparacion = regla.get("comparacion")
-                        
+                        df_original = df.copy()
                         # Asegurarse de que las columnas son tipo datetime
                         df[columna] = pd.to_datetime(df[columna], errors="coerce")
                         df[fecha_comparar] = pd.to_datetime(df[fecha_comparar], errors="coerce")
@@ -328,19 +330,21 @@ def analizar_excel_2(validador):
                             ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
                             ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_comparar) + 1).fill = rojo_fill
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en columna fija (columna 2)
+                        df = df_original.copy()  
                         ws.auto_filter.ref = None
 
-                    elif tipo == "dependiente_vacio" :
-                        
-                        patron = "^.+$"
+                    elif tipo == "dependiente_vacio":
+                        # Cambiar el patrón para filtrar celdas que no están vacías y no contienen solo espacios
+                        patron = r"^\S+$"  # Esta expresión regular asegura que la celda no esté vacía y no contenga solo espacios
                         columna_dependiente = regla.get("columna_dependiente")
                         valor_dependiente = regla.get("valor_dependiente")
+                        df_original = df.copy()
                         
-                         # Filtrar el DataFrame para las filas donde columna_dependiente coincide con valor_dependiente
+                        # Filtrar el DataFrame para las filas donde columna_dependiente coincide con valor_dependiente
                         df_filtrado = df[df[columna_dependiente] == valor_dependiente]
 
-                        # Verificar violaciones al patrón (celdas vacías o que no cumplen con el patrón)
-                        violaciones = df_filtrado[~df_filtrado[columna].astype(str).str.fullmatch(patron, na=False)]
+                        ## Filtrar las filas que no cumplen con el patrón
+                        violaciones = df_filtrado[df_filtrado[columna].str.fullmatch(patron) == False]
 
                         # Iterar sobre las filas con violaciones
                         for idx in violaciones.index:
@@ -348,9 +352,9 @@ def analizar_excel_2(validador):
                             ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill  # Columna verificada
                             ws.cell(row=idx + 2, column=df.columns.get_loc(columna_dependiente) + 1).fill = rojo_fill  # Columna dependiente
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar columna fija (columna 2)
+                        
                         df = df_original.copy()  
                         ws.auto_filter.ref = None
-                        
                 else: 
                     messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
 

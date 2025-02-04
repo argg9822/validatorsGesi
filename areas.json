@@ -218,9 +218,9 @@
                     "patron": "^(?!\\s*$).+"
                 },
                 {
-                    "columna": "N\u00daMERO",
+                    "columna": "N\u00daMERO1",
                     "tipo": "numerico",
-                    "condicion": "220"
+                    "condicion": "mayor 220"
                 },
                 {
                     "columna": "TEL\u00c9FONO 1",
@@ -250,6 +250,22 @@
                     "tipo": "fechas menor/mayor que",
                     "comparacion": "<",
                     "fecha_comparar": "FECHA SESI\u00d3N 3"
+                },
+                {
+                    "columna": "N\u00daMERO2S",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "N\u00daMERO3",
+                    "tipo": "numerico",
+                    "condicion": "mayor 220"
+                },
+                {
+                    "columna": "PROCESO DE ACTIVACION DE RUTA",
+                    "tipo": "dependiente_vacio",
+                    "columna_dependiente": "ACTIVACION DE RUTA",
+                    "valor_dependiente": "SI"
                 }
             ]
         }
