@@ -32,12 +32,14 @@ def analizar_excel_2(validador):
                     
 
                     if tipo == "longitud":
+                        df_original = df.copy()
                         max_longitud = int(regla["condicion"].split("<= ")[1])
                         violaciones = df[columna][df[columna].astype(str).str.len() > max_longitud]
                         for idx in violaciones.index:
                             # Marcar en rojo las celdas que violan la regla de longitud
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                        df = df_original.copy()
                         ws.auto_filter.ref = None
                             
 
@@ -46,8 +48,6 @@ def analizar_excel_2(validador):
                             df_original = df.copy()
                             operador, valor = regla["condicion"].split(" ")
                             valor = int(valor)
-                            
-                            
                             # Convertir la columna a numérico, forzando errores a NaN
                             df[columna] = pd.to_numeric(df[columna], errors='coerce')
                             
@@ -84,11 +84,14 @@ def analizar_excel_2(validador):
                             
 
                     elif tipo == "unico":
+                        df_original = df.copy()
                         duplicados = df[columna][df[columna].duplicated()]
                         for idx in duplicados.index:
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
+                        df = df_original.copy()
                         ws.auto_filter.ref = None
+                        
                             # Marcar en rojo
 
                     elif tipo == "dependiente positivo":
@@ -121,7 +124,7 @@ def analizar_excel_2(validador):
                             
                     elif tipo == "no_vacio":
                         columnas = regla.get("columnas")
-                       
+                        df_original = df.copy()
                         # Asegúrate de que 'columna' sea una lista
                         if isinstance(columnas, str):  # Si 'columna' es una cadena en lugar de lista
                             columnas = [columnas]  # Convertirla en una lista
@@ -130,7 +133,9 @@ def analizar_excel_2(validador):
                             if not columna.strip():  # Verifica si está vacía o contiene solo espacios
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill
-                            ws.auto_filter.ref = None
+                        df = df_original.copy()
+                        ws.auto_filter.ref = None
+                        
                                 
 
                     elif tipo == "dependiente_error":
@@ -315,7 +320,7 @@ def analizar_excel_2(validador):
                         df[fecha_comparar] = pd.to_datetime(df[fecha_comparar], errors="coerce")
 
                         # Eliminar filas con valores vacíos o NaT en las columnas relevantes
-                        # df = df.dropna(subset=[columna])
+                        df = df.dropna(subset=[columna])
 
                         # Aplicar la comparación según el operador
                         if comparacion == ">":
