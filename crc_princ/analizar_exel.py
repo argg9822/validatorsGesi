@@ -306,15 +306,16 @@ def analizar_excel_2(validador):
                             
                     elif tipo == "fechas menor/mayor que":
                         # Fecha con la que se compara
+                        df_original = df.copy()
+                        
                         fecha_comparar = regla.get("fecha_comparar")
                         comparacion = regla.get("comparacion")
-                        df_original = df.copy()
                         # Asegurarse de que las columnas son tipo datetime
                         df[columna] = pd.to_datetime(df[columna], errors="coerce")
                         df[fecha_comparar] = pd.to_datetime(df[fecha_comparar], errors="coerce")
 
                         # Eliminar filas con valores vacíos o NaT en las columnas relevantes
-                        df = df.dropna(subset=[columna])
+                        # df = df.dropna(subset=[columna])
 
                         # Aplicar la comparación según el operador
                         if comparacion == ">":
@@ -330,6 +331,7 @@ def analizar_excel_2(validador):
                             ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
                             ws.cell(row=idx + 2, column=df.columns.get_loc(fecha_comparar) + 1).fill = rojo_fill
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en columna fija (columna 2)
+                            
                         df = df_original.copy()  
                         ws.auto_filter.ref = None
 
