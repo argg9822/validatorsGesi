@@ -36,9 +36,10 @@ def seleccionar_archivo():
         wb.close()
     else:
         print("No se seleccionó ningún archivo.")
+        
 
 def usuario_login(driver):
-    seleccionar_archivo()
+    
     dialog = customtkinter.CTkToplevel()
     dialog.title("Datos de Usuario")
     dialog.transient()
@@ -115,7 +116,7 @@ def capchacompletado(driver, dialog):
     next(driver)
     
 def hc_crear():
-
+    seleccionar_archivo()
     driver = webdriver.Edge()
     driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
     time.sleep(2)
