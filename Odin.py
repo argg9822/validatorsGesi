@@ -9,18 +9,14 @@ import shutil
 import tkinter as tk
 import customtkinter as ctk
 import threading
+from index import index_open
 
 try:
-
     VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
-
     def open_main_window(splash_root):
         splash_root.destroy()  # Cierra la pantalla de inicio
         # Ruta al ejecutable `index.exe`
-        script_path = os.path.join(os.path.dirname(sys.executable), "index.exe")
-        
-        # Ejecuta el ejecutable de forma independiente
-        os.system(f'"{script_path}"')
+        index_open()
 
     def center_window(window, width, height):
         screen_width = window.winfo_screenwidth()
@@ -82,6 +78,7 @@ try:
         validadores_found = False
         img_found = False
         necesarios = False
+        index_found = False
         
 
         # Buscar los archivos y carpetas dentro de todas las subcarpetas de la carpeta raíz
@@ -120,9 +117,21 @@ try:
                 shutil.move(img_path, destination_path)
                 print(f"Carpeta {img_path} reemplazada en {destination_path}")
                 img_found = True
+            
+            if not index_found and 'index.py' in files:
+                index_path = os.path.join(root, 'index.py')
+                destination_path = os.path.join(current_dir, 'index.py')
 
+                if os.path.exists(destination_path):
+                    os.remove(destination_path)  # Eliminar el archivo existente
+                    print(f"Archivo {destination_path} eliminado.")
+
+                shutil.move(index_path, destination_path)
+                print(f"Archivo {index_path} reemplazado en {destination_path}")
+                index_found = True
+        
             # Si todos los archivos y carpetas se encontraron, detener la búsqueda
-            if necesarios and validadores_found and img_found :
+            if necesarios and validadores_found and img_found and index_found :
                 break
 
         # Verificar si faltó algún archivo o carpeta
