@@ -14,18 +14,19 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from tkinter import filedialog
 
 import tkinter as tk
 from tkinter import messagebox
 
 
-filesheet = "crear_hc/crearIndividualfinal.xlsx"
-wb = load_workbook(filesheet)
-hojas = wb.get_sheet_names()
-print(hojas)
-nombres = wb.get_sheet_by_name('Hoja1')
-wb.close()
+def seleccionar_archivo():
+    # Abre un cuadro de diálogo para seleccionar un archivo
+    archivo = filedialog.askopenfilename(
+        title="Seleccionar archivo de Excel",
+        filetypes=[("Archivos de Excel", "*.xlsx;*.xls")]
+    )
+    return archivo
 
 def usuario_login(driver):
     dialog = customtkinter.CTkToplevel()
@@ -104,6 +105,19 @@ def capchacompletado(driver, dialog):
     next(driver)
     
 def hc_crear():
+    
+    # Llama a la función para seleccionar el archivo
+    filesheet = seleccionar_archivo()
+    
+    if not filesheet:  # Verifica si se seleccionó un archivo
+        print("No se seleccionó ningún archivo.")
+        return
+    
+    wb = load_workbook(filesheet)
+    hojas = wb.sheetnames  # Cambia a sheetnames en lugar de get_sheet_names
+    print(hojas)
+    nombres = wb['Hoja1']  # Cambia a wb['Hoja1'] en lugar de get_sheet_by_name
+    wb.close()
 
     driver = webdriver.Edge()
     driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
