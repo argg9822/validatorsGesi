@@ -35,7 +35,19 @@ from crc_princ.modal_helper import mostrar_modal
 
 from crc_princ.reglas import crear_regla
 from crc_princ.analizar_exel import analizar_excel_2
+import sys
+import tkinter as tk
+import customtkinter as ctk
+import io
+class RedirectText(io.StringIO):
+    def __init__(self, text_widget):
+        super().__init__()
+        self.text_widget = text_widget
 
+    def write(self, string):
+        self.text_widget.insert(tk.END, string)  # Insertar el texto
+        self.text_widget.see(tk.END)  # Desplazar hacia abajo para mostrar siempre el texto más reciente
+        self.text_widget.update()  # Actualizar el widget para mostrar los cambios de inmediato
 
 
 def index_open():
@@ -285,7 +297,7 @@ def index_open():
 
 
         def crearhc():
-            #print('crear fichas hc')
+            print('crear fichas hc')
             crear.hc_crear()
 
                 
@@ -320,12 +332,27 @@ def index_open():
         menu_bar.add_cascade(label="Crear Hc", menu=crear_hc_menu)
 
         # Crear dos paneles: izquierdo y derecho
+        # Crear dos paneles: izquierdo y derecho
         frame_izquierdo = ctk.CTkFrame(ventana, width=200)
         frame_izquierdo.pack(side="left", fill="y", padx=10, pady=10)
 
+        # Cambiar el empaquetado de frame_derecho para que ocupe solo el espacio necesario
         frame_derecho = ctk.CTkScrollableFrame(ventana)
-        frame_derecho.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        frame_derecho.pack(side="top", fill="both", expand=True, padx=10, pady=10)  # Cambiar a "top"
 
+        # Crear el widget de texto para la consola
+        # Crear widget de texto para la consola con fondo negro y texto blanco
+        console_frame = ctk.CTkFrame(ventana)
+        console_frame.pack(side="top", fill="x", padx=10, pady=10)
+
+        console_text = tk.Text(console_frame, height=10, wrap=tk.WORD, bg="black", fg="white")
+        console_text.pack(fill="both", expand=True)
+
+        # Redirigir stdout a la consola
+        sys.stdout = RedirectText(console_text)
+
+        # Ejemplo de uso de print
+        print("Odin:")
         # Cargar las áreas y crear los botones en el panel izquierdo
         areas = cargar_areas()
         actualizar_botones_areas()
@@ -338,3 +365,4 @@ def index_open():
             f.write(str(e))
             f.write(traceback.format_exc())
         
+index_open()

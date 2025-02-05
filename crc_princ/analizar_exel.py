@@ -5,6 +5,7 @@ from tkinter import filedialog, messagebox
 from datetime import datetime
 
 def analizar_excel_2(validador):
+    print("Realizando validación de datos por favor espere...")
     archivo_excel = filedialog.askopenfilename(
             title="Seleccionar archivo Excel",
             filetypes=[("Archivos Excel", "*.xlsx *.xls")]
@@ -36,7 +37,7 @@ def analizar_excel_2(validador):
                         max_longitud = int(regla["condicion"].split("<= ")[1])
                         violaciones = df[columna][df[columna].astype(str).str.len() > max_longitud]
                         for idx in violaciones.index:
-                            # Marcar en rojo las celdas que violan la regla de longitud
+                            print("Errores longitud")
                             ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  # +2 por el encabezado
                             ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                         df = df_original.copy()
@@ -68,6 +69,8 @@ def analizar_excel_2(validador):
                             pass
 
                     elif tipo == "patron":
+                        print("Validando Patrones")
+                        
                         patron = regla["patron"]
                         df_original = df.copy()
                         # Normalizar los datos
@@ -84,6 +87,8 @@ def analizar_excel_2(validador):
                             
 
                     elif tipo == "unico":
+                        print("Validando valores Unicos")
+                        
                         df_original = df.copy()
                         duplicados = df[columna][df[columna].duplicated()]
                         for idx in duplicados.index:
@@ -95,6 +100,7 @@ def analizar_excel_2(validador):
                             # Marcar en rojo
 
                     elif tipo == "dependiente positivo":
+                        print("Validando valores Dependientes")
                         columna_dependiente = regla.get("columna_dependiente")
                         valor_dependiente = regla.get("valor_dependiente")
                         valor_esperado = regla.get("valor_esperado")
@@ -110,10 +116,11 @@ def analizar_excel_2(validador):
 
                             # Solo marcar en rojo las filas que no cumplen con la condición
                             for idx in violaciones.index:
-                                # Marcar en rojo las celdas que no cumplen la condición (solo las filas con violaciones)
+                                print(idx) # Marcar en rojo las celdas que no cumplen la condición (solo las filas con violaciones)
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  
                                 ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
+                                
                             df = df_original.copy()
                             ws.auto_filter.ref = None
                                 
@@ -261,7 +268,7 @@ def analizar_excel_2(validador):
 
                                         
                     elif tipo == "dependiente edad error":
-                        
+                        print("validando edades errores")
                         columna_dependiente = regla.get("columna_dependiente")  # Fecha de nacimiento
                         valor_dependiente = regla.get("valor_dependiente" ) # Rango o edad específica
                         valor_esperado = regla.get("valor_esperado")  # Valor esperado en la columna principal
@@ -374,6 +381,8 @@ def analizar_excel_2(validador):
 
             if nuevo_archivo:
                 wb.save(nuevo_archivo)
+                print("Finalizado")
+                
                 messagebox.showinfo("Éxito", "Se ha creado un nuevo archivo con las validaciones marcadas en rojo.")
 
         except Exception as e:
@@ -386,5 +395,5 @@ def calcular_edad(fecha_nacimiento, fecha_referencia):
         edad = fecha_referencia.year - fecha_nacimiento.year
         if (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
             edad -= 1
-
+        print(f"verificando edades {edad}")
         return edad
