@@ -1,9 +1,0 @@
-unknown color name "whithe"Traceback (most recent call last):
-  File "D:\Perfil\Documentos\validatorsGesi\index.py", line 347, in index_open
-    console_text = tk.Text(console_frame, height=10, wrap=tk.WORD, bg="black", fg="whithe")
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "c:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 3658, in __init__
-    Widget.__init__(self, master, 'text', cnf, kw)
-  File "c:\Users\Gesi-Educativo\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2659, in __init__
-    self.tk.call(
-_tkinter.TclError: unknown color name "whithe"
