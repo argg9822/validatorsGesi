@@ -365,4 +365,3 @@ def index_open():
             f.write(str(e))
             f.write(traceback.format_exc())
         
-index_open()
