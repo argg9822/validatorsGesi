@@ -9,6 +9,8 @@ import shutil
 import tkinter as tk
 import customtkinter as ctk
 import threading
+import importlib
+import index
 from index import index_open
 
 try:
@@ -234,8 +236,18 @@ try:
             
             if descargar_cambios(ultima_version):
                 aplicar_cambios()
+                
                 guardar_version_actual(ultima_version)
                 print("App actualizada con éxito")
+                
+                try:
+                    importlib.reload(index)  # Recargar el módulo index
+                    # Volver a importar la función index_open
+                    from index import index_open
+
+                    print("Archivos actualizados y módulos recargados con éxito.")
+                except Exception as e:
+                    print(f"Error al recargar módulos: {e}")
                 
                 # Detiene la barra de progreso y cierra la ventana
                 # Detiene la barra de progreso

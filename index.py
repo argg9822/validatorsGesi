@@ -320,6 +320,7 @@ def index_open():
 
         # Menú "Archivo"
         menu_archivo = Menu(menu_bar, tearoff=0)
+        menu_archivo.add_command(label="Actualizar Archivos", command=actualizar_rutas_archivos)  # Agregar el nuevo comando
         menu_archivo.add_separator()
         menu_archivo.add_command(label="Salir", command=ventana.quit)
         menu_bar.add_cascade(label="Archivo", menu=menu_archivo)
