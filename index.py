@@ -93,7 +93,25 @@ def index_open():
             except Exception as e:
                 print(f"Error al guardar el área '{nombre_area}': {e}")
 
-     
+        def eliminar_area(area):
+            if messagebox.askyesno("Confirmar", f"¿Desea eliminar el área '{area}'?"):
+                # Hacer una solicitud DELETE al servidor para eliminar el área
+                url_eliminar = f"{url}/{area}"
+                try:
+                    response = requests.delete(url_eliminar)
+                    if response.status_code == 204:  # 204: No Content, indica que la eliminación fue exitosa
+                        del areas[area]  # Eliminar el área del diccionario local
+                        guardar_areas()  # Guardar los cambios en el archivo (si es necesario)
+                        actualizar_botones_areas()  # Actualizar la interfaz
+                        for widget in frame_derecho.winfo_children():
+                            widget.destroy()  # Limpiar el panel derecho
+                        messagebox.showinfo("Eliminación exitosa", f"El área '{area}' ha sido eliminada.")
+                    else:
+                        print(f"Error al eliminar el área '{area}': {response.status_code}")
+                        messagebox.showerror("Error", f"No se pudo eliminar el área '{area}'.")
+                except Exception as e:
+                    print(f"Error al eliminar el área '{area}': {e}")
+                    messagebox.showerror("Error", f"Se produjo un error al intentar eliminar el área '{area}': {e}")
 
         def agregar_area():
             nueva_area = ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
@@ -340,15 +358,7 @@ def index_open():
             analizar_excel_2(validador)
             
         
-        # Función para eliminar un área
-        def eliminar_area(area):
-            if messagebox.askyesno("Confirmar", f"¿Desea eliminar el área '{area}'?"):
-                del areas[area]
-                guardar_areas()
-                actualizar_botones_areas()
-                for widget in frame_derecho.winfo_children():
-                    widget.destroy()  # Limpiar el panel derecho
-
+      
 
 
         def crearhc():
@@ -420,4 +430,4 @@ def index_open():
             f.write(str(e))
             f.write(traceback.format_exc())
         
-index_open()
+

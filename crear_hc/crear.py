@@ -185,12 +185,9 @@ def si(driver, dialog):
         perfil1 = perfil.value
         base1 = base.value
         Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
-        print(f"Intentando ingresar datos: {Datos}")
-
-        DatosCrearSi(Datos, driver)
-                          
+        print(f"Ingresando ficha: {ficha1}")
+        DatosCrearSi(Datos, driver)               
         # Confirmación del guardado
-        
         Ok1 = WebDriverWait(driver, 2).until(
             EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div/div[3]/button[1]'))
         )
