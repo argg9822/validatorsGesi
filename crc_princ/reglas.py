@@ -1,7 +1,7 @@
 from tkinter import messagebox
 import customtkinter as ctk  # Asegúrate de usar el mismo módulo
 
-def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador):
+def crear_regla(tipo_regla, validador, area, areas, guardar_areas, gestionar_validador):
     nueva_regla = None
     
     if tipo_regla == "longitud":
@@ -390,6 +390,6 @@ def crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
         messagebox.showerror("Error", "Tipo de regla no reconocido.")
         return
 
-    validador["reglas"].append(nueva_regla)
-    guardar_areas()
+    validador["reglas"].append(nueva_regla)  # Agregar la nueva regla al validador
+    guardar_areas(area, areas[area])  # Guardar las áreas actualizadas
     gestionar_validador(area, validador)

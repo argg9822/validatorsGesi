@@ -39,6 +39,7 @@ import sys
 import tkinter as tk
 import customtkinter as ctk
 import io
+import requests
 class RedirectText(io.StringIO):
     def __init__(self, text_widget):
         super().__init__()
@@ -61,35 +62,80 @@ def index_open():
             log.write(error_message + "\n")
 
     try:
+        
+        #Ruta del archivo JSON donde se guardarán las áreas
+        url = "https://www.trakio.pro/areas"
 
-        # Ruta del archivo JSON donde se guardarán las áreas
-        archivo_json = "areas.json"
-
-        # Función para cargar las áreas desde el archivo JSON
         def cargar_areas():
-            if os.path.exists(archivo_json):
-                with open(archivo_json, "r") as archivo:
-                    return json.load(archivo)
+            try:
+                response = requests.get(url)
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"Error al cargar áreas: {response.status_code}")
+            except Exception as e:
+                print(f"Error al cargar las áreas: {e}")
             return {}
 
-        # Función para guardar las áreas en el archivo JSON
-        def guardar_areas():
-            with open(archivo_json, "w") as archivo:
-                json.dump(areas, archivo, indent=4)
+        def guardar_areas(nombre_area, datos_area):
+            """
+            Actualizar una nueva área o agregarla si no existe.
+            :param nombre_area: Nombre del área (clave del JSON)
+            :param datos_area: Datos de la nueva área (lista vacía o con validadores)
+            """
+            url_actualizar = f"{url}/{nombre_area}"  # Agregamos el nombre del área en la URL
+            try:
+                response = requests.put(url_actualizar, json={"area": datos_area})
+                if response.status_code in [200, 201]:  # 200: éxito, 201: creado
+                    print(f"Área '{nombre_area}' guardada correctamente.")
+                else:
+                    print(f"Error al guardar área '{nombre_area}': {response.status_code}")
+            except Exception as e:
+                print(f"Error al guardar el área '{nombre_area}': {e}")
 
-        # Función para agregar un área
+     
+
         def agregar_area():
-            nueva_area =ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
-            
+            nueva_area = ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
             nueva_area_result = nueva_area.get_input()
             print(nueva_area_result)
             if nueva_area_result:
-                if nueva_area in areas:
+                if nueva_area_result in areas:  # Validamos si ya existe
                     messagebox.showerror("Error", "El entorno ya existe.")
                     return
-                areas[nueva_area_result] = []  # Cada área comienza con una lista vacía de validadores
-                guardar_areas()
-                actualizar_botones_areas()
+                areas[nueva_area_result] = []  # Nueva área comienza con lista vacía de validadores
+                guardar_areas(nueva_area_result, areas[nueva_area_result])  # Guardar nueva área
+                actualizar_botones_areas()  # Actualizar visualización
+
+
+        # # Ruta del archivo JSON donde se guardarán las áreas
+        # archivo_json = "areas.json"
+
+        # # Función para cargar las áreas desde el archivo JSON
+        # def cargar_areas():
+        #     if os.path.exists(archivo_json):
+        #         with open(archivo_json, "r") as archivo:
+        #             return json.load(archivo)
+        #     return {}
+
+        # # Función para guardar las áreas en el archivo JSON
+        # def guardar_areas():
+        #     with open(archivo_json, "w") as archivo:
+        #         json.dump(areas, archivo, indent=4)
+
+        # # Función para agregar un área
+        # def agregar_area():
+        #     nueva_area =ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
+            
+        #     nueva_area_result = nueva_area.get_input()
+        #     print(nueva_area_result)
+        #     if nueva_area_result:
+        #         if nueva_area in areas:
+        #             messagebox.showerror("Error", "El entorno ya existe.")
+        #             return
+        #         areas[nueva_area_result] = []  # Cada área comienza con una lista vacía de validadores
+        #         guardar_areas()
+        #         actualizar_botones_areas()
 
         # Función para actualizar los botones de áreas en el panel izquierdo
         def actualizar_botones_areas():
@@ -156,15 +202,22 @@ def index_open():
         # Función para agregar un validador a un área
         def agregar_validador(area):
             nombre_validador = ctk.CTkInputDialog(title="Agregar Validador", text="Ingrese el nombre del validador:")
-            
             nombre_validador_result = nombre_validador.get_input()
+            
             if not nombre_validador_result:
+                return  # Si no se ingresa un nombre, salimos de la función
+            
+            # Verificamos si el validador ya existe en el área
+            if any(validador['nombre'] == nombre_validador_result for validador in areas[area]):
+                messagebox.showerror("Error", "El validador ya existe en esta área.")
                 return
             
             nuevo_validador = {"nombre": nombre_validador_result, "reglas": []}  # Inicialmente sin reglas
-            areas[area].append(nuevo_validador)
-            guardar_areas()
-            seleccionar_area(area)
+            areas[area].append(nuevo_validador)  # Agregamos el nuevo validador a la lista de validadores del área
+            
+            # Guardamos las áreas actualizadas
+            guardar_areas(area, areas[area])  # Asegúrate de pasar el área y sus validadores actualizados
+            seleccionar_area(area)  # Actualiza la visualización de la área seleccionada
 
         # Función para gestionar las reglas de un validador
         def gestionar_validador(area, validador):
@@ -210,7 +263,6 @@ def index_open():
 
         # Función para agregar una regla a un validador
         def agregar_regla(area, validador):
-        
             tipo_regla_var = ctk.StringVar(value="longitud")  # Valor predeterminado
 
             def callback(tipo_regla):
@@ -221,7 +273,10 @@ def index_open():
                     tipo_regla (str): Tipo de regla seleccionada.
                 """
                 # Llamar a la función del archivo reglas.py
-                crear_regla(tipo_regla, validador, area, guardar_areas, gestionar_validador)
+                crear_regla(tipo_regla, validador, area, areas, guardar_areas, gestionar_validador)
+
+            # Mostrar el modal
+            mostrar_modal(tipo_regla_var, callback)
 
             # Mostrar el modal
             mostrar_modal(tipo_regla_var, callback)
@@ -234,7 +289,7 @@ def index_open():
                 # Actualizar los campos con los valores editados
                 for campo, entry in entradas.items():
                     validador["reglas"][indice][campo] = entry.get()
-                guardar_areas()
+                guardar_areas(area, areas[area])
                 gestionar_validador(area, validador)
                 ventana_edicion.destroy()
 
@@ -365,3 +420,4 @@ def index_open():
             f.write(str(e))
             f.write(traceback.format_exc())
         
+index_open()
