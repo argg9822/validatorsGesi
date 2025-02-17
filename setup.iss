@@ -33,7 +33,7 @@ Name: "{autoprograms}\Odin"; Filename: "{app}\Odin.exe"
 Name: "{userdesktop}\Odin"; Filename: "{app}\Odin.exe"; IconFilename: "{app}\logo.ico" 
 
 [Run]
-Filename: "{app}\Odin.exe"; Description: "{cm:LaunchProgram,TuAplicacion}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Odin.exe"; Description: "{cm:LaunchProgram,Odin"; Flags: nowait postinstall skipifsilent
 
 
 

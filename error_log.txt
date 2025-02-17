@@ -1,0 +1,12 @@
+name 'progress_bar' is not definedTraceback (most recent call last):
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 403, in <module>
+    main()
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 374, in main
+    update_frame()
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 365, in update_frame
+    update_progress_bar(0.1)  # Aquí puedes ajustar el porcentaje según el progreso real
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Perfil\Documentos\validatorsGesi\Odin.py", line 348, in update_progress_bar
+    canvas.coords(progress_bar, progress_x, progress_y, progress_x + (progress_width * percentage), progress_y + progress_height)
+                  ^^^^^^^^^^^^
+NameError: name 'progress_bar' is not defined

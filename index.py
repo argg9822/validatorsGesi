@@ -125,36 +125,6 @@ def index_open():
                 guardar_areas(nueva_area_result, areas[nueva_area_result])  # Guardar nueva área
                 actualizar_botones_areas()  # Actualizar visualización
 
-
-        # # Ruta del archivo JSON donde se guardarán las áreas
-        # archivo_json = "areas.json"
-
-        # # Función para cargar las áreas desde el archivo JSON
-        # def cargar_areas():
-        #     if os.path.exists(archivo_json):
-        #         with open(archivo_json, "r") as archivo:
-        #             return json.load(archivo)
-        #     return {}
-
-        # # Función para guardar las áreas en el archivo JSON
-        # def guardar_areas():
-        #     with open(archivo_json, "w") as archivo:
-        #         json.dump(areas, archivo, indent=4)
-
-        # # Función para agregar un área
-        # def agregar_area():
-        #     nueva_area =ctk.CTkInputDialog(title="Agregar Área", text="Ingrese el nombre del entorno:")
-            
-        #     nueva_area_result = nueva_area.get_input()
-        #     print(nueva_area_result)
-        #     if nueva_area_result:
-        #         if nueva_area in areas:
-        #             messagebox.showerror("Error", "El entorno ya existe.")
-        #             return
-        #         areas[nueva_area_result] = []  # Cada área comienza con una lista vacía de validadores
-        #         guardar_areas()
-        #         actualizar_botones_areas()
-
         # Función para actualizar los botones de áreas en el panel izquierdo
         def actualizar_botones_areas():
             # Limpiar el panel izquierdo
@@ -430,4 +400,3 @@ def index_open():
             f.write(str(e))
             f.write(traceback.format_exc())
         
-

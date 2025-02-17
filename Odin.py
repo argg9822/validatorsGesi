@@ -13,6 +13,7 @@ import importlib
 import index
 from index import index_open
 
+
 try:
     VERSION_FILE = "version.txt"  # Archivo para guardar la versión actual
     def open_main_window(splash_root):
@@ -175,7 +176,12 @@ try:
                 ventana_actualizacion.geometry(f"300x150+{int(x)}+{int(y)}")
 
                 # Agrega el logo de la aplicación
-                ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
+                
+                try:
+                    ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(sys.executable), "img", "logo.ico"))
+                except Exception as e:
+                    ventana_actualizacion.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "img", "logo.ico"))
+
 
                 # Crea un label para mostrar el mensaje de actualización
                 label_actualizacion = tk.Label(ventana_actualizacion, text="Hay una actualización disponible.", font=("Arial", 12), bg="#f0f0f0")
@@ -244,17 +250,17 @@ try:
                     importlib.reload(index)  # Recargar el módulo index
                     # Volver a importar la función index_open
                     from index import index_open
-
-                    print("Archivos actualizados y módulos recargados con éxito.")
+                    # Mostrar un mensaje de éxito
+                    messagebox.showinfo("Éxito", "Archivos actualizados y módulos recargados con éxito.")
                 except Exception as e:
-                    print(f"Error al recargar módulos: {e}")
+                    # Mostrar un mensaje de error
+                    messagebox.showerror("Error", f"Error al recargar módulos: {e}")
                 
-                # Detiene la barra de progreso y cierra la ventana
-                # Detiene la barra de progreso
                 progress_bar.stop()
 
                 # Cierra la ventana en el hilo principal
                 vie_actualizaion.after(0, vie_actualizaion.destroy)
+                reiniciar_aplicacion()
                 
                 return
             else:
@@ -266,6 +272,11 @@ try:
         
         vie_actualizaion.mainloop()
     
+    def reiniciar_aplicacion():
+        """Reinicia la aplicación."""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
+        
     def mostrar_error(missing_items):
     # Crear una ventana emergente para mostrar el error
         ventana_error = ctk.CTkToplevel()
@@ -290,7 +301,7 @@ try:
         splash_root.title("Pantalla de inicio")
 
         # Define el tamaño de la ventana de inicio
-        window_width = 900
+        window_width = 500  
         window_height = 500
         # Centra la ventana en la pantalla
         center_window(splash_root, window_width, window_height)
@@ -304,8 +315,30 @@ try:
         canvas = tk.Canvas(splash_root, width=window_width, height=window_height, bg=transparent_color, highlightthickness=0)
         canvas.pack()
 
-        # Cargar y mostrar el logo
+            #Intentar cargar la imagen desde el directorio donde se encuentra el ejecutable
         logo_path = os.path.join(os.path.dirname(sys.executable), "img", "intro.png")
+
+        # Verifica si el archivo existe
+        if not os.path.exists(logo_path):
+            # Si no se encuentra, intenta cargarla desde el directorio actual del script
+            logo_path = os.path.join(os.path.dirname(__file__), "img", "intro.png")
+
+        # Verifica si el archivo realmente existe en la ruta final
+        if os.path.exists(logo_path):
+            try:
+                logo_image = Image.open(logo_path).convert("RGBA")
+                print("Logo cargado correctamente.")
+            except Exception as e:
+                print(f"Error al cargar la imagen: {e}")
+        else:
+            print(f"El archivo no se encuentra en la ruta: {logo_path}")
+            # Puedes cargar una imagen predeterminada si lo deseas
+            try:
+                logo_image = Image.open("img/intro.png")
+                print("Imagen predeterminada cargada.")
+            except Exception as e:
+                print(f"Error al cargar la imagen predeterminada: {e}")
+            
         logo_image = Image.open(logo_path).convert("RGBA")  # Asegúrate de que el logo tenga fondo transparente
         logo_photo = ImageTk.PhotoImage(logo_image)
 
@@ -316,17 +349,17 @@ try:
         canvas.create_image(window_width // 2, window_height // 2, image=logo_photo)
 
         # Mostrar información de la aplicación
-        info_text = "Odin v-1.0\n© 2024 Gabriel Monhabell - Aramis Garcia"
-        offset_x = 100  # Ajusta este valor para mover el texto más a la izquierda o derecha
-        canvas.create_text((window_width // 2.2) - offset_x, window_height - 140, text=info_text, fill='white', font=('Helvetica', 14))  # Ajusta la posición y el estilo
+        info_text = "Odin v.0.0.0.2 © 2024 Gabriel Monhabell - Aramis Garcia"
+        offset_x = 0 # Ajusta este valor para mover el texto más a la izquierda o derecha
+        canvas.create_text((window_width // 2) - offset_x, window_height - 15, text=info_text, fill='white', font=('Helvetica', 8))  # Ajusta la posición y el estilo
 
         # Crear una barra de progreso
-        progress_width = 607  # Ancho de la barra de progreso
-        progress_height = 5  # Altura de la barra de progreso
-        progress_x = ((window_width - progress_width) // 2) -49
+        progress_width = 500 # Ancho de la barra de progreso
+        progress_height = 2  # Altura de la barra de progreso
+        progress_x = ((window_width - progress_width) // 2) 
         
-        progress_y = window_height - 80
-        progress_bar = canvas.create_rectangle(progress_x, progress_y, progress_x + progress_width, progress_y + progress_height, fill='white', outline='white')
+        progress_y = window_height - 40
+        progress_bar = canvas.create_rectangle(progress_x, progress_y, progress_x + progress_width, progress_y + progress_height, fill='red', outline='red')
 
         # Función para actualizar la barra de progreso
         def update_progress_bar(percentage):
@@ -337,7 +370,7 @@ try:
         def run_progress():
             for i in range(101):
                 splash_root.after(i * 80, lambda p=i/100: update_progress_bar(p))  # Actualiza cada 80ms
-            splash_root.after(8100, lambda: open_main_window(splash_root))  # Espera 8 segundos antes de abrir la ventana principal
+            splash_root.after(8000, lambda: open_main_window(splash_root))  # Espera 8 segundos antes de abrir la ventana principal
 
         run_progress()
 
