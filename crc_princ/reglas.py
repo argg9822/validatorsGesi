@@ -385,6 +385,21 @@ def crear_regla(tipo_regla, validador, area, areas, guardar_areas, gestionar_val
             "columna_dependiente": columna_dependiente_resultado,
             "valor_dependiente": valor_dependiente_resultado
         }
+        
+    elif tipo_regla == "coincidencia_textos":
+        columna = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese la columna a validar (por ejemplo, COLEGIOS):"
+        )
+        columna_resultado = columna.get_input()
+        if not columna_resultado:
+            return
+        
+        nueva_regla = {
+            "columna": columna_resultado,
+             "tipo": "coincidencia_textos",
+        }
+    
 
     else:
         messagebox.showerror("Error", "Tipo de regla no reconocido.")

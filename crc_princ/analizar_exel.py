@@ -3,6 +3,8 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from tkinter import filedialog, messagebox
 from datetime import datetime
+from fuzzywuzzy import fuzz
+import random
 
 def analizar_excel_2(validador):
     print("Realizando validación de datos por favor espere...")
@@ -116,7 +118,7 @@ def analizar_excel_2(validador):
 
                             # Solo marcar en rojo las filas que no cumplen con la condición
                             for idx in violaciones.index:
-                                print(idx) # Marcar en rojo las celdas que no cumplen la condición (solo las filas con violaciones)
+                               
                                 ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar en rojo
                                 ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill  
                                 ws.cell(row=idx + 2, column=idx_dependiente1).fill = rojo_fill
@@ -369,6 +371,76 @@ def analizar_excel_2(validador):
                         
                         df = df_original.copy()  
                         ws.auto_filter.ref = None
+                        
+                
+
+                    elif tipo == "coincidencia_textos":
+                        print("Validando valores de textos")
+
+                        # Extraer los valores junto con su índice
+                        texto = df[[columna]].dropna().reset_index().values.tolist()  # Obtiene índice y valores
+
+                        grupos_similares = []  # Lista para almacenar grupos de textos similares
+
+                        # Conjunto para rastrear los índices ya agrupados
+                        indices_agrupados = set()
+
+                        for i in range(len(texto)):
+                            idx_i, valor_i = texto[i]
+
+                            # Si ya está en un grupo, lo saltamos
+                            if idx_i in indices_agrupados:
+                                continue  
+
+                            grupo_actual = [(idx_i, valor_i)]  # Grupo de similitud actual
+
+                            for j in range(i + 1, len(texto)):
+                                idx_j, valor_j = texto[j]
+
+                                # Si el índice ya está agrupado, lo saltamos
+                                if idx_j in indices_agrupados:
+                                    continue
+
+                                similitud = fuzz.ratio(str(valor_i), str(valor_j))
+
+                                if 80 <= similitud < 100:
+                                    grupo_actual.append((idx_j, valor_j))
+                                    indices_agrupados.add(idx_j)  # Marcar como agrupado
+
+                            # Si encontramos coincidencias, agregamos el grupo
+                            if len(grupo_actual) > 1:
+                                grupos_similares.append(grupo_actual)
+                                indices_agrupados.update(idx for idx, _ in grupo_actual)  # Marcar todos los índices del grupo
+                                
+                        print("-" * 50)
+                        print("Analizando datos de textos..." )
+                        print("-" * 50)
+
+                        colores_usados = set()
+                        # Imprimir los grupos encontrados
+                         # Pintar las celdas en rojo
+                        for grupo in grupos_similares:
+                            color = generar_color_unico()
+        
+                            # Evitar colores repetidos
+                            while color in colores_usados:
+                                color = generar_color_unico()
+                            
+                            color_hex = generar_color_unico()
+                            fill_color = PatternFill(start_color=color_hex, end_color=color_hex, fill_type="solid")
+
+                            print("Grupo de textos similares:")
+                            for idx, valor in grupo:
+                                fila_excel = df.index[idx] + 2  # Ajustar fila real en Excel
+                                print(f"Fila {fila_excel}: {valor} ")
+                                ws.cell(row=fila_excel , column=df.columns.get_loc(columna) + 1).fill = fill_color  # Columna verificada
+                                ws.cell(row=fila_excel , column=2).fill = rojo_fill  # Marcar columna fija (columna 2)
+                                
+                                print(f"celta pintada {fila_excel} de {color} ")
+                                
+                            print("-" * 50)
+
+     
                 else: 
                     messagebox.showinfo("Advertencia", f"Columna '{columna}' no encontrada en el archivo Excel.")
 
@@ -388,6 +460,10 @@ def analizar_excel_2(validador):
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo analizar el archivo Excel:\n{e}")
 
+def generar_color_unico():
+    """Genera un color aleatorio en formato ARGB compatible con openpyxl."""
+    color = "{:02X}{:02X}{:02X}".format(random.randint(150, 255), random.randint(10, 255), random.randint(10, 255))
+    return f"FF{color}"  # Añadir "FF" para el canal de transparencia
 
 def calcular_edad(fecha_nacimiento, fecha_referencia):
     
