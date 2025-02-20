@@ -327,10 +327,6 @@ def index_open():
         def analizar_excel(validador):
             analizar_excel_2(validador)
             
-        
-      
-
-
         def crearhc():
             print('crear fichas hc')
             crear.hc_crear()

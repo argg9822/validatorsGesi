@@ -372,7 +372,35 @@ def analizar_excel_2(validador):
                         df = df_original.copy()  
                         ws.auto_filter.ref = None
                         
-                
+                    elif tipo == "dependencia_2_campos":
+                        columnas_dependientes = regla.get("columna_dependiente_1")
+
+                        if isinstance(columnas_dependientes, str) and "," in columnas_dependientes:
+                            dependiente_1, dependiente_2 = map(str, columnas_dependientes.split(","))
+                        else:
+                            print(f"Error: columna_dependiente_1 no tiene el formato esperado -> {columnas_dependientes}")
+                            return
+
+                        valor_dependiente_1 = regla.get("valor_dependiente_1")
+                        valor_dependiente_2 = regla.get("valor_dependiente_2")
+                        valor_campo_validado = regla.get("valor_campo_validado")
+                        df_original = df.copy()
+
+                        # Verificar que las columnas existen antes de filtrar
+                        if dependiente_1 in df.columns and dependiente_2 in df.columns:
+                            df_filtrado_1 = df[df[dependiente_1] == valor_dependiente_1]
+                            df_filtrado_2 = df_filtrado_1[df_filtrado_1[dependiente_2] == valor_dependiente_2]
+
+                            df_error = df_filtrado_2[df_filtrado_2[columna] != valor_campo_validado]
+
+                            for idx in df_error.index:
+                                ws.cell(row=idx + 2, column=df.columns.get_loc(columna) + 1).fill = rojo_fill
+                                ws.cell(row=idx + 2, column=2).fill = rojo_fill  # Marcar columna fija (columna 2)
+                        else:
+                            print(f"Error: Columnas dependientes no existen en el DataFrame -> {dependiente_1}, {dependiente_2}")
+
+                        df = df_original.copy()
+                        ws.auto_filter.ref = None
 
                     elif tipo == "coincidencia_textos":
                         print("Validando valores de textos")

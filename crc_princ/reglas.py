@@ -399,7 +399,61 @@ def crear_regla(tipo_regla, validador, area, areas, guardar_areas, gestionar_val
             "columna": columna_resultado,
              "tipo": "coincidencia_textos",
         }
-    
+        
+    elif tipo_regla == "dependencia_2_campos":
+        columna = ctk.CTkInputDialog(
+            title="Agregar Regla", 
+            text="Ingrese la columna a validar (por ejemplo, POBLACIÓN DIFERENCIAL):"
+        )
+        columna_resultado = columna.get_input()
+        if not columna_resultado:
+            return
+            
+        columnas_dependientes = ctk.CTkInputDialog(
+            title="Columnas dependientes", 
+            text="¿De qué columnas depende esta regla? (por ejemplo, Sexo,Genero):"
+        )
+        
+        columna_campo_1 = columnas_dependientes.get_input()        
+        
+        if not columna_campo_1:
+            return
+        
+        valor_campo_1 = ctk.CTkInputDialog(
+            title="Valor dependiente campo 1", 
+            text="¿Qué valor debe tener el campo 1? (por ejemplo: 1- Hombre)"
+        )
+        valor_campo_1_resultado = valor_campo_1.get_input()
+        
+        if not valor_campo_1_resultado:
+            return
+        
+        valor_campo_2 = ctk.CTkInputDialog(
+            title="Valor dependiente campo 2", 
+            text="¿Qué valor debe tener el campo 2? (por ejemplo: 3- Transgénero)"
+        )
+        valor_campo_2_resultado = valor_campo_2.get_input()
+        
+        if not valor_campo_2_resultado:
+            return
+        
+        valor_campo_validado = ctk.CTkInputDialog(
+            title="Valor campo a validar", 
+            text="¿Qué valor se espera en el campo validado? (por ejemplo: 10- Mujer Transgénero)"
+        )
+        valor_campo_validado_resultado = valor_campo_validado.get_input()
+        
+        if not valor_campo_validado_resultado:
+            return
+        
+        nueva_regla = {
+            "columna": columna_resultado,
+            "tipo": "dependencia_2_campos",
+            "columna_dependiente_1": columna_campo_1,
+            "valor_dependiente_1": valor_campo_1_resultado,
+            "valor_dependiente_2": valor_campo_2_resultado,
+            "valor_campo_validado": valor_campo_validado_resultado
+        }
 
     else:
         messagebox.showerror("Error", "Tipo de regla no reconocido.")

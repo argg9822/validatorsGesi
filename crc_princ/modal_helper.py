@@ -19,10 +19,10 @@ def mostrar_modal(tipo_regla_var, callback):
         modal,
         values=[
             "longitud", "numerico", "patron", "unico",
-            "dependiente_positivo", "dependiente_error", "no_vacio",
-            "dependiente longitud", "dependiente edad positivo", 
-            "dependiente edad error", "fechas menor/mayor que", 
-            "dependiente_Vacio", "coincidencia_textos"
+            "dependiente_positivo", "dependiente_error","dependencia_2_campos",
+            "dependiente longitud", "dependiente edad positivo", "dependiente_Vacio",
+            "dependiente edad error", "no_vacio",
+            "fechas menor/mayor que", "coincidencia_textos",
         ],
         variable=tipo_regla_var
     )
