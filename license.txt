@@ -1,0 +1,27 @@
+TÉRMINOS Y CONDICIONES DE USO
+
+1. PROPIEDAD INTELECTUAL
+El presente software es propiedad intelectual de Gabriel Monhabell y Aramis Gacia (Softgenix), protegido bajo las leyes de derechos de autor y tratados internacionales. Todos los derechos reservados.
+
+2. LICENCIA DE USO
+Se concede al usuario una licencia limitada, no exclusiva, intransferible y revocable para utilizar el software conforme a estos términos. Queda estrictamente prohibido:
+
+Distribuir, modificar, sublicenciar o revender el software sin autorización expresa por escrito.
+
+Realizar ingeniería inversa, descompilar o desensamblar el software.
+
+3. RESTRICCIONES
+El uso no autorizado del software constituirá una violación de estos términos y podrá dar lugar a acciones legales, incluyendo pero no limitado a reclamaciones por daños y perjuicios.
+
+4. ACEPTACIÓN DE TÉRMINOS
+Al acceder o utilizar el software, usted acepta estar vinculado por estos términos y condiciones. Si no está de acuerdo, deberá abstenerse de utilizar el software.
+
+5. MODIFICACIONES
+Softgenix se reserva el derecho de modificar estos términos en cualquier momento. El uso continuado del software tras dichas modificaciones constituirá su aceptación de las mismas.
+
+6. LEGISLACIÓN APLICABLE
+Estos términos se regirán e interpretarán conforme a las leyes del [país/estado correspondiente], sin considerar sus disposiciones sobre conflicto de leyes.
+
+7. CONTACTO
+Para solicitudes de autorización o consultas, contactar a:
+Softgenix@gmail.com.co
