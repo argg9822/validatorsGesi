@@ -1,4 +1,6 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys 
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
@@ -117,15 +119,27 @@ def capchacompletado(driver, dialog):
     dialog.destroy()
     next(driver)
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
 def hc_crear():
     if not seleccionar_archivo():
         return
     
     try:
-        driver = webdriver.Edge()
+        # Configuración para Chrome
+        options = webdriver.ChromeOptions()
+        options.add_argument('--start-maximized')
+        options.add_argument('--disable-extensions')
+        
+        # Inicializar Chrome con WebDriver Manager (instala automáticamente el driver correcto)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        
         driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
         time.sleep(2)
         
+        # El resto de tu código permanece igual...
         wait_for_element(driver, By.XPATH, '/html/body/div/section/form/div/div/button').click()
         
         try:
