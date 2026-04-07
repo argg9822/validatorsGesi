@@ -136,11 +136,10 @@ def hc_crear():
         # Inicializar Chrome con WebDriver Manager (instala automáticamente el driver correcto)
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         
-        driver.get("http://gesiaplicaciones.saludcapital.gov.co/GESI_sistemas/login") 
+        driver.get("https://gesiapps.saludcapital.gov.co/GESI_sistemas/login") 
         time.sleep(2)
+
         
-        # El resto de tu código permanece igual...
-        wait_for_element(driver, By.XPATH, '/html/body/div/section/form/div/div/button').click()
         
         try:
             wait_for_element(driver, By.XPATH, '/html/body/div/div[2]/button[3]').click()
