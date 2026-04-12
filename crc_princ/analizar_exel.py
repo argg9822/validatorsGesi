@@ -3,7 +3,7 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from tkinter import filedialog, messagebox
 from datetime import datetime
-from fuzzywuzzy import fuzz
+
 import random
 
 def analizar_excel_2(validador):

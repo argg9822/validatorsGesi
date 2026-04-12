@@ -1,281 +1,270 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.keys import Keys 
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
-from datetime import datetime, timedelta
-from selenium.webdriver.common.action_chains import ActionChains
+import threading
+import time
+from pathlib import Path
 from datetime import datetime
 from openpyxl import load_workbook
-import time
-import datetime
-import customtkinter
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
-import time
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from tkinter import filedialog
-import tkinter as tk
-from tkinter import messagebox
 
-nombres = None  # Variable global para almacenar la hoja de Excel
-
-def seleccionar_archivo():
-    global nombres
-    archivo = filedialog.askopenfilename(
-        title="Seleccionar archivo de Excel",
-        filetypes=[("Archivos de Excel", "*.xlsx;*.xls")]
-    )
-    
-    if archivo:
-        try:
-            wb = load_workbook(archivo)
-            hojas = wb.sheetnames
-            print(hojas)
-            nombres = wb['Hoja1']
-            wb.close()
-            messagebox.showinfo("Éxito", "Archivo cargado correctamente")
-            return True
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo cargar el archivo: {e}")
-            return False
-    else:
-        messagebox.showwarning("Advertencia", "No se seleccionó ningún archivo.")
-        return False
-
-def wait_for_element(driver, by, value, timeout=10):
-    try:
-        return WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((by, value)))
-    except TimeoutException:
-        raise Exception(f"Elemento no encontrado: {by}={value}")
-
-def usuario_login(driver):
-    dialog = customtkinter.CTkToplevel()
-    dialog.title("Datos de Usuario")
-    dialog.transient()
-    dialog.grab_set()
-    dialog.focus()
-
-    label_user = customtkinter.CTkLabel(dialog, text="Nombre Usuario")
-    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
-
-    user_var = tk.StringVar()
-    entry_user = customtkinter.CTkEntry(dialog, textvariable=user_var)
-    entry_user.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-    
-    label_password = customtkinter.CTkLabel(dialog, text="Password")
-    label_password.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    
-    password_var = tk.StringVar()
-    entry_password = customtkinter.CTkEntry(dialog, textvariable=password_var, show="*")
-    entry_password.grid(row=1, column=1, padx=10, pady=5, sticky="w")
-    
-    save_button = customtkinter.CTkButton(dialog, text="Continuar", 
-                                      command=lambda: login(user_var.get(), password_var.get(), dialog, driver))
-    save_button.grid(row=2, column=0, columnspan=2, pady=10)
-
-def login(user, password, dialog, driver):
-    try:
-        dialog.destroy()
-        
-        wait_for_element(driver, By.ID, 'usuario').send_keys(user)
-        time.sleep(1)
-        
-        wait_for_element(driver, By.ID, 'password').send_keys(password)
-        time.sleep(1)
-        
-        codigo = wait_for_element(driver, By.ID, 'tokenAcceso').get_attribute('value')
-        wait_for_element(driver, By.ID, 'valorCodigoSeguridad').send_keys(codigo)
-        time.sleep(2)
-        
-        esperacapcha(driver)
-    except Exception as e:
-        messagebox.showerror("Error", f"Fallo en el login: {e}")
-        driver.quit()
-
-def esperacapcha(driver):
-    dialog = customtkinter.CTkToplevel()
-    dialog.title("Esperando a Captcha")
-    dialog.attributes("-topmost", True)
-    dialog.transient()  
-    dialog.grab_set()   
-    
-    label_user = customtkinter.CTkLabel(dialog, text="Por favor complete el capcha")
-    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
-    
-    label_user = customtkinter.CTkLabel(dialog, text="Una vez completado el capcha oprima (continuar)")
-    label_user.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-    
-    save_button = customtkinter.CTkButton(dialog, text="Continuar", 
-                                      command=lambda: capchacompletado(driver, dialog))
-    save_button.grid(row=2, column=0, columnspan=2, pady=10)
-    
-    dialog.wait_window()
-
-def capchacompletado(driver, dialog):
-    dialog.destroy()
-    next(driver)
-
+# Selenium e integraciones
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-def hc_crear():
-    if not seleccionar_archivo():
-        return
-    
-    try:
-        # Configuración para Chrome
-        options = webdriver.ChromeOptions()
-        options.add_argument('--start-maximized')
-        options.add_argument('--disable-extensions')
-        
-        # Inicializar Chrome con WebDriver Manager (instala automáticamente el driver correcto)
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        
-        driver.get("https://gesiapps.saludcapital.gov.co/GESI_sistemas/login") 
-        time.sleep(2)
+import customtkinter as ctk
+from tkinter import filedialog, messagebox
 
+# --- Configuración de Estilo ---
+COLORS = {
+    "bg_dark":      "#0D1117",
+    "bg_card":      "#161B22",
+    "bg_input":     "#010409",
+    "accent":       "#238636",
+    "accent_hover": "#2EA043",
+    "text_main":    "#E6EDF3",
+    "text_dim":     "#8B949E",
+    "border":       "#30363D",
+    "blue_btn":     "#1F6FEB",
+    "red_btn":      "#DA3633"
+}
+
+class GesiApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("GESI - Automatización de Historias Clínicas")
+        self.geometry("1000x750")
+        self.configure(fg_color=COLORS["bg_dark"])
         
+        # Variables de estado originales
+        self.nombres = None
+        self.driver = None
+        self.captcha_listo = threading.Event()
+        self.confirmacion_si = threading.Event()
+
+        # Layout
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self._build_sidebar()
+        self._build_main_panel()
+
+    def _build_sidebar(self):
+        self.sidebar = ctk.CTkFrame(self, width=320, fg_color=COLORS["bg_card"], corner_radius=0)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
         
+        ctk.CTkLabel(self.sidebar, text="🔑 PANEL DE CONTROL", 
+                     font=ctk.CTkFont("Segoe UI", 18, "bold")).pack(pady=(30, 20))
+
+        # Inputs de Login
+        self.user_var = ctk.StringVar()
+        self.pass_var = ctk.StringVar()
+        
+        ctk.CTkLabel(self.sidebar, text="Usuario GESI", text_color=COLORS["text_dim"]).pack(anchor="w", padx=25)
+        self.entry_user = ctk.CTkEntry(self.sidebar, textvariable=self.user_var, height=35, fg_color=COLORS["bg_input"])
+        self.entry_user.pack(fill="x", padx=25, pady=(0, 10))
+
+        ctk.CTkLabel(self.sidebar, text="Contraseña", text_color=COLORS["text_dim"]).pack(anchor="w", padx=25)
+        self.entry_pass = ctk.CTkEntry(self.sidebar, textvariable=self.pass_var, show="*", height=35, fg_color=COLORS["bg_input"])
+        self.entry_pass.pack(fill="x", padx=25, pady=(0, 20))
+
+        # Divisor
+        ctk.CTkFrame(self.sidebar, height=2, fg_color=COLORS["border"]).pack(fill="x", padx=20, pady=10)
+
+        # Botón para Captcha (Reemplaza al dialog anterior)
+        self.btn_captcha = ctk.CTkButton(self.sidebar, text="Confirmar Captcha ✅", 
+                                        fg_color=COLORS["blue_btn"], state="disabled",
+                                        command=lambda: self.captcha_listo.set())
+        self.btn_captcha.pack(fill="x", padx=25, pady=15)
+
+        # Botones de Proceso (SI/NO)
+        self.btn_proceso_si = ctk.CTkButton(self.sidebar, text="Incluir Digitado (SÍ)", 
+                                           fg_color=COLORS["accent"], state="disabled",
+                                           command=lambda: self.confirmacion_si.set())
+        self.btn_proceso_si.pack(fill="x", padx=25, pady=5)
+
+    def _build_main_panel(self):
+        self.main_view = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_view.grid(row=0, column=1, sticky="nsew", padx=25, pady=25)
+
+        # Selector de Archivo
+        self.btn_file = ctk.CTkButton(self.main_view, text="📂 Seleccionar Archivo de Excel", 
+                                     fg_color=COLORS["bg_card"], height=45, 
+                                     command=self.seleccionar_archivo)
+        self.btn_file.pack(fill="x", pady=(0, 10))
+
+        # Monitor de Procesos (Log)
+        self.txt_log = ctk.CTkTextbox(self.main_view, fg_color="#010409", border_width=1,
+                                     font=ctk.CTkFont("Consolas", 12), text_color="#76e1fe")
+        self.txt_log.pack(fill="both", expand=True, pady=10)
+        self.txt_log.configure(state="disabled")
+
+        # Botón Principal
+        self.btn_action = ctk.CTkButton(self.main_view, text="🚀 INICIAR AUTOMATIZACIÓN", 
+                                       fg_color=COLORS["accent"], height=55,
+                                       font=ctk.CTkFont("Segoe UI", 16, "bold"),
+                                       command=self.start_thread)
+        self.btn_action.pack(fill="x")
+
+    def log(self, message):
+        t = datetime.now().strftime("%H:%M:%S")
+        self.txt_log.configure(state="normal")
+        self.txt_log.insert("end", f"[{t}] {message}\n")
+        self.txt_log.see("end")
+        self.txt_log.configure(state="disabled")
+        self.update_idletasks()
+
+    # --- LÓGICA ORIGINAL RESTAURADA ---
+
+    def seleccionar_archivo(self):
+        archivo = filedialog.askopenfilename(title="Seleccionar archivo de Excel", filetypes=[("Archivos de Excel", "*.xlsx;*.xls")])
+        if archivo:
+            try:
+                wb = load_workbook(archivo)
+                self.nombres = wb['Hoja1']
+                self.log(f"Archivo cargado: {Path(archivo).name}")
+                self.btn_file.configure(text=f"✅ {Path(archivo).name}")
+            except Exception as e:
+                self.log(f"Error cargando Excel: {e}")
+
+    def wait_for_element(self, by, value, timeout=10):
+        return WebDriverWait(self.driver, timeout).until(EC.presence_of_element_located((by, value)))
+
+    def start_thread(self):
+        if not self.nombres:
+            return messagebox.showwarning("Falta Info", "Carga el Excel primero.")
+        threading.Thread(target=self.hc_crear, daemon=True).start()
+
+    def hc_crear(self):
+        self.btn_action.configure(state="disabled")
         try:
-            wait_for_element(driver, By.XPATH, '/html/body/div/div[2]/button[3]').click()
-            time.sleep(1)
-            wait_for_element(driver, By.XPATH, '/html/body/div/div[3]/p[2]/a').click()
-            time.sleep(3)
-        except:
-            print("El botón no se encontró, continúa con el código.")
-        
-        usuario_login(driver)
-        
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo iniciar el navegador: {e}")
-        if 'driver' in locals():
-            driver.quit()
-
-def next(driver):
-    wait_for_element(driver, By.XPATH, '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
-    time.sleep(4)
-    
-    wait_for_element(driver, By.XPATH, '/html/body/div/div/nav/div/div[4]/ul/li[7]').click()
-    time.sleep(1)
-    
-    wait_for_element(driver, By.XPATH, '/html/body/div/div/nav/div/div[4]/ul/li[7]/div/ul/li[1]/a').click()
-    time.sleep(2)
-    
-    wait_for_element(driver, By.XPATH, '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click()
-    time.sleep(1)
-    
-    wait_for_element(driver, By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
-    
-    iniciar(driver)
-
-def iniciar(driver):
-    dialog = customtkinter.CTkToplevel()
-    dialog.title("Iniciar proceso")
-    dialog.attributes("-topmost", True)
-    dialog.transient()  
-    dialog.grab_set()  
-    
-    label_user = customtkinter.CTkLabel(dialog, text="Para la creación desea incluir el si digitado")
-    label_user.grid(row=0, column=0, padx=10, pady=5, sticky="w")
-     
-    save_button = customtkinter.CTkButton(dialog, text="Si", 
-                                      command=lambda: [si(driver, dialog), dialog.destroy()])
-    save_button.grid(row=1, column=0, columnspan=2, pady=10)
-    
-    no_button = customtkinter.CTkButton(dialog, text="No", 
-                                     command=lambda: [dialog.destroy(), driver.quit()])
-    no_button.grid(row=2, column=0, columnspan=2, pady=10)
-
-def si(driver, dialog):
-    dialog.destroy()
-    total_filas = nombres.max_row
-    
-    try:
-        for i in range(1, total_filas + 1):
-            ficha, fecha, profesional, entorno, base, perfil = nombres[f'A{i}:F{i}'][0]
-            ficha1 = ficha.value
-            fecha1 = fecha.value
-            formato = fecha1.strftime('%d/%m/%Y')
-            profesional1 = profesional.value
-            Entorno1 = entorno.value
-            perfil1 = perfil.value
-            base1 = base.value
-            Datos = [ficha1, formato, profesional1, Entorno1, base1, perfil1]
-            print(f"Ingresando ficha: {ficha1}")
+            self.log("Abriendo Chrome...")
+            options = webdriver.ChromeOptions()
+            options.add_argument('--start-maximized')
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
             
-            DatosCrearSi(Datos, driver)               
-            
-            wait_for_element(driver, By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
-            
-            wait_for_element(driver, By.XPATH, '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
-            
-            wait_for_element(driver, By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
-        
-        messagebox.showinfo("Éxito", "Proceso completado correctamente")
-        
-    except Exception as e:
-        messagebox.showerror("Error", f"Error al procesar las fichas: {e}")
-    finally:
-        driver.quit()
+            self.driver.get("https://gesiapps.saludcapital.gov.co/GESI_sistemas/login")
+            time.sleep(2)
 
-def DatosCrearSi(Datos, driver):
-    try:
-        Select(wait_for_element(driver, By.ID, 'Digitado')).select_by_visible_text('Si')
+            try:
+                self.wait_for_element(By.XPATH, '/html/body/div/div[2]/button[3]').click()
+                time.sleep(1)
+                self.wait_for_element(By.XPATH, '/html/body/div/div[3]/p[2]/a').click()
+                time.sleep(3)
+            except:
+                self.log("Omitiendo bypass de seguridad inicial.")
+
+            # Login con los datos del sidebar
+            self.log("Enviando credenciales de usuario...")
+            self.wait_for_element(By.ID, 'usuario').send_keys(self.user_var.get())
+            self.wait_for_element(By.ID, 'password').send_keys(self.pass_var.get())
+            
+            codigo = self.wait_for_element(By.ID, 'tokenAcceso').get_attribute('value')
+            self.wait_for_element(By.ID, 'valorCodigoSeguridad').send_keys(codigo)
+            
+            self.log("⚠️ POR FAVOR, RESUELVE EL CAPTCHA Y PRESIONA 'Confirmar Captcha' EN EL PANEL.")
+            self.btn_captcha.configure(state="normal")
+            
+            # Espera al evento del botón
+            self.captcha_listo.wait()
+            self.captcha_listo.clear()
+            self.btn_captcha.configure(state="disabled")
+            
+            self.next_step()
+            
+        except Exception as e:
+            self.log(f"Error: {e}")
+            self.btn_action.configure(state="normal")
+
+    def next_step(self):
+        self.log("Navegando al módulo de Historias Clínicas...")
+        self.wait_for_element(By.XPATH, '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
+        time.sleep(4)
+        self.wait_for_element(By.XPATH, '/html/body/div/div/nav/div/div[4]/ul/li[7]').click()
+        time.sleep(1)
+        self.wait_for_element(By.XPATH, '/html/body/div/div/nav/div/div[4]/ul/li[7]/div/ul/li[1]/a').click()
+        time.sleep(2)
+        self.wait_for_element(By.XPATH, '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click()
+        time.sleep(1)
+        self.wait_for_element(By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
         
+        self.log("Esperando confirmación de inicio de proceso...")
+        self.btn_proceso_si.configure(state="normal")
+        
+        # Espera al evento del botón SI
+        self.confirmacion_si.wait()
+        self.confirmacion_si.clear()
+        self.btn_proceso_si.configure(state="disabled")
+        
+        self.si_proceso()
+
+    def si_proceso(self):
+        total_filas = self.nombres.max_row
+        try:
+            for i in range(1, total_filas + 1):
+                fila = self.nombres[f'A{i}:F{i}'][0]
+                ficha_val = fila[0].value
+                fecha_val = fila[1].value
+                formato = fecha_val.strftime('%d/%m/%Y')
+                
+                datos = [ficha_val, formato, fila[2].value, fila[3].value, fila[4].value, fila[5].value]
+                self.log(f"Ingresando ficha: {ficha_val}")
+                
+                self.DatosCrearSi(datos) 
+                
+                self.wait_for_element(By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
+                self.wait_for_element(By.XPATH, '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
+                self.wait_for_element(By.XPATH, '/html/body/div[2]/div/div[3]/button[1]').click()
+            
+            self.log("✅ PROCESO COMPLETADO CORRECTAMENTE.")
+            messagebox.showinfo("Éxito", "Proceso completado.")
+        except Exception as e:
+            self.log(f"Error en bucle: {e}")
+        finally:
+            self.btn_action.configure(state="normal")
+
+    def DatosCrearSi(self, Datos):
+        Select(self.wait_for_element(By.ID, 'Digitado')).select_by_visible_text('Si')
         fecha_fields = ['Fecha_entrega_tecnologo', 'Fecha_actualizacion', 'Fecha_entrega_digitacion']
         for field in fecha_fields:
-            wait_for_element(driver, By.ID, field).send_keys(Datos[1])
+            self.wait_for_element(By.ID, field).send_keys(Datos[1])
+        self.wait_for_element(By.ID, 'Nro_actualizacion').send_keys('1')
         
-        wait_for_element(driver, By.ID, 'Nro_actualizacion').send_keys('1')
-        
-        llenar(Datos, driver)
-        
-        wait_for_element(driver, By.XPATH, '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
-        
-    except Exception as e:
-        raise Exception(f"Error al crear ficha con digitado: {e}")
+        self.llenar(Datos)
+        self.wait_for_element(By.XPATH, '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
 
-def llenar(Datos, driver):
-    try:
-        element_ficha = wait_for_element(driver, By.ID, 'Ficha_fic')
+    def llenar(self, Datos):
+        element_ficha = self.wait_for_element(By.ID, 'Ficha_fic')
         element_ficha.clear()
         element_ficha.send_keys(Datos[0])
         
-        profesional = wait_for_element(driver, By.ID, 'Nombre_profesional')
+        profesional = self.wait_for_element(By.ID, 'Nombre_profesional')
         profesional.clear()
         profesional.send_keys(Datos[2])
         
         fecha_fields = ['Fecha_ingreso', 'Fecha_entrega_profesional']
         for field in fecha_fields:
-            element = wait_for_element(driver, By.ID, field)
+            element = self.wait_for_element(By.ID, field)
             element.clear()
             element.send_keys(Datos[1])
         
-        Select(wait_for_element(driver, By.ID, 'Id_perfil')).select_by_visible_text(Datos[5])
+        Select(self.wait_for_element(By.ID, 'Id_perfil')).select_by_visible_text(Datos[5])
         
-        # Manejo del select Espacio con reintento
         for attempt in range(10):
             try:
-                espacio = Select(wait_for_element(driver, By.ID, 'Espacio_fic'))
+                espacio = Select(self.wait_for_element(By.ID, 'Espacio_fic'))
                 espacio.select_by_visible_text('1 -Hogar')
                 time.sleep(1)
                 espacio.select_by_visible_text(Datos[3])
                 time.sleep(1)
                 break
-            except NoSuchElementException:
-                print(f"Intento {attempt + 1} fallido: 'Espacio_fic' no encontrado.")
+            except:
                 time.sleep(1)
         
-        Select(wait_for_element(driver, By.ID, 'Id_Base')).select_by_visible_text(Datos[4])
-        
-    except Exception as e:
-        raise Exception(f"Error al llenar el formulario: {e}")
+        Select(self.wait_for_element(By.ID, 'Id_Base')).select_by_visible_text(Datos[4])
 
-# Ejecutar la función principal
 if __name__ == "__main__":
-    hc_crear()
+    app = GesiApp()
+    app.mainloop()
