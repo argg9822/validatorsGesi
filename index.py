@@ -841,6 +841,9 @@ class App(ctk.CTk):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-if __name__ == "__main__":
+def index_open():
     app = App()
     app.mainloop()
+
+if __name__ == "__main__":
+    index_open()
