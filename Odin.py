@@ -12,7 +12,7 @@ from PIL import Image, ImageTk
 
 # ── Constantes ────────────────────────────────────────────────────────────────
 APP_NAME    = "Odin"
-VERSION     = "0.0.0.3"
+VERSION     = "0.0.0.4"
 AUTHORS     = "Gabriel Monhabell - Aramis Garcia"
 COPYRIGHT   = f"© 2024 {AUTHORS}"
 TRANSPARENT = "#00c7fc"          # color transparente para el splash
