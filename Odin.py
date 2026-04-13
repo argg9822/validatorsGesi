@@ -86,6 +86,7 @@ class SplashScreen:
             font=("Helvetica", 8)
         )
 
+
         # Barra de progreso (track gris + barra cyan animada)
         bar_w = 380
         bar_h = 3
