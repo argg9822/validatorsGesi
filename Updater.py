@@ -121,18 +121,29 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
         return False
 
 def _create_install_script(src_path: Path, dest_path: Path):
-    """Crea un archivo .bat (Windows) para mover archivos tras el cierre"""
+    """Crea un archivo .bat optimizado para el ejecutable Odin"""
     script_path = dest_path / "finish_update.bat"
     
-    # Comandos: esperar 2 seg, copiar todo, borrar temporal, reiniciar app
+    # Detectamos si estamos ejecutando un .exe o un .py para saber qué reiniciar
+    if getattr(sys, 'frozen', False):
+        # Si es el ejecutable compilado
+        restart_cmd = f"start \"\" \"{dest_path}\\Odin.exe\""
+    else:
+        # Si es por consola
+        restart_cmd = "start python Odin.py"
+
+    # El comando xcopy necesita comillas por si hay espacios en el nombre de usuario
     content = f"""@echo off
-timeout /t 2 > nul
-xcopy /s /y "{src_path}\\*" "{dest_path}\\"
+title Finalizando Actualizacion...
+timeout /t 3 > nul
+echo Aplicando cambios, por favor espere...
+xcopy /s /y /e "{src_path}\\*" "{dest_path}\\"
 rd /s /q "{src_path.parent}"
-start python main.py
+{restart_cmd}
 del "%~f0"
 """
-    with open(script_path, "w") as f:
+    # Usamos encoding cp1252 para que Windows BAT no tenga problemas con acentos
+    with open(script_path, "w", encoding="cp1252") as f:
         f.write(content)
 
 def finalize_update():
