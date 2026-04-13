@@ -255,19 +255,12 @@ class ValidatorCard(ctk.CTkFrame):
 class App(ctk.CTk):
 
     def _run_crear_hc(self):
-        """Ejecuta el script crear.py ubicado en la carpeta crear_hc"""
-        script_path = APP_DIR / "crear_hc" / "crear.py"
-        
-        if not script_path.exists():
-            messagebox.showerror("Error", f"No se encontró el archivo:\n{script_path}")
-            return
-
+        """Ejecuta el módulo crear_hc sin abrir otra instancia"""
         try:
-            # Ejecuta el script usando el mismo intérprete de python actual
-            subprocess.Popen([sys.executable, str(script_path)])
+            from crear_hc.crear import main
+            main()
         except Exception as e:
-            messagebox.showerror("Error de ejecución", f"No se pudo iniciar el script:\n{str(e)}")
-
+            messagebox.showerror("Error de ejecución", str(e))
             
     def __init__(self):
         super().__init__()

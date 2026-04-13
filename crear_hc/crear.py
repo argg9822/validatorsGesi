@@ -265,6 +265,10 @@ class GesiApp(ctk.CTk):
         
         Select(self.wait_for_element(By.ID, 'Id_Base')).select_by_visible_text(Datos[4])
 
-if __name__ == "__main__":
+def main():
     app = GesiApp()
     app.mainloop()
+
+
+if __name__ == "__main__":
+    main()
