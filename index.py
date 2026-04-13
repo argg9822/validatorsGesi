@@ -262,6 +262,8 @@ class App(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Error de ejecución", str(e))
             
+            
+            
     def __init__(self):
         super().__init__()
         self.title(f"Odin  ·  v{__version__}")
