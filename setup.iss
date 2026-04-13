@@ -2,7 +2,7 @@
 ;  ValidatorsGesi – Inno Setup Script (Optimizado para Auto-Update)
 ; ═══════════════════════════════════════════════════════════════════════════════
 
-#define MyAppName        "Validador GesiApp"
+#define MyAppName        "Odin"
 #define MyAppVersion     "1.0.1"
 #define MyAppPublisher   "Gabriel Monhabell - Aramis Garcia"
 #define MyAppURL         "https://github.com/argg9822/validatorsGesi"
