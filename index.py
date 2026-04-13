@@ -256,11 +256,12 @@ class App(ctk.CTk):
 
     def _run_crear_hc(self):
         try:
-            from crear_hc.crear import main as abrir_crear
-            # self.root es la ventana de tu INDEX
-            abrir_crear(self.root) 
+            from crear_hc.crear import GesiApp
+            # USAR 'self.nueva_ventana' en lugar de una variable local
+            # Esto mantiene la ventana viva en la memoria
+            self.nueva_ventana = GesiApp(self) 
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            messagebox.showerror("Error", f"Fallo al abrir ventana: {e}")
             
             
             

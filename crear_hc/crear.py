@@ -30,24 +30,26 @@ COLORS = {
     "red_btn":      "#DA3633"
 }
 
-class GesiApp(ctk.CTk):
-    def __init__(self, master=None): # <-- Agregamos master
+# CAMBIO 1: Heredar de CTkToplevel para ser ventana secundaria
+class GesiApp(ctk.CTkToplevel):
+    def __init__(self, master=None):
         super().__init__(master)
 
         self.title("GESI - Automatización de Historias Clínicas")
         self.geometry("1000x750")
+        
+        # CAMBIO 2: Usar self directamente para configurar (ya no existe self.root)
         self.configure(fg_color=COLORS["bg_dark"])
         
+        # Mantener al frente al abrir
         self.after(100, self.lift)
         self.focus_force()
         
-        # Variables de estado originales
         self.nombres = None
         self.driver = None
         self.captcha_listo = threading.Event()
         self.confirmacion_si = threading.Event()
 
-        # Layout
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -55,13 +57,13 @@ class GesiApp(ctk.CTk):
         self._build_main_panel()
 
     def _build_sidebar(self):
+        # CAMBIO 3: Los widgets se anclan a 'self', no a 'self.root'
         self.sidebar = ctk.CTkFrame(self, width=320, fg_color=COLORS["bg_card"], corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
         ctk.CTkLabel(self.sidebar, text="🔑 PANEL DE CONTROL", 
                      font=ctk.CTkFont("Segoe UI", 18, "bold")).pack(pady=(30, 20))
 
-        # Inputs de Login
         self.user_var = ctk.StringVar()
         self.pass_var = ctk.StringVar()
         
@@ -73,38 +75,33 @@ class GesiApp(ctk.CTk):
         self.entry_pass = ctk.CTkEntry(self.sidebar, textvariable=self.pass_var, show="*", height=35, fg_color=COLORS["bg_input"])
         self.entry_pass.pack(fill="x", padx=25, pady=(0, 20))
 
-        # Divisor
         ctk.CTkFrame(self.sidebar, height=2, fg_color=COLORS["border"]).pack(fill="x", padx=20, pady=10)
 
-        # Botón para Captcha (Reemplaza al dialog anterior)
         self.btn_captcha = ctk.CTkButton(self.sidebar, text="Confirmar Captcha ✅", 
                                         fg_color=COLORS["blue_btn"], state="disabled",
                                         command=lambda: self.captcha_listo.set())
         self.btn_captcha.pack(fill="x", padx=25, pady=15)
 
-        # Botones de Proceso (SI/NO)
         self.btn_proceso_si = ctk.CTkButton(self.sidebar, text="Incluir Digitado (SÍ)", 
                                            fg_color=COLORS["accent"], state="disabled",
                                            command=lambda: self.confirmacion_si.set())
         self.btn_proceso_si.pack(fill="x", padx=25, pady=5)
 
     def _build_main_panel(self):
+        # CAMBIO 4: Anclar a 'self'
         self.main_view = ctk.CTkFrame(self, fg_color="transparent")
         self.main_view.grid(row=0, column=1, sticky="nsew", padx=25, pady=25)
 
-        # Selector de Archivo
         self.btn_file = ctk.CTkButton(self.main_view, text="📂 Seleccionar Archivo de Excel", 
                                      fg_color=COLORS["bg_card"], height=45, 
                                      command=self.seleccionar_archivo)
         self.btn_file.pack(fill="x", pady=(0, 10))
 
-        # Monitor de Procesos (Log)
         self.txt_log = ctk.CTkTextbox(self.main_view, fg_color="#010409", border_width=1,
                                      font=ctk.CTkFont("Consolas", 12), text_color="#76e1fe")
         self.txt_log.pack(fill="both", expand=True, pady=10)
         self.txt_log.configure(state="disabled")
 
-        # Botón Principal
         self.btn_action = ctk.CTkButton(self.main_view, text="🚀 INICIAR AUTOMATIZACIÓN", 
                                        fg_color=COLORS["accent"], height=55,
                                        font=ctk.CTkFont("Segoe UI", 16, "bold"),
@@ -119,8 +116,7 @@ class GesiApp(ctk.CTk):
         self.txt_log.configure(state="disabled")
         self.update_idletasks()
 
-    # --- LÓGICA ORIGINAL RESTAURADA ---
-
+    # --- LÓGICA DE AUTOMATIZACIÓN (Sin cambios necesarios aquí) ---
     def seleccionar_archivo(self):
         archivo = filedialog.askopenfilename(title="Seleccionar archivo de Excel", filetypes=[("Archivos de Excel", "*.xlsx;*.xls")])
         if archivo:
@@ -159,7 +155,6 @@ class GesiApp(ctk.CTk):
             except:
                 self.log("Omitiendo bypass de seguridad inicial.")
 
-            # Login con los datos del sidebar
             self.log("Enviando credenciales de usuario...")
             self.wait_for_element(By.ID, 'usuario').send_keys(self.user_var.get())
             self.wait_for_element(By.ID, 'password').send_keys(self.pass_var.get())
@@ -167,10 +162,9 @@ class GesiApp(ctk.CTk):
             codigo = self.wait_for_element(By.ID, 'tokenAcceso').get_attribute('value')
             self.wait_for_element(By.ID, 'valorCodigoSeguridad').send_keys(codigo)
             
-            self.log("⚠️ POR FAVOR, RESUELVE EL CAPTCHA Y PRESIONA 'Confirmar Captcha' EN EL PANEL.")
+            self.log("⚠️ POR FAVOR, RESUELVE EL CAPTCHA Y PRESIONA 'Confirmar Captcha'.")
             self.btn_captcha.configure(state="normal")
             
-            # Espera al evento del botón
             self.captcha_listo.wait()
             self.captcha_listo.clear()
             self.btn_captcha.configure(state="disabled")
@@ -196,7 +190,6 @@ class GesiApp(ctk.CTk):
         self.log("Esperando confirmación de inicio de proceso...")
         self.btn_proceso_si.configure(state="normal")
         
-        # Espera al evento del botón SI
         self.confirmacion_si.wait()
         self.confirmacion_si.clear()
         self.btn_proceso_si.configure(state="disabled")
@@ -268,15 +261,13 @@ class GesiApp(ctk.CTk):
         
         Select(self.wait_for_element(By.ID, 'Id_Base')).select_by_visible_text(Datos[4])
 
-# --- CAMBIO 2: Ajustar la función de arranque ---
+# --- Función de arranque ---
 def main(master=None):
     if master is None:
-        # Si se ejecuta solo, creamos un root de prueba
         root = ctk.CTk()
         app = GesiApp(root)
         root.mainloop()
     else:
-        # Si viene del index, solo instanciamos la ventana
         app = GesiApp(master)
         return app
 
