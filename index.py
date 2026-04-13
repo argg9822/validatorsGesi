@@ -255,12 +255,12 @@ class ValidatorCard(ctk.CTkFrame):
 class App(ctk.CTk):
 
     def _run_crear_hc(self):
-        """Ejecuta el módulo crear_hc sin abrir otra instancia"""
         try:
-            from crear_hc.crear import main
-            main()
+            from crear_hc.crear import main as abrir_crear
+            # self.root es la ventana de tu INDEX
+            abrir_crear(self.root) 
         except Exception as e:
-            messagebox.showerror("Error de ejecución", str(e))
+            messagebox.showerror("Error", str(e))
             
             
             

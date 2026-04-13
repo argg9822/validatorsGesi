@@ -31,12 +31,15 @@ COLORS = {
 }
 
 class GesiApp(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, master=None): # <-- Agregamos master
+        super().__init__(master)
 
         self.title("GESI - Automatización de Historias Clínicas")
         self.geometry("1000x750")
         self.configure(fg_color=COLORS["bg_dark"])
+        
+        self.after(100, self.lift)
+        self.focus_force()
         
         # Variables de estado originales
         self.nombres = None
@@ -265,10 +268,17 @@ class GesiApp(ctk.CTk):
         
         Select(self.wait_for_element(By.ID, 'Id_Base')).select_by_visible_text(Datos[4])
 
-def main():
-    app = GesiApp()
-    app.mainloop()
-
+# --- CAMBIO 2: Ajustar la función de arranque ---
+def main(master=None):
+    if master is None:
+        # Si se ejecuta solo, creamos un root de prueba
+        root = ctk.CTk()
+        app = GesiApp(root)
+        root.mainloop()
+    else:
+        # Si viene del index, solo instanciamos la ventana
+        app = GesiApp(master)
+        return app
 
 if __name__ == "__main__":
     main()
