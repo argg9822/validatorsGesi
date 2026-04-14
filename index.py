@@ -317,7 +317,7 @@ class App(ctk.CTk):
         logo_frame.pack(fill="x", pady=(24, 0))
         ctk.CTkLabel(logo_frame, text="⚙️",
                      font=ctk.CTkFont(size=32)).pack()
-        ctk.CTkLabel(logo_frame, text="Odin\nAutomatice",
+        ctk.CTkLabel(logo_frame, text="Odin\nAutomatice trakio",
                      font=ctk.CTkFont("Segoe UI", 16, "bold"),
                      text_color=COLORS["text_primary"],
                      justify="center").pack()
