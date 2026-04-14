@@ -306,8 +306,9 @@ def download_and_apply(remote_version, progress_callback=None, status_callback=N
 
 def _create_install_script(src_path: Path, tmp_dir: Path, new_version: str):
     script_path = APP_DIR / "finish_update.bat"
-    exe_name = "Odin.exe" # Solo se usa para cerrar el proceso y reabrirlo
+    exe_name = "Odin.exe"
     
+    # Rutas calculadas
     app_dir_str = str(APP_DIR)
     bat_log = f'"{app_dir_str}\\update_log.txt"'
 
@@ -315,26 +316,37 @@ def _create_install_script(src_path: Path, tmp_dir: Path, new_version: str):
 chcp 65001 > nul
 title Actualizando Componentes de Odin...
 
-echo [%date% %time%] === ACTUALIZACIÓN EXTERNA === >> {bat_log}
+echo [%date% %time%] === INICIO DE ACTUALIZACIÓN DE LÓGICA === >> {bat_log}
 
-:: 1. Cerrar Odin para liberar archivos .py y .json
+echo [1/4] Cerrando procesos...
 taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
-timeout /t 2 /nobreak > nul
+timeout /t 3 /nobreak > nul
 
-:: 2. Sincronizar TODO excepto el .exe y el Updater.exe
-:: Esto actualizará index.py, las carpetas crear_hc, validadores, etc.
-robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} Updater.exe /LOG+:{bat_log} /TEE
+echo [2/4] Sincronizando archivos internos y lógica...
+:: /XF {exe_name} evita que robocopy intente tocar el lanzador
+robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} /TEE
 
-:: 3. Actualizar el registro de versión
+if %ERRORLEVEL% GEQ 8 (
+    echo [ERROR] Robocopy falló con código %ERRORLEVEL% >> {bat_log}
+    msg * "Error crítico al copiar archivos. Revisa update_log.txt"
+    exit
+)
+
+echo [3/4] Actualizando registro de versión a {new_version}...
+:: Aquí corregimos el error de la función, escribiendo el número real
 echo {new_version}> "{app_dir_str}\\version.txt"
 
-:: 4. Limpieza y Reinicio
+echo [4/4] Limpieza de temporales...
 rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
-echo [OK] Actualización de lógica completada. >> {bat_log}
 
+echo [OK] Actualización terminada exitosamente. >> {bat_log}
+timeout /t 2 /nobreak > nul
+
+:: Reiniciar usando el lanzador estático
 start "" "{app_dir_str}\\{exe_name}"
 (goto) 2>nul & del "%~f0"
 """
+    # Guardar siempre en UTF-8 para evitar problemas con tildes
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(content)
 
