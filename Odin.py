@@ -147,7 +147,7 @@ def _open_main_logic():
         # Registramos los módulos para que index.py y crear.py no den ImportError
         librerias = [
             'requests', 'customtkinter', 'openpyxl', 'selenium', 
-            'webdriver_manager', 'PIL'
+            'webdriver_manager', 'PIL', 'pandas', 'numpy'
         ]
         
         for lib in librerias:
