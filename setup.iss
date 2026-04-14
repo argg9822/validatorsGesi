@@ -1,5 +1,5 @@
 ; ═══════════════════════════════════════════════════════════════════════════════
-;  ValidatorsGesi – Inno Setup Script (Optimizado para Auto-Update Externo)
+;  ValidatorsGesi – Inno Setup Script (Versión Final Blindada)
 ; ═══════════════════════════════════════════════════════════════════════════════
 
 #define MyAppName        "Odin"
@@ -17,7 +17,7 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 
-; Instalación en Local AppData para evitar pedir permisos de Admin al actualizar
+; Instalación en Local AppData para permitir auto-actualizaciones sin Admin
 DefaultDirName={userappdata}\{#MyAppName}
 PrivilegesRequired=lowest
 
@@ -38,18 +38,21 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "Crear acceso directo en el &Escritorio"; GroupDescription: "Iconos adicionales:"
 
 [Files]
-; 1. EJECUTABLES (Los "Shells" que no cambian)
+; 1. BINARIOS COMPILADOS (Los contenedores)
 Source: "{#MySourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MySourceDir}\{#MyUpdaterExe}"; DestDir: "{app}"; Flags: ignoreversion
 
-; 2. LÓGICA DINÁMICA (Lo que el Updater reemplazará)
+; 2. LÓGICA DE PYTHON (Lo que permite el 'import' en index.py)
 Source: "index.py";       DestDir: "{app}"; Flags: ignoreversion
-Source: "version.txt";    DestDir: "{app}"; Flags: ignoreversion
+Source: "Updater.py";     DestDir: "{app}"; Flags: ignoreversion  <-- ¡ESTE FALTABA!
 Source: "__version__.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "version.txt";    DestDir: "{app}"; Flags: ignoreversion
+
+; 3. CONFIGURACIONES Y DATOS
 Source: "areas.json";     DestDir: "{app}"; Flags: ignoreversion
 Source: "bases.json";     DestDir: "{app}"; Flags: ignoreversion
 
-; 3. CARPETAS DE RECURSOS Y COMPONENTES
+; 4. CARPETAS DE COMPONENTES
 Source: "crear_hc\*";     DestDir: "{app}\crear_hc"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "crc_princ\*";    DestDir: "{app}\crc_princ"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "validadores\*";  DestDir: "{app}\validadores"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -63,7 +66,7 @@ Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 Filename: "{app}\{#MyAppExeName}"; Description: "Iniciar {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
-// Sincronizar versión al instalar
+// Sincronizar versión al instalar para que el primer check de update sea correcto
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
@@ -72,11 +75,12 @@ begin
   end;
 end;
 
-// Cerrar Odin antes de desinstalar
+// Cerrar Odin antes de desinstalar para evitar archivos bloqueados
 function InitializeUninstall(): Boolean;
 var
   ErrorCode: Integer;
 begin
+  // Intenta cerrar Odin.exe si está abierto
   ShellExec('open', 'taskkill.exe', '/f /im {#MyAppExeName}', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
   Result := True;
 end;
