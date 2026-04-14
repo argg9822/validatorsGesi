@@ -176,20 +176,32 @@ def open_debug_window():
 # ── Lógica de versiones ───────────────────────────────────────────────────────
 
 def _get_local_version() -> str:
+    # 1. Intentar SIEMPRE primero version.txt
     version_file = APP_DIR / "version.txt"
     if version_file.exists():
-        v = version_file.read_text(encoding="utf-8").strip()
-        if v:
-            _log(f"Versión local (version.txt): {v}")
-            return v
+        try:
+            # Añadimos replace para quitar posibles saltos de línea de Windows (\r\n)
+            v = version_file.read_text(encoding="utf-8").strip().replace('\r', '').replace('\n', '')
+            if v:
+                _log(f"Versión local detectada: {v}")
+                return v
+        except Exception as e:
+            _log(f"Error leyendo version.txt: {e}")
+
+    # 2. Si no existe version.txt, buscar en __version__.py
     version_py = APP_DIR / "__version__.py"
     if version_py.exists():
-        for line in version_py.read_text(encoding="utf-8").splitlines():
-            if "__version__" in line and "=" in line:
-                v = line.split("=")[1].strip().strip("'\"")
-                _log(f"Versión local (__version__.py): {v}")
-                return v
-    _log("WARN: No se encontró archivo de versión. Usando 0.0.0")
+        try:
+            for line in version_py.read_text(encoding="utf-8").splitlines():
+                if "__version__" in line and "=" in line:
+                    v = line.split("=")[1].strip().strip("'\"")
+                    # Crear el version.txt si no existe para la próxima vez
+                    version_file.write_text(v, encoding="utf-8")
+                    return v
+        except Exception as e:
+            _log(f"Error leyendo __version__.py: {e}")
+
+    _log("WARN: No se encontró versión. Usando 0.0.0")
     return "0.0.0"
 
 
@@ -324,8 +336,8 @@ taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
 timeout /t 3 /nobreak > nul
 
 echo [2/4] Sincronizando archivos internos y lógica...
-:: /XF {exe_name} evita que robocopy intente tocar el lanzador
-robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} /TEE
+:: Agregamos /XD para excluir carpetas de desarrollo y /XF para archivos innecesarios
+robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} update_log.txt finish_update.bat /XD .git .vscode .github __pycache__ /LOG+:{bat_log} /TEE
 
 if %ERRORLEVEL% GEQ 8 (
     echo [ERROR] Robocopy falló con código %ERRORLEVEL% >> {bat_log}
@@ -334,8 +346,10 @@ if %ERRORLEVEL% GEQ 8 (
 )
 
 echo [3/4] Actualizando registro de versión a {new_version}...
-:: Aquí corregimos el error de la función, escribiendo el número real
-echo {new_version}> "{app_dir_str}\\version.txt"
+:: Borramos el archivo viejo por si tiene atributos de solo lectura o está bloqueado
+del /f /q "{app_dir_str}\\version.txt" >> {bat_log} 2>&1
+:: El paréntesis garantiza que solo se escriba el texto, sin espacios finales
+(echo {new_version})>"{app_dir_str}\\version.txt"
 
 echo [4/4] Limpieza de temporales...
 rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
@@ -379,9 +393,10 @@ def check_update_async(callback):
     ).start()
 
 
-def apply_update_async(progress_cb=None, status_cb=None, done_cb=None):
+def apply_update_async(remote_version, progress_cb=None, status_cb=None, done_cb=None):
     def _run():
-        ok = download_and_apply(progress_cb, status_cb)
+        # Agregamos remote_version que es necesaria para el .bat
+        ok = download_and_apply(remote_version, progress_cb, status_cb)
         if done_cb:
             done_cb(ok)
     threading.Thread(target=_run, daemon=True).start()
