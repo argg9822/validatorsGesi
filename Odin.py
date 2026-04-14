@@ -126,7 +126,13 @@ class SplashScreen:
 #  Carga Dinámica de Lógica (El "Cerebro" Externo)
 # ═══════════════════════════════════════════════════════════════════════════════
 def _open_main_logic():
-    """Importa y ejecuta el archivo index.py ubicado en la carpeta del programa."""
+    """
+    Importa y ejecuta el archivo index.py ubicado en la carpeta del programa.
+    Inyecta librerías críticas para evitar errores de importación en el .exe
+    """
+    import tkinter as tk
+    from tkinter import messagebox, filedialog
+    
     index_path = os.path.join(BASE_DIR, "index.py")
 
     if not os.path.exists(index_path):
@@ -135,16 +141,23 @@ def _open_main_logic():
         sys.exit(1)
 
     try:
-        # Asegurar que el directorio base esté en el path para imports internos de index.py
+        # 1. Asegurar que el directorio base esté en el path
         if BASE_DIR not in sys.path:
             sys.path.insert(0, BASE_DIR)
 
-        # Carga dinámica del módulo
+        # 2. Configurar la carga dinámica del módulo
         spec = importlib.util.spec_from_file_location("index", index_path)
         index_module = importlib.util.module_from_spec(spec)
+        
+        # 3. TRUCO DE PRODUCCIÓN: Inyectar librerías ya cargadas por el .exe
+        # Esto evita el error "cannot import name 'filedialog' from 'tkinter'"
+        sys.modules["tkinter.filedialog"] = filedialog
+        sys.modules["tkinter.messagebox"] = messagebox
+
+        # 4. Cargar y ejecutar el código de index.py
         spec.loader.exec_module(index_module)
 
-        # Ejecutar punto de entrada
+        # 5. Ejecutar punto de entrada si existe
         if hasattr(index_module, 'index_open'):
             index_module.index_open()
         
@@ -152,9 +165,10 @@ def _open_main_logic():
         import traceback
         error_info = traceback.format_exc()
         
-        # Guardar log de error
-        with open(os.path.join(BASE_DIR, "error_log.txt"), "a", encoding="utf-8") as f:
-            f.write(f"\n[{datetime.datetime.now()}] ERROR DE CARGA:\n{error_info}\n")
+        # Guardar log de error detallado
+        log_path = os.path.join(BASE_DIR, "error_log.txt")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.datetime.now()}] ERROR DE CARGA DINÁMICA:\n{error_info}\n")
             
         messagebox.showerror("Error en Aplicación", 
             f"No se pudo iniciar la lógica actualizada:\n{e}\n\nRevisa error_log.txt")
