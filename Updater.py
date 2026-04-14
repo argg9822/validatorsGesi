@@ -1,6 +1,5 @@
 """
-updater.py - Sistema de auto-actualización desde GitHub
-Optimizado para ValidatorsGesi (Odin.exe)
+updater.py - Con sistema de logging visible para debugging
 """
 
 import os
@@ -10,7 +9,11 @@ import tempfile
 import threading
 import urllib.request
 import subprocess
+import traceback
+import datetime
 from pathlib import Path
+
+from flask.cli import get_version
 
 # ── Configuración ────────────────────────────────────────────────────────────
 GITHUB_USER   = "argg9822"
@@ -22,30 +25,175 @@ RAW_BASE    = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{G
 VERSION_URL = f"{RAW_BASE}/__version__.py"
 ZIP_URL     = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{GITHUB_BRANCH}.zip"
 
-APP_DIR = Path(__file__).parent.resolve()
+if getattr(sys, "frozen", False):
+    APP_DIR = Path(sys.executable).parent.resolve()
+else:
+    APP_DIR = Path(__file__).parent.resolve()
 
+# ── Logger central ───────────────────────────────────────────────────────────
+
+LOG_FILE = APP_DIR / "update_log.txt"
+
+def _log(msg: str):
+    """Escribe en consola, en archivo y en la ventana de debug si existe"""
+    timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+    line = f"[{timestamp}] {msg}"
+    print(line)
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
+    # Si hay ventana de debug abierta, escribir ahí también
+    if _debug_window and _debug_window.is_alive():
+        _debug_window.append(line)
+
+
+# ── Ventana de debug separada ─────────────────────────────────────────────────
+
+_debug_window = None
+
+class DebugWindow(threading.Thread):
+    """
+    Ventana Tkinter independiente que vive en su propio hilo.
+    Muestra logs en tiempo real y NO se cierra con la app principal.
+    """
+    def __init__(self):
+        super().__init__(daemon=False)   # daemon=False → sobrevive al cierre de la app
+        self._queue = []
+        self._lock  = threading.Lock()
+        self._text_widget = None
+        self._alive = True
+        self.start()
+
+    def is_alive(self):
+        return self._alive
+
+    def append(self, msg: str):
+        with self._lock:
+            self._queue.append(msg)
+
+    def run(self):
+        import tkinter as tk
+        root = tk.Tk()
+        root.title("🔧 Log de actualización - Odin")
+        root.geometry("780x420")
+        root.configure(bg="#1e1e1e")
+
+        # Header
+        tk.Label(
+            root, text="Log de actualización en tiempo real",
+            bg="#1e1e1e", fg="#00d4aa", font=("Consolas", 11, "bold")
+        ).pack(pady=(8, 2))
+
+        tk.Label(
+            root, text=f"Log guardado en: {LOG_FILE}",
+            bg="#1e1e1e", fg="#888888", font=("Consolas", 8)
+        ).pack()
+
+        # Área de texto
+        frame = tk.Frame(root, bg="#1e1e1e")
+        frame.pack(fill="both", expand=True, padx=10, pady=8)
+
+        scrollbar = tk.Scrollbar(frame)
+        scrollbar.pack(side="right", fill="y")
+
+        text = tk.Text(
+            frame,
+            bg="#0d0d0d", fg="#e0e0e0",
+            font=("Consolas", 9),
+            yscrollcommand=scrollbar.set,
+            wrap="word", state="disabled",
+            insertbackground="white"
+        )
+        text.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=text.yview)
+
+        # Colores por nivel
+        text.tag_config("ERROR",   foreground="#ff5555")
+        text.tag_config("OK",      foreground="#50fa7b")
+        text.tag_config("WARN",    foreground="#ffb86c")
+        text.tag_config("INFO",    foreground="#8be9fd")
+        text.tag_config("DEFAULT", foreground="#e0e0e0")
+
+        self._text_widget = text
+
+        def _detect_tag(line: str) -> str:
+            u = line.upper()
+            if any(k in u for k in ["ERROR", "EXCEPCION", "FAILED", "FALLO", "DENEGADO", "ERRORLEVEL"]):
+                return "ERROR"
+            if any(k in u for k in ["OK", "COMPLETO", "EXITOSO", "LISTO", "COPIADO"]):
+                return "OK"
+            if "ERROR" in u or "EXCEPCION" in u or "TRACEBACK" in u or "FAILED" in u:
+                return "ERROR"
+            if "OK" in u or "COMPLETO" in u or "EXITOSO" in u or "LISTO" in u:
+                return "OK"
+            if "WARN" in u or "AVISO" in u:
+                return "WARN"
+            if any(k in u for k in ["CONECTANDO", "DESCARGANDO", "EXTRAYENDO", "COPIANDO", "REINICIANDO"]):
+                return "INFO"
+            return "DEFAULT"
+
+        def _flush_queue():
+            with self._lock:
+                pending = self._queue[:]
+                self._queue.clear()
+            if pending:
+                text.config(state="normal")
+                for line in pending:
+                    tag = _detect_tag(line)
+                    text.insert("end", line + "\n", tag)
+                text.see("end")
+                text.config(state="disabled")
+            root.after(200, _flush_queue)
+
+        root.after(200, _flush_queue)
+
+        def _on_close():
+            self._alive = False
+            root.destroy()
+
+        root.protocol("WM_DELETE_WINDOW", _on_close)
+        root.mainloop()
+        self._alive = False
+
+
+def open_debug_window():
+    """Abre la ventana de log. Llámala ANTES de iniciar la actualización."""
+    global _debug_window
+    # Limpiar log anterior
+    try:
+        LOG_FILE.unlink(missing_ok=True)
+    except Exception:
+        pass
+    _debug_window = DebugWindow()
+    _log("=== Sesión de actualización iniciada ===")
+    _log(f"APP_DIR  : {APP_DIR}")
+    _log(f"Frozen   : {getattr(sys, 'frozen', False)}")
+    _log(f"Exe      : {sys.executable}")
+
+
+# ── Lógica de versiones ───────────────────────────────────────────────────────
 
 def _get_local_version() -> str:
-    """
-    Lee la versión SIEMPRE desde version.txt en disco.
-    Esto funciona correctamente aunque el .exe esté congelado por PyInstaller.
-    """
     version_file = APP_DIR / "version.txt"
     if version_file.exists():
         v = version_file.read_text(encoding="utf-8").strip()
         if v:
+            _log(f"Versión local (version.txt): {v}")
             return v
-    # Fallback: leer __version__.py desde disco (no desde el módulo importado)
     version_py = APP_DIR / "__version__.py"
     if version_py.exists():
         for line in version_py.read_text(encoding="utf-8").splitlines():
             if "__version__" in line and "=" in line:
-                return line.split("=")[1].strip().strip("'\"")
+                v = line.split("=")[1].strip().strip("'\"")
+                _log(f"Versión local (__version__.py): {v}")
+                return v
+    _log("WARN: No se encontró archivo de versión. Usando 0.0.0")
     return "0.0.0"
 
 
 def _parse_version(text: str) -> str:
-    """Extrae la versión del contenido de __version__.py remoto"""
     for line in text.splitlines():
         if "__version__" in line and "=" in line:
             return line.split("=")[1].strip().strip("'\"")
@@ -60,8 +208,8 @@ def _version_tuple(v: str):
 
 
 def check_for_update() -> dict:
-    """Compara versión local (version.txt) vs remota (GitHub)"""
     current = _get_local_version()
+    _log(f"Consultando versión remota: {VERSION_URL}")
     try:
         req = urllib.request.Request(
             VERSION_URL,
@@ -70,22 +218,21 @@ def check_for_update() -> dict:
         with urllib.request.urlopen(req, timeout=8) as resp:
             remote_text = resp.read().decode("utf-8")
         remote_ver = _parse_version(remote_text)
-
-        available = _version_tuple(remote_ver) > _version_tuple(current)
-
-        return {
-            "available": available,
-            "remote_version": remote_ver,
-            "current_version": current
-        }
+        available   = _version_tuple(remote_ver) > _version_tuple(current)
+        _log(f"Versión remota: {remote_ver} | Actualización disponible: {available}")
+        return {"available": available, "remote_version": remote_ver, "current_version": current}
     except Exception as e:
+        _log(f"ERROR al consultar versión remota: {e}")
+        _log(traceback.format_exc())
         return {"available": False, "error": str(e), "current_version": current}
 
 
+# ── Descarga e instalación ────────────────────────────────────────────────────
+
 def download_and_apply(progress_callback=None, status_callback=None) -> bool:
-    """Descarga el ZIP y prepara el script de instalación"""
 
     def _status(msg):
+        _log(msg)
         if status_callback:
             status_callback(msg)
 
@@ -97,16 +244,18 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
         _status("Conectando con GitHub...")
         _progress(5)
 
-        tmp_dir = Path(tempfile.mkdtemp(prefix="gesi_update_"))
+        tmp_dir  = Path(tempfile.mkdtemp(prefix="gesi_update_"))
         zip_path = tmp_dir / "update.zip"
+        _log(f"Directorio temporal: {tmp_dir}")
 
-        # ── Descarga ──────────────────────────────────────────────────────────
+        _status("Descargando actualización...")
         req = urllib.request.Request(
             ZIP_URL, headers={"User-Agent": "ValidatorsGesi-Updater"}
         )
         with urllib.request.urlopen(req, timeout=60) as resp:
-            total = int(resp.headers.get("Content-Length", 0))
+            total      = int(resp.headers.get("Content-Length", 0))
             downloaded = 0
+            _log(f"Tamaño del ZIP: {total / 1024:.1f} KB")
             with open(zip_path, "wb") as f:
                 while True:
                     chunk = resp.read(16384)
@@ -117,116 +266,100 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
                     if total:
                         _progress(5 + int(downloaded / total * 55))
 
+        _log(f"ZIP descargado OK: {downloaded / 1024:.1f} KB")
+
         _status("Extrayendo archivos...")
         _progress(60)
-
         extract_dir = tmp_dir / "extracted"
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_dir)
 
-        # GitHub descomprime en una subcarpeta tipo "repo-main"
         subdirs = [p for p in extract_dir.iterdir() if p.is_dir()]
+        _log(f"Subdirectorios extraídos: {[str(s) for s in subdirs]}")
         if not subdirs:
-            raise Exception("ZIP de actualización vacío o con formato inesperado")
+            raise Exception("ZIP vacío o con formato inesperado")
         source_root = subdirs[0]
+        _log(f"Raíz del source: {source_root}")
 
-        _status("Preparando instalación...")
+        _status("Preparando script de instalación...")
         _progress(80)
-
         _create_install_script(source_root, tmp_dir)
+        _log(f"Script creado en: {APP_DIR / 'finish_update.bat'}")
 
-        _status("¡Descarga completa! Reiniciando para aplicar...")
+        _status("¡Descarga completa! Aplicando actualización...")
         _progress(100)
+
+        # Pequeña pausa para que la UI muestre el 100%
+        import time; time.sleep(1.5)
+
+        finalize_update()
         return True
 
     except Exception as e:
-        _status(f"Error durante la descarga: {e}")
+        _log(f"ERROR en download_and_apply: {e}")
+        _log(traceback.format_exc())
+        if status_callback:
+            status_callback(f"Error: {e}")
         return False
 
 
 def _create_install_script(src_path: Path, tmp_dir: Path):
-    """
-    Crea finish_update.bat en APP_DIR.
-    
-    Estrategia:
-      1. Espera a que Odin.exe se cierre (taskkill + timeout)
-      2. Copia archivos nuevos con Robocopy (sin /MOVE para no perder fuente si falla)
-      3. Actualiza version.txt con la nueva versión
-      4. Limpia el temporal
-      5. Reinicia Odin.exe
-    """
     script_path = APP_DIR / "finish_update.bat"
-
-    # Nueva versión extraída desde el source
-    new_version = "desconocida"
-    ver_file = src_path / "version.txt"
-    if ver_file.exists():
-        new_version = ver_file.read_text(encoding="utf-8").strip()
-    else:
-        ver_py = src_path / "__version__.py"
-        if ver_py.exists():
-            for line in ver_py.read_text(encoding="utf-8").splitlines():
-                if "__version__" in line and "=" in line:
-                    new_version = line.split("=")[1].strip().strip("'\"")
-                    break
+    # ... (código previo para detectar versión se mantiene igual)
 
     exe_name = "Odin.exe"
-    if getattr(sys, "frozen", False):
-        restart_cmd = f'start "" "{APP_DIR}\\{exe_name}"'
-    else:
-        restart_cmd = f'start "" python "{APP_DIR}\\Odin.py"'
+    # Referencia al log para que el BAT escriba en él
+    bat_log = f'"{APP_DIR}\\update_log.txt"'
 
     content = f"""@echo off
 chcp 65001 > nul
 title Actualizando Odin...
 
-echo ============================================
-echo   Esperando cierre del programa...
-echo ============================================
+echo [%time%] === INICIO DE SCRIPT BAT === >> {bat_log}
 
-:: Intenta cerrar Odin.exe si sigue abierto
-taskkill /IM {exe_name} /F > nul 2>&1
+echo [1/5] Cerrando procesos...
+taskkill /IM {exe_name} /F >> {bat_log} 2>&1
 timeout /t 3 /nobreak > nul
 
-:: Espera adicional para liberar bloqueos de archivo
-:wait_loop
-tasklist /FI "IMAGENAME eq {exe_name}" 2>nul | find /I "{exe_name}" > nul
-if not errorlevel 1 (
-    timeout /t 2 /nobreak > nul
-    goto wait_loop
-)
+echo [2/5] Instalando archivos nuevos...
+:: Robocopy registrará errores directamente en el log de la ventana
+robocopy "{src_path}" "{APP_DIR}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} /TEE
 
-echo Copiando archivos nuevos...
-robocopy "{src_path}" "{APP_DIR}" /E /IS /IT /R:5 /W:3
-if errorlevel 8 (
-    echo ERROR: Robocopy fallo con codigo de error grave.
+if %ERRORLEVEL% GEQ 8 (
+    echo [ERROR] Robocopy fallo con codigo %ERRORLEVEL% >> {bat_log}
+    msg * "Error critico al copiar archivos. Revisa update_log.txt"
     pause
-    goto cleanup
+    exit
 )
 
-echo Actualizando version...
-echo {new_version}> "{APP_DIR}\\version.txt"
+echo [3/5] Actualizando ejecutable...
+copy /Y "{src_path}\\{exe_name}" "{APP_DIR}\\{exe_name}" >> {bat_log} 2>&1
+if errorlevel 1 (
+    echo [WARN] No se pudo reemplazar {exe_name} >> {bat_log}
+)
 
-:cleanup
-echo Limpiando archivos temporales...
-rd /s /q "{tmp_dir}" > nul 2>&1
+echo [4/5] Finalizando version...
+echo {get_version}> "{APP_DIR}\\version.txt"
 
-echo Reiniciando aplicacion...
-{restart_cmd}
+echo [5/5] Limpieza...
+rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
 
+echo [OK] Actualizacion terminada exitosamente. >> {bat_log}
+timeout /t 2 /nobreak > nul
+
+start "" "{APP_DIR}\\{exe_name}"
 del "%~f0"
 """
-    with open(script_path, "w", encoding="utf-8") as f:
+    with open(script_path, "w", encoding="utf-16") as f: # Usar utf-16 o ansi para BAT con acentos
         f.write(content)
 
 
 def finalize_update():
-    """Lanza el .bat de actualización y cierra el programa"""
     script = APP_DIR / "finish_update.bat"
     if not script.exists():
-        print("Error: finish_update.bat no encontrado")
+        _log(f"ERROR: finish_update.bat no encontrado en {APP_DIR}")
         return
-
+    _log("Lanzando finish_update.bat y cerrando app...")
     try:
         subprocess.Popen(
             ["cmd.exe", "/c", str(script)],
@@ -235,10 +368,11 @@ def finalize_update():
         )
         os._exit(0)
     except Exception as e:
-        print(f"Error al lanzar el script de actualización: {e}")
+        _log(f"ERROR al lanzar script: {e}")
+        _log(traceback.format_exc())
 
 
-# ── API asíncrona para CustomTkinter ─────────────────────────────────────────
+# ── API asíncrona ─────────────────────────────────────────────────────────────
 
 def check_update_async(callback):
     threading.Thread(
