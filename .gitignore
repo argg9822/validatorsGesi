@@ -28,3 +28,7 @@ dist/
 # Archivos temporales y de respaldo
 *.swp
 *.swo
+
+# Instaladores y ejecutables pesados
+output_installer/
+*.exe

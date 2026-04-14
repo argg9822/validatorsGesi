@@ -29,20 +29,34 @@ import subprocess
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
 COLORS = {
-    "bg_dark":      ("#F2F2F2", "#0D1117"),
-    "bg_card":      ("#FFFFFF", "#161B22"),
-    "bg_input":     ("#EBEBEB", "#21262D"),
-    "accent":       ("#238636", "#238636"),
-    "accent_hover": ("#2EA043", "#2EA043"),
-    "accent2":      ("#1F6FEB", "#1F6FEB"),
-    "accent2_hover":("#388BFD", "#388BFD"), # <--- Esta es la que te falta ahora
-    "danger":       ("#DA3633", "#DA3633"),
-    "warning":      ("#D29922", "#D29922"),
-    "text_primary": ("#1A1A1A", "#E6EDF3"),
-    "text_muted":   ("#636363", "#8B949E"),
-    "border":       ("#D1D1D1", "#30363D"),
+    # Fondo principal: Negro profundo inspirado en la interfaz
+    "bg_dark":       ("#F5F5F5", "#080808"), 
+    
+    # Tarjetas: Un gris muy oscuro para resaltar sobre el fondo
+    "bg_card":       ("#FFFFFF", "#121212"), 
+    
+    # Inputs: Gris oscuro con borde sutil
+    "bg_input":      ("#F0F0F0", "#1A1A1A"), 
+    
+    # Acento Principal: El Rojo Trakio (el color del logo y texto)
+    "accent":        ("#E63946", "#FF4D4D"), 
+    "accent_hover":  ("#D62839", "#FF6666"), 
+    
+    # Acento Secundario: Un rojo vino/oscuro (como el resplandor del logo)
+    "accent2":       ("#9B1B1B", "#7A0000"), 
+    "accent2_hover": ("#B22222", "#A30000"), 
+    
+    # Peligro y Alerta (mantenidos en la gama de rojos/naranjas)
+    "danger":        ("#D00000", "#FF0000"), 
+    "warning":       ("#FFBA08", "#FAA300"), 
+    
+    # Textos: Blanco puro y gris plateado para legibilidad
+    "text_primary":  ("#1A1A1A", "#FFFFFF"), 
+    "text_muted":    ("#666666", "#A0A0A0"), 
+    
+    # Bordes: Sutiles, inspirados en las líneas de red del fondo
+    "border":        ("#DDDDDD", "#2A0B0B"), 
 }
-
 ctk.set_appearance_mode("system")
 
 APP_DIR = Path(__file__).parent.resolve()
