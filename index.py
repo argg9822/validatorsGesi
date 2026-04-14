@@ -772,6 +772,7 @@ class App(ctk.CTk):
             except Exception as e:
                 self.after(0, dlg.destroy)
                 self.after(0, lambda: messagebox.showerror("Error", str(e)))
+                
 
         threading.Thread(target=_work, daemon=True).start()
 
