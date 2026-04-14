@@ -343,8 +343,10 @@ rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
 echo [OK] Actualización terminada exitosamente. >> {bat_log}
 timeout /t 2 /nobreak > nul
 
-:: Reiniciar usando el lanzador estático
-start "" "{app_dir_str}\\{exe_name}"
+:: Reiniciar forzando el directorio de trabajo (/D) y la ruta entrecomillada
+start "" /D "{app_dir_str}" "{app_dir_str}\\{exe_name}"
+
+:: El comando (goto) asegura que el .bat se borre a sí mismo incluso si está en uso
 (goto) 2>nul & del "%~f0"
 """
     # Guardar siempre en UTF-8 para evitar problemas con tildes
