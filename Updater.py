@@ -284,7 +284,8 @@ def download_and_apply(remote_version, progress_callback=None, status_callback=N
         _status("Preparando script de instalación...")
         _progress(80)
         _create_install_script(source_root, tmp_dir, remote_version)
-        _create_install_script(source_root, tmp_dir)
+        # Línea corregida:
+        _create_install_script(source_root, tmp_dir, remote_version)
         _log(f"Script creado en: {APP_DIR / 'finish_update.bat'}")
 
         _status("¡Descarga completa! Aplicando actualización...")
