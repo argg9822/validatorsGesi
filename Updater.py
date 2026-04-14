@@ -1,18 +1,16 @@
 """
 updater.py - Sistema de auto-actualización desde GitHub
-Corregido para ValidatorsGesi
+Optimizado para ValidatorsGesi (Odin.exe)
 """
 
 import os
 import sys
-import json
-import shutil
 import zipfile
 import tempfile
 import threading
-import subprocess
 import urllib.request
 import urllib.error
+import subprocess
 from pathlib import Path
 
 # Intentamos importar la versión local. Si falla, asumimos 0.0.0
@@ -31,7 +29,7 @@ RAW_BASE    = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{G
 VERSION_URL = f"{RAW_BASE}/__version__.py"
 ZIP_URL     = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{GITHUB_BRANCH}.zip"
 
-# Directorio donde está instalado el programa
+# Directorio donde está instalado el programa (Odin.exe)
 APP_DIR = Path(__file__).parent.resolve()
 
 def _parse_version(text: str) -> str:
@@ -103,13 +101,13 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_dir)
 
-        # Localizar carpeta raíz dentro del ZIP
-        source_root = next(extract_dir.iterdir())
+        # Localizar la carpeta raíz real dentro del ZIP (GitHub añade '-main' al nombre)
+        try:
+            source_root = next(extract_dir.iterdir())
+        except StopIteration:
+            raise Exception("ZIP de actualización vacío")
 
         _status("Preparando script de instalación...")
-        
-        # En lugar de copiar aquí (que fallará por archivos en uso),
-        # creamos un script externo que lo haga después de cerrar Python.
         _create_install_script(source_root, APP_DIR)
 
         _status("¡Listo para reiniciar!")
@@ -121,39 +119,49 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
         return False
 
 def _create_install_script(src_path: Path, dest_path: Path):
-    """Crea un archivo .bat optimizado para el ejecutable Odin"""
+    """Crea un archivo .bat robusto que usa Robocopy para mover archivos"""
     script_path = dest_path / "finish_update.bat"
     
-    # Detectamos si estamos ejecutando un .exe o un .py para saber qué reiniciar
+    # Determinar comando de reinicio (Odin.exe o Odin.py)
     if getattr(sys, 'frozen', False):
-        # Si es el ejecutable compilado
         restart_cmd = f"start \"\" \"{dest_path}\\Odin.exe\""
     else:
-        # Si es por consola
         restart_cmd = "start python Odin.py"
 
-    # El comando xcopy necesita comillas por si hay espacios en el nombre de usuario
+    # Robocopy /MOVE limpia los archivos del temporal automáticamente al terminar
     content = f"""@echo off
-title Finalizando Actualizacion...
-timeout /t 3 > nul
-echo Aplicando cambios, por favor espere...
-xcopy /s /y /e "{src_path}\\*" "{dest_path}\\"
-rd /s /q "{src_path.parent}"
+title Actualizando Odin...
+echo ===========================================
+echo   ESPERANDO A QUE EL PROGRAMA SE CIERRE...
+echo ===========================================
+timeout /t 5 > nul
+
+echo Aplicando archivos nuevos...
+robocopy "{src_path}" "{dest_path}" /E /IS /IT /MOVE /R:3 /W:2 /V
+
+echo Limpiando residuos...
+if exist "{src_path.parent}" rd /s /q "{src_path.parent}"
+
+echo Reiniciando aplicacion...
 {restart_cmd}
 del "%~f0"
 """
-    # Usamos encoding cp1252 para que Windows BAT no tenga problemas con acentos
+    # Guardamos con encoding cp1252 para compatibilidad total con CMD Windows
     with open(script_path, "w", encoding="cp1252") as f:
         f.write(content)
 
 def finalize_update():
-    """Ejecuta el script de instalación y cierra la app actual"""
+    """Lanza el script .bat de forma independiente y cierra el programa actual"""
     script = APP_DIR / "finish_update.bat"
     if script.exists():
-        os.startfile(script)
-        os._exit(0) # Cierre total inmediato
+        try:
+            # Popen asegura que el .bat viva aunque Odin.exe se cierre
+            subprocess.Popen([str(script)], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+            os._exit(0) # Salida forzosa inmediata
+        except Exception as e:
+            print(f"Error al lanzar el script: {e}")
 
-# Funciones Asíncronas para tu Interfaz
+# Funciones Asíncronas para la Interfaz (CustomTkinter)
 def check_update_async(callback):
     threading.Thread(target=lambda: callback(check_for_update()), daemon=True).start()
 
