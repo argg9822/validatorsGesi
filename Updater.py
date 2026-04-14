@@ -346,8 +346,7 @@ timeout /t 2 /nobreak > nul
 :: Reiniciar forzando el directorio de trabajo (/D) y la ruta entrecomillada
 start "" /D "{app_dir_str}" "{app_dir_str}\\{exe_name}"
 
-:: El comando (goto) asegura que el .bat se borre a sí mismo incluso si está en uso
-(goto) 2>nul & del "%~f0"
+
 """
     # Guardar siempre en UTF-8 para evitar problemas con tildes
     with open(script_path, "w", encoding="utf-8") as f:
