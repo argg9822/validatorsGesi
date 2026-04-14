@@ -1,5 +1,5 @@
 ; ═══════════════════════════════════════════════════════════════════════════════
-;  ValidatorsGesi – Inno Setup Script (Optimizado para Auto-Update)
+;  ValidatorsGesi – Inno Setup Script (Optimizado para Auto-Update Externo)
 ; ═══════════════════════════════════════════════════════════════════════════════
 
 #define MyAppName        "Odin"
@@ -11,18 +11,15 @@
 #define MySourceDir      "dist"
 
 [Setup]
-; ID único del programa (puedes generar uno nuevo o mantener este)
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 
-; --- INSTALACIÓN POR USUARIO (Local AppData) ---
-; Esto permite que el actualizador reemplace archivos sin pedir permisos de admin.
+; Instalación en Local AppData para evitar pedir permisos de Admin al actualizar
 DefaultDirName={userappdata}\{#MyAppName}
 PrivilegesRequired=lowest
-; -----------------------------------------------
 
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
@@ -41,47 +38,41 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "Crear acceso directo en el &Escritorio"; GroupDescription: "Iconos adicionales:"
 
 [Files]
-; --- EJECUTABLES PRINCIPALES (Desde carpeta dist) ---
+; 1. EJECUTABLES (Los "Shells" que no cambian)
 Source: "{#MySourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MySourceDir}\{#MyUpdaterExe}"; DestDir: "{app}"; Flags: ignoreversion
 
-; --- ARCHIVOS DE CONTROL DE VERSIÓN ---
-; Necesarios para que el Updater compare con GitHub
-Source: "version.txt"; DestDir: "{app}"; Flags: ignoreversion
+; 2. LÓGICA DINÁMICA (Lo que el Updater reemplazará)
+Source: "index.py";       DestDir: "{app}"; Flags: ignoreversion
+Source: "version.txt";    DestDir: "{app}"; Flags: ignoreversion
 Source: "__version__.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "areas.json";     DestDir: "{app}"; Flags: ignoreversion
+Source: "bases.json";     DestDir: "{app}"; Flags: ignoreversion
 
-; --- CONFIGURACIONES JSON ---
-Source: "areas.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bases.json"; DestDir: "{app}"; Flags: ignoreversion
-
-; --- CARPETAS DE RECURSOS ---
-; Nota: Se incluyen como respaldo aunque PyInstaller ya las lleve dentro
+; 3. CARPETAS DE RECURSOS Y COMPONENTES
 Source: "crear_hc\*";     DestDir: "{app}\crear_hc"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "crc_princ\*";    DestDir: "{app}\crc_princ"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "validadores\*";  DestDir: "{app}\validadores"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "img\*";          DestDir: "{app}\img"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-; Acceso directo en el menú inicio
 Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\img\logo.ico"
-; Acceso directo en el escritorio
 Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\img\logo.ico"; Tasks: desktopicon
 
 [Run]
-; Ejecutar el programa al finalizar la instalación
 Filename: "{app}\{#MyAppExeName}"; Description: "Iniciar {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
-// Procedimiento para asegurar que el archivo de versión local esté sincronizado
+// Sincronizar versión al instalar
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin
-    // Al instalar, creamos/sobreescribimos el version.txt con la versión del Setup
     SaveStringToFile(ExpandConstant('{app}\version.txt'), '{#MyAppVersion}', False);
   end;
 end;
 
-// Función para cerrar Odin antes de desinstalar o actualizar
+// Cerrar Odin antes de desinstalar
 function InitializeUninstall(): Boolean;
 var
   ErrorCode: Integer;

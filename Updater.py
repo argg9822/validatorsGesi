@@ -229,7 +229,7 @@ def check_for_update() -> dict:
 
 # ── Descarga e instalación ────────────────────────────────────────────────────
 
-def download_and_apply(progress_callback=None, status_callback=None) -> bool:
+def download_and_apply(remote_version, progress_callback=None, status_callback=None) -> bool:
 
     def _status(msg):
         _log(msg)
@@ -283,6 +283,7 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
 
         _status("Preparando script de instalación...")
         _progress(80)
+        _create_install_script(source_root, tmp_dir, remote_version)
         _create_install_script(source_root, tmp_dir)
         _log(f"Script creado en: {APP_DIR / 'finish_update.bat'}")
 
@@ -303,56 +304,39 @@ def download_and_apply(progress_callback=None, status_callback=None) -> bool:
         return False
 
 
-def _create_install_script(src_path: Path, tmp_dir: Path):
+def _create_install_script(src_path: Path, tmp_dir: Path, new_version: str):
     script_path = APP_DIR / "finish_update.bat"
-    # ... (código previo para detectar versión se mantiene igual)
-
-    exe_name = "Odin.exe"
-    # Referencia al log para que el BAT escriba en él
-    bat_log = f'"{APP_DIR}\\update_log.txt"'
+    exe_name = "Odin.exe" # Solo se usa para cerrar el proceso y reabrirlo
+    
+    app_dir_str = str(APP_DIR)
+    bat_log = f'"{app_dir_str}\\update_log.txt"'
 
     content = f"""@echo off
 chcp 65001 > nul
-title Actualizando Odin...
+title Actualizando Componentes de Odin...
 
-echo [%time%] === INICIO DE SCRIPT BAT === >> {bat_log}
+echo [%date% %time%] === ACTUALIZACIÓN EXTERNA === >> {bat_log}
 
-echo [1/5] Cerrando procesos...
-taskkill /IM {exe_name} /F >> {bat_log} 2>&1
-timeout /t 3 /nobreak > nul
-
-echo [2/5] Instalando archivos nuevos...
-:: Robocopy registrará errores directamente en el log de la ventana
-robocopy "{src_path}" "{APP_DIR}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} /TEE
-
-if %ERRORLEVEL% GEQ 8 (
-    echo [ERROR] Robocopy fallo con codigo %ERRORLEVEL% >> {bat_log}
-    msg * "Error critico al copiar archivos. Revisa update_log.txt"
-    pause
-    exit
-)
-
-echo [3/5] Actualizando ejecutable...
-copy /Y "{src_path}\\{exe_name}" "{APP_DIR}\\{exe_name}" >> {bat_log} 2>&1
-if errorlevel 1 (
-    echo [WARN] No se pudo reemplazar {exe_name} >> {bat_log}
-)
-
-echo [4/5] Finalizando version...
-echo {get_version}> "{APP_DIR}\\version.txt"
-
-echo [5/5] Limpieza...
-rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
-
-echo [OK] Actualizacion terminada exitosamente. >> {bat_log}
+:: 1. Cerrar Odin para liberar archivos .py y .json
+taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
 timeout /t 2 /nobreak > nul
 
-start "" "{APP_DIR}\\{exe_name}"
-del "%~f0"
-"""
-    with open(script_path, "w", encoding="utf-16") as f: # Usar utf-16 o ansi para BAT con acentos
-        f.write(content)
+:: 2. Sincronizar TODO excepto el .exe y el Updater.exe
+:: Esto actualizará index.py, las carpetas crear_hc, validadores, etc.
+robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} Updater.exe /LOG+:{bat_log} /TEE
 
+:: 3. Actualizar el registro de versión
+echo {new_version}> "{app_dir_str}\\version.txt"
+
+:: 4. Limpieza y Reinicio
+rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
+echo [OK] Actualización de lógica completada. >> {bat_log}
+
+start "" "{app_dir_str}\\{exe_name}"
+(goto) 2>nul & del "%~f0"
+"""
+    with open(script_path, "w", encoding="utf-8") as f:
+        f.write(content)
 
 def finalize_update():
     script = APP_DIR / "finish_update.bat"
