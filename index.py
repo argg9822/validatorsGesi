@@ -771,7 +771,8 @@ class App(ctk.CTk):
                 ))
             except Exception as e:
                 self.after(0, dlg.destroy)
-                self.after(0, lambda: messagebox.showerror("Error", str(e)))
+                # Pasamos 'e' como un argumento por defecto al lambda para capturar su valor actual
+                self.after(0, lambda e=e: messagebox.showerror("Error", str(e)))
                 
 
         threading.Thread(target=_work, daemon=True).start()
