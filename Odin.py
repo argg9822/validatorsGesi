@@ -126,53 +126,54 @@ class SplashScreen:
 #  Carga Dinámica de Lógica (El "Cerebro" Externo)
 # ═══════════════════════════════════════════════════════════════════════════════
 def _open_main_logic():
-    """
-    Importa y ejecuta el archivo index.py ubicado en la carpeta del programa.
-    Inyecta librerías críticas para evitar errores de importación en el .exe
-    """
     import tkinter as tk
     from tkinter import messagebox, filedialog
-    
+    import importlib.util
+    import sys
+    import os
+    import datetime
+
     index_path = os.path.join(BASE_DIR, "index.py")
 
     if not os.path.exists(index_path):
-        messagebox.showerror("Error Crítico", 
-            f"No se encontró el archivo de lógica:\n{index_path}\n\nReinstala la aplicación.")
+        messagebox.showerror("Error Crítico", f"No se encontró: {index_path}")
         sys.exit(1)
 
     try:
-        # 1. Asegurar que el directorio base esté en el path
         if BASE_DIR not in sys.path:
             sys.path.insert(0, BASE_DIR)
 
-        # 2. Configurar la carga dinámica del módulo
-        spec = importlib.util.spec_from_file_location("index", index_path)
-        index_module = importlib.util.module_from_spec(spec)
+        # --- INYECCIÓN DE DEPENDENCIAS CRÍTICAS ---
+        # Registramos los módulos para que index.py y crear.py no den ImportError
+        librerias = [
+            'requests', 'customtkinter', 'openpyxl', 'selenium', 
+            'webdriver_manager', 'PIL'
+        ]
         
-        # 3. TRUCO DE PRODUCCIÓN: Inyectar librerías ya cargadas por el .exe
-        # Esto evita el error "cannot import name 'filedialog' from 'tkinter'"
+        for lib in librerias:
+            try:
+                modulo = __import__(lib)
+                sys.modules[lib] = modulo
+            except ImportError:
+                pass
+
+        # Inyecciones específicas para componentes de Tkinter (tu error anterior)
         sys.modules["tkinter.filedialog"] = filedialog
         sys.modules["tkinter.messagebox"] = messagebox
 
-        # 4. Cargar y ejecutar el código de index.py
+        # --- CARGA DEL CEREBRO ---
+        spec = importlib.util.spec_from_file_location("index", index_path)
+        index_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(index_module)
 
-        # 5. Ejecutar punto de entrada si existe
         if hasattr(index_module, 'index_open'):
             index_module.index_open()
         
     except Exception as e:
         import traceback
-        error_info = traceback.format_exc()
-        
-        # Guardar log de error detallado
-        log_path = os.path.join(BASE_DIR, "error_log.txt")
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(f"\n[{datetime.datetime.now()}] ERROR DE CARGA DINÁMICA:\n{error_info}\n")
-            
-        messagebox.showerror("Error en Aplicación", 
-            f"No se pudo iniciar la lógica actualizada:\n{e}\n\nRevisa error_log.txt")
-
+        with open(os.path.join(BASE_DIR, "error_log.txt"), "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.datetime.now()}] ERROR:\n{traceback.format_exc()}\n")
+        messagebox.showerror("Error de Aplicación", f"Error al iniciar: {e}")
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Ejecución
 # ═══════════════════════════════════════════════════════════════════════════════
