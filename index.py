@@ -11,6 +11,8 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import requests
 
+from crc_princ.analizar_exel import analizar_excel_2
+
 # ── CustomTkinter (instala si no existe) ──────────────────────────────────────
 try:
     import customtkinter as ctk
@@ -834,6 +836,8 @@ class App(ctk.CTk):
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
         w, h = self.winfo_width(), self.winfo_height()
         self.geometry(f"{w}x{h}+{(sw - w) // 2}+{(sh - h) // 2}")
+
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

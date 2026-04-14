@@ -1,10 +1,25 @@
+import importlib
 import pandas as pd
 import openpyxl
 from openpyxl.styles import PatternFill
 from tkinter import filedialog, messagebox
 from datetime import datetime
-
 import random
+
+try:
+    thefuzz = importlib.import_module("thefuzz")
+    fuzz = thefuzz.fuzz
+except ImportError:
+    from difflib import SequenceMatcher
+
+    class _Fuzz:
+        @staticmethod
+        def ratio(a, b):
+            if a is None or b is None:
+                return 0
+            return int(SequenceMatcher(None, str(a), str(b)).ratio() * 100)
+
+    fuzz = _Fuzz()
 
 def analizar_excel_2(validador):
     print("Realizando validación de datos por favor espere...")
@@ -134,14 +149,18 @@ def analizar_excel_2(validador):
                     elif tipo == "no_vacio":
                         columnas = regla.get("columnas")
                         df_original = df.copy()
-                        # Asegúrate de que 'columna' sea una lista
-                        if isinstance(columnas, str):  # Si 'columna' es una cadena en lugar de lista
-                            columnas = [columnas]  # Convertirla en una lista
-                        
-                        for col_idx, columna in enumerate(columnas, start=1):  # Enumerar las columnas con índice
-                            if not columna.strip():  # Verifica si está vacía o contiene solo espacios
-                                ws.cell(row=idx + 2, column=col_idx).fill = rojo_fill
-                                ws.cell(row=idx + 2, column=2).fill = rojo_fill
+                        if isinstance(columnas, str):  # Si viene como string en lugar de lista
+                            columnas = [columnas]
+
+                        for columna_no_vacio in columnas:
+                            if columna_no_vacio in df.columns:
+                                for idx, valor in df[columna_no_vacio].astype(str).str.strip().items():
+                                    if valor == "" or pd.isna(df.at[idx, columna_no_vacio]):
+                                        ws.cell(row=idx + 2, column=df.columns.get_loc(columna_no_vacio) + 1).fill = rojo_fill
+                                        ws.cell(row=idx + 2, column=2).fill = rojo_fill
+                            else:
+                                messagebox.showinfo("Advertencia", f"Columna '{columna_no_vacio}' no encontrada en el archivo Excel.")
+
                         df = df_original.copy()
                         ws.auto_filter.ref = None
                         
