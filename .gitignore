@@ -1,34 +1,51 @@
-# Archivos de bytecode compilados
-*.pyc
-*.pyo
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ValidatorsGesi – Git Ignore (Optimizado para Auto-Update)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# --- Archivos de Python ---
 __pycache__/
-
-# Entornos virtuales
-venv/
+*.py[cod]
+*$py.class
+*.so
 .env
+venv/
+env/
+ENV/
 
-# Archivos de configuración del sistema
+# --- Archivos del Sistema ---
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Archivos generados por el empaquetador
+# --- PyInstaller (Compilación) ---
+# Ignoramos la carpeta build porque solo tiene archivos temporales
 build/
-dist/
-*.egg-info/
-
-# Archivos generados por PyInstaller
+# Ignoramos los archivos de especificación (opcional, si quieres guardarlos quita la línea)
 *.spec
 
-# Archivos de log
-*.log
+# --- EXCEPCIÓN CRÍTICA PARA EL AUTO-UPDATE ---
+# Ignoramos la carpeta dist por defecto...
+dist/
+# ...PERO obligamos a Git a incluir los ejecutables finales
+!dist/Odin.exe
+!dist/Updater.exe
 
-# Archivos de base de datos SQLite
-*.sqlite3
-
-# Archivos temporales y de respaldo
-*.swp
-*.swo
-
-# Instaladores y ejecutables pesados
+# --- Otros ejecutables e instaladores ---
+# Ignoramos instaladores pesados generados por Inno Setup
 output_installer/
+# Ignoramos cualquier otro .exe que no sea el de dist (para evitar basura)
 *.exe
+!dist/*.exe
+
+# --- Archivos de Logs y Datos Temporales ---
+*.log
+update_log.txt
+error_log.txt
+gesi_update_*/
+extracted/
+
+# --- Archivos de base de datos y diseño ---
+*.sqlite3
+# Si usas algún editor como VS Code o PyCharm
+.vscode/
+.idea/
