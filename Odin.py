@@ -140,40 +140,71 @@ def _open_main_logic():
         sys.exit(1)
 
     try:
+        # 1. Asegurar que la carpeta base sea visible para los archivos locales
         if BASE_DIR not in sys.path:
             sys.path.insert(0, BASE_DIR)
+        
+        # Cambiar el directorio de trabajo a la base para evitar errores de rutas relativas
+        os.chdir(BASE_DIR)
 
         # --- INYECCIÓN DE DEPENDENCIAS CRÍTICAS ---
-        # Registramos los módulos para que index.py y crear.py no den ImportError
+        # Lista Maestra de librerías empaquetadas en el .exe
         librerias = [
-            'flask','requests', 'customtkinter', 'openpyxl', 'selenium', 
-            'webdriver_manager', 'PIL', 'pandas', 'numpy'
+            'setuptools', 'requests', 'customtkinter', 'openpyxl', 
+            'selenium', 'webdriver_manager', 'PIL', 'pandas', 'numpy', 
+            'flask', 'Updater'
         ]
         
         for lib in librerias:
             try:
+                # Importamos el módulo base desde el interior del .exe
                 modulo = __import__(lib)
                 sys.modules[lib] = modulo
+                
+                # --- CASOS ESPECIALES (Submódulos que PyInstaller oculta) ---
+                
+                if lib == 'selenium':
+                    import selenium.webdriver
+                    import selenium.webdriver.common.by
+                    import selenium.webdriver.support.ui
+                    import selenium.webdriver.support.expected_conditions
+                    sys.modules['selenium.webdriver'] = selenium.webdriver
+                    sys.modules['selenium.webdriver.common.by'] = selenium.webdriver.common.by
+                    sys.modules['selenium.webdriver.support.ui'] = selenium.webdriver.support.ui
+                    sys.modules['selenium.webdriver.support.expected_conditions'] = selenium.webdriver.support.expected_conditions
+                
+                if lib == 'webdriver_manager':
+                    import webdriver_manager.chrome
+                    sys.modules['webdriver_manager.chrome'] = webdriver_manager.chrome
+                
+                if lib == 'PIL':
+                    from PIL import Image, ImageTk
+                    sys.modules['PIL.Image'] = Image
+                    sys.modules['PIL.ImageTk'] = ImageTk
+
             except ImportError:
+                # Si una librería no está instalada en tu entorno de desarrollo al compilar, saltará aquí
                 pass
 
-        # Inyecciones específicas para componentes de Tkinter (tu error anterior)
+        # Inyecciones específicas para componentes de Tkinter (vital para diálogos de archivos)
         sys.modules["tkinter.filedialog"] = filedialog
         sys.modules["tkinter.messagebox"] = messagebox
 
-        # --- CARGA DEL CEREBRO ---
+        # --- CARGA DEL CEREBRO (index.py) ---
         spec = importlib.util.spec_from_file_location("index", index_path)
         index_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(index_module)
 
+        # Ejecutamos la función de inicio de tu interfaz
         if hasattr(index_module, 'index_open'):
             index_module.index_open()
         
     except Exception as e:
         import traceback
-        with open(os.path.join(BASE_DIR, "error_log.txt"), "a", encoding="utf-8") as f:
-            f.write(f"\n[{datetime.datetime.now()}] ERROR:\n{traceback.format_exc()}\n")
-        messagebox.showerror("Error de Aplicación", f"Error al iniciar: {e}")
+        log_path = os.path.join(BASE_DIR, "error_log.txt")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n[{datetime.datetime.now()}] ERROR CRÍTICO AL INICIAR:\n{traceback.format_exc()}\n")
+        messagebox.showerror("Error de Aplicación", f"Error al iniciar: {e}\n\nRevisa error_log.txt")
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Ejecución
 # ═══════════════════════════════════════════════════════════════════════════════
