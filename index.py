@@ -239,7 +239,7 @@ class ValidatorCard(ctk.CTkFrame):
                       command=self._browse).pack(side="right")
 
         # ── Botón ejecutar ────────────────────────────────────────────────────
-        ctk.CTkButton(self, text="▶  Ejecutar validación",
+        ctk.CTkButton(self, text="▶  Ejecutar validación excel",
                       fg_color=COLORS["accent"],
                       hover_color=COLORS["accent_hover"],
                       font=ctk.CTkFont("Segoe UI", 13, "bold"),

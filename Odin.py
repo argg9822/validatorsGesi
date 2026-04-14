@@ -199,12 +199,23 @@ class SplashScreen:
 # ═══════════════════════════════════════════════════════════════════════════════
 def _open_main():
     try:
-        from index import index_open   # índice define index_open() como en el original
-        index_open()
-    except ImportError:
-        # Si index.py no exporta index_open, simplemente lo ejecutamos como proceso
-        import subprocess
-        subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "index.py")])
+        # En el .exe, index ya está empaquetado como módulo
+        import index
+        # Si index tiene una función de inicio (ej. principal()), llámala:
+        if hasattr(index, 'index_open'):
+            index.index_open()
+        else:
+            # Si index.py ejecuta todo al ser importado, no necesitas hacer más.
+            pass
+    except Exception as e:
+        # Fallback para desarrollo (cuando corres Odin.py suelto)
+        try:
+            import subprocess
+            subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "index.py")])
+        except Exception as e2:
+            import traceback
+            error_msg = f"No se pudo iniciar el módulo principal:\n{e}\n{traceback.format_exc()}"
+            messagebox.showerror("Error", error_msg)
 
 
 def _set_icon(window: tk.Tk):
