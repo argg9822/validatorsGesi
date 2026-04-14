@@ -323,12 +323,9 @@ echo [1/4] Cerrando procesos...
 taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
 timeout /t 3 /nobreak > nul
 
-echo [2/4] Sincronizando lógica y componentes específicos...
-:: Definimos las carpetas y archivos a incluir para no copiar todo el repo
-robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} ^
-/IF index.py Updater.py __version__.py areas.json bases.json ^
-/IF *.png *.ico *.jpg ^
-/DLIST
+echo [2/4] Sincronizando archivos internos y lógica...
+:: /XF {exe_name} evita que robocopy intente tocar el lanzador
+robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} /LOG+:{bat_log} /TEE
 
 if %ERRORLEVEL% GEQ 8 (
     echo [ERROR] Robocopy falló con código %ERRORLEVEL% >> {bat_log}
