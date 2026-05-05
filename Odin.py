@@ -11,6 +11,8 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import importlib.util
 import datetime
+import requests
+import customtkinter as ctk
 
 # ── Constantes ────────────────────────────────────────────────────────────────
 APP_NAME    = "Odin"
@@ -18,6 +20,39 @@ VERSION     = "1.0.1"  # Versión del Lanzador (rara vez cambiará)
 AUTHORS     = "Gabriel Monhabell - Aramis Garcia"
 COPYRIGHT   = f"© 2024 {AUTHORS}"
 TRANSPARENT = "#00c7fc"  # Color para croma de transparencia
+
+COLORS = {
+    # Fondo principal: Negro profundo inspirado en la interfaz
+    "bg_dark":       ("#F5F5F5", "#080808"), 
+    
+    # Tarjetas: Un gris muy oscuro para resaltar sobre el fondo
+    "bg_card":       ("#FFFFFF", "#121212"), 
+    
+    # Inputs: Gris oscuro con borde sutil
+    "bg_input":      ("#F0F0F0", "#1A1A1A"), 
+    
+    # Acento Principal: El Rojo Trakio (el color del logo y texto)
+    "accent":        ("#E63946", "#FF4D4D"), 
+    "accent_hover":  ("#D62839", "#FF6666"), 
+    
+    # Acento Secundario: Un rojo vino/oscuro (como el resplandor del logo)
+    "accent2":       ("#9B1B1B", "#7A0000"), 
+    "accent2_hover": ("#B22222", "#A30000"), 
+    
+    # Peligro y Alerta (mantenidos en la gama de rojos/naranjas)
+    "danger":        ("#D00000", "#FF0000"), 
+    "warning":       ("#FFBA08", "#FAA300"), 
+    
+    # Textos: Blanco puro y gris plateado para legibilidad
+    "text_primary":  ("#1A1A1A", "#FFFFFF"), 
+    "text_muted":    ("#666666", "#A0A0A0"), 
+    
+    # Bordes: Sutiles, inspirados en las líneas de red del fondo
+    "border":        ("#DDDDDD", "#2A0B0B"), 
+}
+ctk.set_appearance_mode("system")
+
+
 
 # ── Gestión de Rutas Dinámicas ────────────────────────────────────────────────
 if getattr(sys, 'frozen', False):
@@ -205,6 +240,121 @@ def _open_main_logic():
         with open(log_path, "a", encoding="utf-8") as f:
             f.write(f"\n[{datetime.datetime.now()}] ERROR CRÍTICO AL INICIAR:\n{traceback.format_exc()}\n")
         messagebox.showerror("Error de Aplicación", f"Error al iniciar: {e}\n\nRevisa error_log.txt")
+        
+        
+        
+API_URL = "https://www.trakio.pro/api/v1/validate-license"
+PROGRAMA_ID = "ODIN" 
+
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+
+def verificar_licencia():
+    # --- Configuración de rutas ---
+    ruta_dir = os.path.join(os.environ['APPDATA'], "ODIN_DATA")
+    if not os.path.exists(ruta_dir):
+        os.makedirs(ruta_dir)
+    archivo_licencia = os.path.join(ruta_dir, "license.key")
+
+    codigo_local = None
+    if os.path.exists(archivo_licencia):
+        with open(archivo_licencia, "r") as f:
+            codigo_local = f.read().strip()
+
+    # --- INPUT CON DISEÑO CTK ---
+    if not codigo_local:
+        # Usamos el diálogo nativo de CTK para que combine con el tema
+        dialogo = ctk.CTkInputDialog(
+            text="Ingresa tu código de activación:", 
+            title="Activación PAIWEB",
+            fg_color=COLORS["bg_card"][1],
+            button_fg_color=COLORS["accent"][1],
+            button_hover_color=COLORS["accent_hover"][1]
+        )
+        codigo_local = dialogo.get_input()
+        if not codigo_local: sys.exit()
+
+    # --- VENTANA DE CARGA (DISEÑO MEJORADO) ---
+    espera = ctk.CTkToplevel()
+    espera.title("Paiweb")
+    
+    # Dimensiones y centrado
+    ancho_v, alto_v = 340, 160
+    x = int((espera.winfo_screenwidth() / 2) - (ancho_v / 2))
+    y = int((espera.winfo_screenheight() / 2) - (alto_v / 2))
+    
+    espera.geometry(f"{ancho_v}x{alto_v}+{x}+{y}")
+    espera.resizable(False, False)
+    espera.attributes("-topmost", True)
+    espera.configure(fg_color=COLORS["bg_dark"])
+
+    # Contenedor principal para padding interno
+    frame_interno = ctk.CTkFrame(espera, fg_color="transparent")
+    frame_interno.pack(expand=True, fill="both", padx=20, pady=20)
+
+    # Texto de estado
+    lbl_status = ctk.CTkLabel(
+        frame_interno, 
+        text="VERIFICANDO LICENCIA", 
+        font=("Segoe UI", 13, "bold"),
+        text_color=COLORS["accent"]
+    )
+    lbl_status.pack(pady=(0, 10))
+
+    # Barra de progreso estilizada
+    progreso = ctk.CTkProgressBar(
+        frame_interno, 
+        orientation="horizontal",
+        mode="indeterminate",
+        width=260,
+        progress_color=COLORS["accent"],
+        fg_color=COLORS["bg_input"]
+    )
+    progreso.pack(pady=10)
+    progreso.start()
+
+    # Subtexto informativo
+    ctk.CTkLabel(
+        frame_interno, 
+        text="Conectando con el servidor seguro...", 
+        font=("Segoe UI", 10),
+        text_color=COLORS["text_muted"]
+    ).pack()
+
+    espera.update() 
+
+    try:
+        payload = {"key": codigo_local, "program": PROGRAMA_ID}
+        response = requests.post(API_URL, json=payload, timeout=8, allow_redirects=False)
+        
+        try:
+            data = response.json()
+        except:
+            data = {}
+
+        if response.status_code == 200 and data.get('status') == 'success':
+            with open(archivo_licencia, "w") as f:
+                f.write(codigo_local)
+            espera.destroy()
+            return True
+        else:
+            espera.destroy()
+            mensaje = data.get('message', f'Código inválido o vencido (Error: {response.status_code})')
+            messagebox.showerror("Licencia Inválida", mensaje)
+            if os.path.exists(archivo_licencia): 
+                os.remove(archivo_licencia)
+            sys.exit()
+
+    except requests.exceptions.RequestException:
+        espera.destroy()
+        # Si ya había una llave, dejamos pasar (Modo Offline)
+        if os.path.exists(archivo_licencia):
+            return True 
+        
+        messagebox.showerror("Error de Conexión", "Se requiere internet para la primera activación.")
+        sys.exit()
+        
+        
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Ejecución
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -216,4 +366,6 @@ def main():
         messagebox.showerror("Fatal Error", f"Error al iniciar el lanzador: {e}")
 
 if __name__ == "__main__":
-    main()
+    if verificar_licencia():
+        main()
+    

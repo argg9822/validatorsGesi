@@ -31,7 +31,7 @@ COLORS = {
 }
 
 # CAMBIO 1: Heredar de CTkToplevel para ser ventana secundaria
-class GesiApp(ctk.CTkToplevel):
+class GesiApp(ctk.CTk):
     def __init__(self, master=None):
         super().__init__(master)
 
