@@ -303,7 +303,7 @@ class App(ctk.CTk):
     
     def ejecutarcodeA(self):
         try:
-            from liveValidator.main import OPENUI
+            from liveValidator.index import OPENUI
 
             self.nueva_ventana = OPENUI(self) 
         except Exception as e:
