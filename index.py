@@ -11,6 +11,8 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import webbrowser
 import requests
+import time
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from crc_princ.analizar_exel import analizar_excel_2
 
@@ -29,11 +31,17 @@ import subprocess
 
 def abrir_validador():
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    ruta = os.path.join(base_dir, "validatorweb", "index.html")
-    
-    print("Ruta real:", ruta)  # 👈 DEBUG
-    
-    webbrowser.open(f"file:///{ruta}")
+    web_dir = os.path.join(base_dir, "validatorweb")
+
+    os.chdir(web_dir)  # importante
+
+    def start_server():
+        server = HTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
+        server.serve_forever()
+
+    threading.Thread(target=start_server, daemon=True).start()
+
+    webbrowser.open("http://localhost:8000/index.html")
 
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas

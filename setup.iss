@@ -55,6 +55,7 @@ Source: "crear_hc\*";     DestDir: "{app}\crear_hc"; Flags: ignoreversion recurs
 Source: "crc_princ\*";    DestDir: "{app}\crc_princ"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "validadores\*";  DestDir: "{app}\validadores"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "img\*";          DestDir: "{app}\img"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "validatorweb\*"; DestDir: "{app}\validatorweb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\img\logo.ico"
