@@ -31,11 +31,11 @@ COLORS = {
 }
 
 # CAMBIO 1: Heredar de CTkToplevel para ser ventana secundaria
-class GesiApp(ctk.CTk):
+class GesiApp(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
 
-        self.title("GESI - Automatización de Historias Clínicas")
+        self.title("GESI - Automatización de Herramienta de control")
         self.geometry("1000x750")
         
         # CAMBIO 2: Usar self directamente para configurar (ya no existe self.root)

@@ -11,6 +11,7 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import webbrowser
 import requests
+import time
 
 
 from crc_princ.analizar_exel import analizar_excel_2
@@ -53,32 +54,32 @@ def abrir_validador():
 
     base_dir = get_base_path()
     web_dir = os.path.join(base_dir, "validatorweb")
-
     index_file = os.path.join(web_dir, "index.html")
+
+    print("BASE DIR:", base_dir)
+    print("WEB DIR:", web_dir)
 
     if not os.path.exists(index_file):
         print("❌ No se encontró index.html")
         return
 
-    port = get_free_port()  # 👈 clave
+    port = get_free_port()
 
     def start_server():
         global server_instance
         try:
-            os.chdir(web_dir)  # 🔥 CLAVE
-
-            server_instance = ThreadingHTTPServer(("127.0.0.1", port), SimpleHTTPRequestHandler)
-            print(f"✅ Servidor corriendo en http://127.0.0.1:{port}")
+            handler = partial(SimpleHTTPRequestHandler, directory=web_dir)
+            server_instance = ThreadingHTTPServer(("127.0.0.1", port), handler)
             server_instance.serve_forever()
         except Exception as e:
             print("❌ Error servidor:", e)
 
     threading.Thread(target=start_server, daemon=True).start()
 
-    import time
-    time.sleep(1)
+    time.sleep(2)
 
     webbrowser.open(f"http://127.0.0.1:{port}/index.html")
+
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
 COLORS = {
@@ -341,7 +342,7 @@ class App(ctk.CTk):
     
     def ejecutarcodeA(self):
         try:
-            from liveValidator.index import OPENUI
+            from liveValidator.main import OPENUI
 
             self.nueva_ventana = OPENUI(self) 
         except Exception as e:
