@@ -32,40 +32,51 @@ import threading
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 
+import socket
+
+def get_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
+
 def get_base_path():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)  # 👈 CLAVE
     return os.path.dirname(os.path.abspath(__file__))
 
+server_instance = None
+
 def abrir_validador():
+    global server_instance
+
     base_dir = get_base_path()
     web_dir = os.path.join(base_dir, "validatorweb")
 
     index_file = os.path.join(web_dir, "index.html")
 
-    print("📁 Base dir:", base_dir)
-    print("📁 Web dir:", web_dir)
-    print("📄 Index existe:", os.path.exists(index_file))
-
     if not os.path.exists(index_file):
         print("❌ No se encontró index.html")
         return
 
-    os.chdir(web_dir)
+    port = get_free_port()  # 👈 clave
 
     def start_server():
+        global server_instance
         try:
             handler = partial(SimpleHTTPRequestHandler, directory=web_dir)
 
-            server = ThreadingHTTPServer(("127.0.0.1", 8001), handler)
-            print("✅ Servidor corriendo en http://127.0.0.1:8001")
-            server.serve_forever()
+            server_instance = ThreadingHTTPServer(("127.0.0.1", port), handler)
+            print(f"✅ Servidor corriendo en http://127.0.0.1:{port}")
+            server_instance.serve_forever()
         except Exception as e:
             print("❌ Error servidor:", e)
 
     threading.Thread(target=start_server, daemon=True).start()
 
-    webbrowser.open("http://127.0.0.1:8001/index.html")
+    import time
+    time.sleep(1)
+
+    webbrowser.open(f"http://127.0.0.1:{port}/index.html")
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
 COLORS = {
@@ -109,6 +120,7 @@ class UpdateWindow(ctk.CTkToplevel):
         super().__init__(master)
         self.title("Nueva Actualización Disponible")
         self.geometry("460x300")
+        self._remote_version = remote_version
         self.resizable(False, False)
         self.configure(fg_color=COLORS["bg_dark"])
         self.grab_set()
@@ -321,12 +333,24 @@ class App(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Error", f"Fallo al abrir ventana: {e}")
             
-            
+    def on_close(self):
+        global server_instance
+
+        if server_instance:
+            print("🛑 Cerrando servidor...")
+            try:
+                server_instance.shutdown()
+                server_instance.server_close()
+            except Exception as e:
+                print("Error cerrando servidor:", e)
+
+        self.destroy()       
             
     def __init__(self):
         super().__init__()
         self.title(f"Odin  ·  v{__version__}")
         self.geometry("860x680")
+        self.protocol("WM_DELETE_WINDOW", self.on_close)  # 👈 AQUÍ
         self.minsize(720, 560)
         self.configure(fg_color=COLORS["bg_dark"])
         self._center_window()
