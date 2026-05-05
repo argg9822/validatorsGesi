@@ -46,6 +46,10 @@ def get_base_path():
 
 server_instance = None
 
+
+
+    
+
 def abrir_validador():
     global server_instance
 
@@ -178,16 +182,19 @@ class UpdateWindow(ctk.CTkToplevel):
         w, h = self.winfo_width(), self.winfo_height()
         self.geometry(f"{w}x{h}+{(sw-w)//2}+{(sh-h)//2}")
 
+    import Updater as updater
+
     def _start_update(self):
+        updater.open_debug_window()  # 👈 AGREGA ESTO
+
         self.btn_update.configure(state="disabled", text="Actualizando...")
         updater.apply_update_async(
-            remote_version=self._remote_version,   # ← FIX: antes faltaba este argumento
+            remote_version=self._remote_version,
             progress_cb=lambda p: self.after(0, lambda: self.progress.set(p / 100)),
             status_cb=lambda s: self.after(0, lambda: self.status_label.configure(text=s)),
             done_cb=self._on_done
-        ) 
+        )
         
-
     def _on_done(self, success: bool):
         if success:
             self.after(0, lambda: messagebox.showinfo(
@@ -332,7 +339,17 @@ class App(ctk.CTk):
             self.nueva_ventana = GesiApp(self) 
         except Exception as e:
             messagebox.showerror("Error", f"Fallo al abrir ventana: {e}")
+    
+    
+    def ejecutarcodeA(self):
+        try:
+            from liveValidator.index import OPENUI
+
+            self.nueva_ventana = OPENUI(self) 
+        except Exception as e:
+            messagebox.showerror("Error", f"Fallo al abrir ventana: {e}")   
             
+             
     def on_close(self):
         global server_instance
 
@@ -592,6 +609,9 @@ class App(ctk.CTk):
 
         ctk.CTkButton(self.env_sidebar, text="Abrir validador", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=abrir_validador).pack(fill="x", padx=10, pady=5)
+        
+        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", fg_color=COLORS["accent"], 
+        hover_color=COLORS["accent_hover"], command=self.ejecutarcodeA).pack()(fill="x", padx=10, pady=5)
 
         
     

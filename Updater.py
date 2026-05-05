@@ -271,7 +271,7 @@ def download_and_apply(remote_version: str, progress_callback=None, status_callb
             ZIP_URL, headers={"User-Agent": "ValidatorsGesi-Updater"}
         )
         # FIX: timeout razonable para la descarga del ZIP
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             total      = int(resp.headers.get("Content-Length", 0))
             downloaded = 0
             _log(f"Tamaño del ZIP: {total / 1024:.1f} KB" if total else "Tamaño desconocido")
