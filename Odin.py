@@ -250,6 +250,11 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 
 def verificar_licencia():
+    # Root temporal oculto: evita que tkinter cree una ventana Tk() vacía
+    # automáticamente al instanciar widgets CTK sin un root activo.
+    _root_temporal = tk.Tk()
+    _root_temporal.withdraw()
+
     # --- Configuración de rutas ---
     ruta_dir = os.path.join(os.environ['APPDATA'], "ODIN_DATA")
     if not os.path.exists(ruta_dir):
@@ -272,7 +277,9 @@ def verificar_licencia():
             button_hover_color=COLORS["accent_hover"][1]
         )
         codigo_local = dialogo.get_input()
-        if not codigo_local: sys.exit()
+        if not codigo_local:
+            _root_temporal.destroy()
+            sys.exit()
 
     # --- VENTANA DE CARGA (DISEÑO MEJORADO) ---
     espera = ctk.CTkToplevel()
@@ -336,6 +343,7 @@ def verificar_licencia():
             with open(archivo_licencia, "w") as f:
                 f.write(codigo_local)
             espera.destroy()
+            _root_temporal.destroy()   # ← limpieza
             return True
         else:
             espera.destroy()
@@ -343,15 +351,18 @@ def verificar_licencia():
             messagebox.showerror("Licencia Inválida", mensaje)
             if os.path.exists(archivo_licencia): 
                 os.remove(archivo_licencia)
+            _root_temporal.destroy()   # ← limpieza
             sys.exit()
 
     except requests.exceptions.RequestException:
         espera.destroy()
         # Si ya había una llave, dejamos pasar (Modo Offline)
         if os.path.exists(archivo_licencia):
+            _root_temporal.destroy()   # ← limpieza
             return True 
         
         messagebox.showerror("Error de Conexión", "Se requiere internet para la primera activación.")
+        _root_temporal.destroy()       # ← limpieza
         sys.exit()
         
         
@@ -368,4 +379,3 @@ def main():
 if __name__ == "__main__":
     if verificar_licencia():
         main()
-    

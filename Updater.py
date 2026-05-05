@@ -13,8 +13,6 @@ import traceback
 import datetime
 from pathlib import Path
 
-from flask.cli import get_version
-
 # ── Configuración ────────────────────────────────────────────────────────────
 GITHUB_USER   = "argg9822"
 GITHUB_REPO   = "validatorsGesi"
@@ -44,7 +42,6 @@ def _log(msg: str):
             f.write(line + "\n")
     except Exception:
         pass
-    # Si hay ventana de debug abierta, escribir ahí también
     if _debug_window and _debug_window.is_alive():
         _debug_window.append(line)
 
@@ -59,7 +56,7 @@ class DebugWindow(threading.Thread):
     Muestra logs en tiempo real y NO se cierra con la app principal.
     """
     def __init__(self):
-        super().__init__(daemon=False)   # daemon=False → sobrevive al cierre de la app
+        super().__init__(daemon=False)
         self._queue = []
         self._lock  = threading.Lock()
         self._text_widget = None
@@ -80,7 +77,6 @@ class DebugWindow(threading.Thread):
         root.geometry("780x420")
         root.configure(bg="#1e1e1e")
 
-        # Header
         tk.Label(
             root, text="Log de actualización en tiempo real",
             bg="#1e1e1e", fg="#00d4aa", font=("Consolas", 11, "bold")
@@ -91,7 +87,6 @@ class DebugWindow(threading.Thread):
             bg="#1e1e1e", fg="#888888", font=("Consolas", 8)
         ).pack()
 
-        # Área de texto
         frame = tk.Frame(root, bg="#1e1e1e")
         frame.pack(fill="both", expand=True, padx=10, pady=8)
 
@@ -109,7 +104,6 @@ class DebugWindow(threading.Thread):
         text.pack(side="left", fill="both", expand=True)
         scrollbar.config(command=text.yview)
 
-        # Colores por nivel
         text.tag_config("ERROR",   foreground="#ff5555")
         text.tag_config("OK",      foreground="#50fa7b")
         text.tag_config("WARN",    foreground="#ffb86c")
@@ -123,10 +117,6 @@ class DebugWindow(threading.Thread):
             if any(k in u for k in ["ERROR", "EXCEPCION", "FAILED", "FALLO", "DENEGADO", "ERRORLEVEL"]):
                 return "ERROR"
             if any(k in u for k in ["OK", "COMPLETO", "EXITOSO", "LISTO", "COPIADO"]):
-                return "OK"
-            if "ERROR" in u or "EXCEPCION" in u or "TRACEBACK" in u or "FAILED" in u:
-                return "ERROR"
-            if "OK" in u or "COMPLETO" in u or "EXITOSO" in u or "LISTO" in u:
                 return "OK"
             if "WARN" in u or "AVISO" in u:
                 return "WARN"
@@ -161,7 +151,6 @@ class DebugWindow(threading.Thread):
 def open_debug_window():
     """Abre la ventana de log. Llámala ANTES de iniciar la actualización."""
     global _debug_window
-    # Limpiar log anterior
     try:
         LOG_FILE.unlink(missing_ok=True)
     except Exception:
@@ -175,13 +164,18 @@ def open_debug_window():
 
 # ── Lógica de versiones ───────────────────────────────────────────────────────
 
+def _normalize_version(v: str) -> str:
+    """Elimina prefijo 'v' o 'V' y espacios para comparación uniforme."""
+    return v.strip().lstrip("vV").strip()
+
+
 def _get_local_version() -> str:
-    # 1. Intentar SIEMPRE primero version.txt
+    # 1. Intentar primero version.txt
     version_file = APP_DIR / "version.txt"
     if version_file.exists():
         try:
-            # Añadimos replace para quitar posibles saltos de línea de Windows (\r\n)
             v = version_file.read_text(encoding="utf-8").strip().replace('\r', '').replace('\n', '')
+            v = _normalize_version(v)
             if v:
                 _log(f"Versión local detectada: {v}")
                 return v
@@ -194,9 +188,10 @@ def _get_local_version() -> str:
         try:
             for line in version_py.read_text(encoding="utf-8").splitlines():
                 if "__version__" in line and "=" in line:
-                    v = line.split("=")[1].strip().strip("'\"")
-                    # Crear el version.txt si no existe para la próxima vez
+                    v = _normalize_version(line.split("=")[1].strip().strip("'\""))
+                    # Guardar para la próxima vez
                     version_file.write_text(v, encoding="utf-8")
+                    _log(f"Versión local detectada desde __version__.py: {v}")
                     return v
         except Exception as e:
             _log(f"Error leyendo __version__.py: {e}")
@@ -208,11 +203,12 @@ def _get_local_version() -> str:
 def _parse_version(text: str) -> str:
     for line in text.splitlines():
         if "__version__" in line and "=" in line:
-            return line.split("=")[1].strip().strip("'\"")
+            return _normalize_version(line.split("=")[1].strip().strip("'\""))
     return "0.0.0"
 
 
 def _version_tuple(v: str):
+    v = _normalize_version(v)
     try:
         return tuple(int(x) for x in v.split("."))
     except Exception:
@@ -221,27 +217,42 @@ def _version_tuple(v: str):
 
 def check_for_update() -> dict:
     current = _get_local_version()
+    _log(f"Versión local normalizada: {current}")
     _log(f"Consultando versión remota: {VERSION_URL}")
     try:
         req = urllib.request.Request(
             VERSION_URL,
             headers={"Cache-Control": "no-cache", "User-Agent": "ValidatorsGesi-Updater"}
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        # FIX: timeout más conservador + manejo de error de conexión explícito
+        with urllib.request.urlopen(req, timeout=15) as resp:
             remote_text = resp.read().decode("utf-8")
         remote_ver = _parse_version(remote_text)
-        available   = _version_tuple(remote_ver) > _version_tuple(current)
-        _log(f"Versión remota: {remote_ver} | Actualización disponible: {available}")
-        return {"available": available, "remote_version": remote_ver, "current_version": current}
+        _log(f"Versión remota normalizada: {remote_ver}")
+
+        local_tuple  = _version_tuple(current)
+        remote_tuple = _version_tuple(remote_ver)
+        _log(f"Comparando: local={local_tuple} vs remoto={remote_tuple}")
+
+        available = remote_tuple > local_tuple
+        _log(f"Actualización disponible: {available}")
+        return {
+            "available":       available,
+            "remote_version":  remote_ver,
+            "current_version": current,
+        }
+    except urllib.error.URLError as e:
+        _log(f"ERROR de red al consultar versión remota: {e}")
+        return {"available": False, "error": str(e), "current_version": current}
     except Exception as e:
-        _log(f"ERROR al consultar versión remota: {e}")
+        _log(f"ERROR inesperado al consultar versión remota: {e}")
         _log(traceback.format_exc())
         return {"available": False, "error": str(e), "current_version": current}
 
 
 # ── Descarga e instalación ────────────────────────────────────────────────────
 
-def download_and_apply(remote_version, progress_callback=None, status_callback=None) -> bool:
+def download_and_apply(remote_version: str, progress_callback=None, status_callback=None) -> bool:
 
     def _status(msg):
         _log(msg)
@@ -264,10 +275,11 @@ def download_and_apply(remote_version, progress_callback=None, status_callback=N
         req = urllib.request.Request(
             ZIP_URL, headers={"User-Agent": "ValidatorsGesi-Updater"}
         )
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        # FIX: timeout razonable para la descarga del ZIP
+        with urllib.request.urlopen(req, timeout=120) as resp:
             total      = int(resp.headers.get("Content-Length", 0))
             downloaded = 0
-            _log(f"Tamaño del ZIP: {total / 1024:.1f} KB")
+            _log(f"Tamaño del ZIP: {total / 1024:.1f} KB" if total else "Tamaño desconocido")
             with open(zip_path, "wb") as f:
                 while True:
                     chunk = resp.read(16384)
@@ -295,20 +307,23 @@ def download_and_apply(remote_version, progress_callback=None, status_callback=N
 
         _status("Preparando script de instalación...")
         _progress(80)
-        _create_install_script(source_root, tmp_dir, remote_version)
-        # Línea corregida:
+        # FIX: llamada duplicada eliminada — solo se llama UNA vez
         _create_install_script(source_root, tmp_dir, remote_version)
         _log(f"Script creado en: {APP_DIR / 'finish_update.bat'}")
 
         _status("¡Descarga completa! Aplicando actualización...")
         _progress(100)
 
-        # Pequeña pausa para que la UI muestre el 100%
         import time; time.sleep(1.5)
 
         finalize_update()
         return True
 
+    except urllib.error.URLError as e:
+        _log(f"ERROR de red en download_and_apply: {e}")
+        if status_callback:
+            status_callback(f"Error de red: {e}")
+        return False
     except Exception as e:
         _log(f"ERROR en download_and_apply: {e}")
         _log(traceback.format_exc())
@@ -320,8 +335,7 @@ def download_and_apply(remote_version, progress_callback=None, status_callback=N
 def _create_install_script(src_path: Path, tmp_dir: Path, new_version: str):
     script_path = APP_DIR / "finish_update.bat"
     exe_name = "Odin.exe"
-    
-    # Rutas calculadas
+
     app_dir_str = str(APP_DIR)
     bat_log = f'"{app_dir_str}\\update_log.txt"'
 
@@ -336,7 +350,6 @@ taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
 timeout /t 3 /nobreak > nul
 
 echo [2/4] Sincronizando archivos internos y lógica...
-:: Agregamos /XD para excluir carpetas de desarrollo y /XF para archivos innecesarios
 robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} update_log.txt finish_update.bat /XD .git .vscode .github __pycache__ /LOG+:{bat_log} /TEE
 
 if %ERRORLEVEL% GEQ 8 (
@@ -346,9 +359,7 @@ if %ERRORLEVEL% GEQ 8 (
 )
 
 echo [3/4] Actualizando registro de versión a {new_version}...
-:: Borramos el archivo viejo por si tiene atributos de solo lectura o está bloqueado
 del /f /q "{app_dir_str}\\version.txt" >> {bat_log} 2>&1
-:: El paréntesis garantiza que solo se escriba el texto, sin espacios finales
 (echo {new_version})>"{app_dir_str}\\version.txt"
 
 echo [4/4] Limpieza de temporales...
@@ -357,14 +368,11 @@ rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
 echo [OK] Actualización terminada exitosamente. >> {bat_log}
 timeout /t 2 /nobreak > nul
 
-:: Reiniciar forzando el directorio de trabajo (/D) y la ruta entrecomillada
 start "" /D "{app_dir_str}" "{app_dir_str}\\{exe_name}"
-
-
 """
-    # Guardar siempre en UTF-8 para evitar problemas con tildes
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(content)
+
 
 def finalize_update():
     script = APP_DIR / "finish_update.bat"
@@ -393,9 +401,8 @@ def check_update_async(callback):
     ).start()
 
 
-def apply_update_async(remote_version, progress_cb=None, status_cb=None, done_cb=None):
+def apply_update_async(remote_version: str, progress_cb=None, status_cb=None, done_cb=None):
     def _run():
-        # Agregamos remote_version que es necesaria para el .bat
         ok = download_and_apply(remote_version, progress_cb, status_cb)
         if done_cb:
             done_cb(ok)

@@ -138,10 +138,12 @@ class UpdateWindow(ctk.CTkToplevel):
     def _start_update(self):
         self.btn_update.configure(state="disabled", text="Actualizando...")
         updater.apply_update_async(
+            remote_version=self._remote_version,   # ← FIX: antes faltaba este argumento
             progress_cb=lambda p: self.after(0, lambda: self.progress.set(p / 100)),
             status_cb=lambda s: self.after(0, lambda: self.status_label.configure(text=s)),
             done_cb=self._on_done
-        )
+        ) 
+        
 
     def _on_done(self, success: bool):
         if success:
