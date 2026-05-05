@@ -34,18 +34,13 @@ from functools import partial
 
 import socket
 
-
-
-
-
 server_instance = None
-
 
 
 def abrir_validador():
     webbrowser.open("https://www.trakio.pro/validator")
     
-
+    
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
 COLORS = {
