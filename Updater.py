@@ -170,33 +170,28 @@ def _normalize_version(v: str) -> str:
 
 
 def _get_local_version() -> str:
-    # 1. Intentar primero version.txt
-    version_file = APP_DIR / "version.txt"
-    if version_file.exists():
-        try:
-            v = version_file.read_text(encoding="utf-8").strip().replace('\r', '').replace('\n', '')
-            v = _normalize_version(v)
-            if v:
-                _log(f"Versión local detectada: {v}")
-                return v
-        except Exception as e:
-            _log(f"Error leyendo version.txt: {e}")
-
-    # 2. Si no existe version.txt, buscar en __version__.py
     version_py = APP_DIR / "__version__.py"
+
     if version_py.exists():
         try:
             for line in version_py.read_text(encoding="utf-8").splitlines():
-                if "__version__" in line and "=" in line:
-                    v = _normalize_version(line.split("=")[1].strip().strip("'\""))
-                    # Guardar para la próxima vez
-                    version_file.write_text(v, encoding="utf-8")
+                line = line.strip()
+
+                # Ignorar comentarios
+                if line.startswith("#"):
+                    continue
+
+                # Buscar línea EXACTA válida
+                if line.startswith("__version__"):
+                    v = line.split("=")[1].strip().strip("'\"")
+                    v = _normalize_version(v)
                     _log(f"Versión local detectada desde __version__.py: {v}")
                     return v
+
         except Exception as e:
             _log(f"Error leyendo __version__.py: {e}")
 
-    _log("WARN: No se encontró versión. Usando 0.0.0")
+    _log("WARN: No se encontró versión válida. Usando 0.0.0")
     return "0.0.0"
 
 

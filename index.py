@@ -11,9 +11,7 @@ from tkinter import filedialog, messagebox
 from pathlib import Path
 import webbrowser
 import requests
-import time
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+
 
 from crc_princ.analizar_exel import analizar_excel_2
 
@@ -30,28 +28,44 @@ import Updater as updater
 
 import subprocess
 
+import threading
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from functools import partial
+
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)  # 👈 CLAVE
+    return os.path.dirname(os.path.abspath(__file__))
+
 def abrir_validador():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = get_base_path()
     web_dir = os.path.join(base_dir, "validatorweb")
 
-    if not os.path.exists(os.path.join(web_dir, "index.html")):
-        print("❌ No se encontró index.html en:", web_dir)
+    index_file = os.path.join(web_dir, "index.html")
+
+    print("📁 Base dir:", base_dir)
+    print("📁 Web dir:", web_dir)
+    print("📄 Index existe:", os.path.exists(index_file))
+
+    if not os.path.exists(index_file):
+        print("❌ No se encontró index.html")
         return
 
     os.chdir(web_dir)
 
     def start_server():
         try:
-            server = ThreadingHTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
-            print("✅ Servidor corriendo en http://localhost:8000")
+            handler = partial(SimpleHTTPRequestHandler, directory=web_dir)
+
+            server = ThreadingHTTPServer(("127.0.0.1", 8001), handler)
+            print("✅ Servidor corriendo en http://127.0.0.1:8001")
             server.serve_forever()
         except Exception as e:
             print("❌ Error servidor:", e)
 
     threading.Thread(target=start_server, daemon=True).start()
 
-    webbrowser.open("http://localhost:8000/index.html")
-
+    webbrowser.open("http://127.0.0.1:8001/index.html")
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
 COLORS = {

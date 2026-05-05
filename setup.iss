@@ -57,6 +57,8 @@ Source: "validadores\*";  DestDir: "{app}\validadores"; Flags: ignoreversion rec
 Source: "img\*";          DestDir: "{app}\img"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "validatorweb\*"; DestDir: "{app}\validatorweb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+
+
 [Icons]
 Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\img\logo.ico"
 Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\img\logo.ico"; Tasks: desktopicon
