@@ -13,6 +13,7 @@ import webbrowser
 import requests
 import time
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 from crc_princ.analizar_exel import analizar_excel_2
 
@@ -33,11 +34,19 @@ def abrir_validador():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     web_dir = os.path.join(base_dir, "validatorweb")
 
-    os.chdir(web_dir)  # importante
+    if not os.path.exists(os.path.join(web_dir, "index.html")):
+        print("❌ No se encontró index.html en:", web_dir)
+        return
+
+    os.chdir(web_dir)
 
     def start_server():
-        server = HTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
-        server.serve_forever()
+        try:
+            server = ThreadingHTTPServer(("localhost", 8000), SimpleHTTPRequestHandler)
+            print("✅ Servidor corriendo en http://localhost:8000")
+            server.serve_forever()
+        except Exception as e:
+            print("❌ Error servidor:", e)
 
     threading.Thread(target=start_server, daemon=True).start()
 
