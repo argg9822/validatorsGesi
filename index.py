@@ -9,6 +9,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from pathlib import Path
+import webbrowser
 import requests
 
 from crc_princ.analizar_exel import analizar_excel_2
@@ -25,6 +26,14 @@ from __version__ import __version__
 import Updater as updater
 
 import subprocess
+
+def abrir_validador():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    ruta = os.path.join(base_dir, "validatorweb", "index.html")
+    
+    print("Ruta real:", ruta)  # 👈 DEBUG
+    
+    webbrowser.open(f"file:///{ruta}")
 
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
@@ -493,8 +502,19 @@ class App(ctk.CTk):
                       height=42, width=240,
                       command=lambda: self._navigate("validators")).pack(anchor="w", padx=28)
     # ── Página: Validadores ───────────────────────────────────────────────────
+
+    
+
+
     def _page_validators(self):
         # Limpiar frame principal
+
+    
+        
+
+
+
+
         for widget in self.content.winfo_children():
             widget.destroy()
             
@@ -505,9 +525,6 @@ class App(ctk.CTk):
         if nuevas_areas: 
             self.areas = nuevas_areas
 
-        # Layout: Izquierda (Entornos) | Derecha (Gestión)
-        # Usamos un Frame normal para el container, no el scrollable directamente 
-        # para que el diseño no se rompa
         container = ctk.CTkFrame(frame, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -516,24 +533,10 @@ class App(ctk.CTk):
         self.env_sidebar.pack(side="left", fill="y", padx=(0, 15))
         self.env_sidebar.pack_propagate(False)
 
-        ctk.CTkLabel(self.env_sidebar, text="ENTORNOS", font=("Segoe UI", 14, "bold")).pack(pady=15)
-        
-        ctk.CTkButton(self.env_sidebar, text="+ Nuevo Entorno", fg_color=COLORS["accent"], 
-                     hover_color=COLORS["accent_hover"], command=self.agregar_entorno_ui).pack(fill="x", padx=10, pady=5)
+        ctk.CTkButton(self.env_sidebar, text="Abrir validador", fg_color=COLORS["accent"], 
+        hover_color=COLORS["accent_hover"], command=abrir_validador).pack(fill="x", padx=10, pady=5)
 
-        # Scrollable interno para los botones de entornos
-        self.env_list_frame = ctk.CTkScrollableFrame(self.env_sidebar, fg_color="transparent")
-        self.env_list_frame.pack(fill="both", expand=True, padx=5, pady=5)
         
-        # --- PANEL DERECHO (DETALLES) ---
-        self.details_panel = ctk.CTkScrollableFrame(container, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"])
-        self.details_panel.pack(side="right", fill="both", expand=True)
-        
-        self.lbl_empty = ctk.CTkLabel(self.details_panel, text="Seleccione un entorno para gestionar", text_color=COLORS["text_muted"])
-        self.lbl_empty.pack(pady=100)
-
-        # Ahora sí, llenar la lista
-        self.actualizar_lista_entornos()
     
     def cargar_areas_api(self):
         try:
@@ -854,7 +857,116 @@ class App(ctk.CTk):
         self.geometry(f"{w}x{h}+{(sw - w) // 2}+{(sh - h) // 2}")
 
 
+API_URL = "https://www.trakio.pro/api/v1/validate-license"
+PROGRAMA_ID = "ODIN" 
 
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+
+def verificar_licencia():
+    # --- Configuración de rutas ---
+    ruta_dir = os.path.join(os.environ['APPDATA'], "ODIN_DATA")
+    if not os.path.exists(ruta_dir):
+        os.makedirs(ruta_dir)
+    archivo_licencia = os.path.join(ruta_dir, "license.key")
+
+    codigo_local = None
+    if os.path.exists(archivo_licencia):
+        with open(archivo_licencia, "r") as f:
+            codigo_local = f.read().strip()
+
+    # --- INPUT CON DISEÑO CTK ---
+    if not codigo_local:
+        # Usamos el diálogo nativo de CTK para que combine con el tema
+        dialogo = ctk.CTkInputDialog(
+            text="Ingresa tu código de activación:", 
+            title="Activación PAIWEB",
+            fg_color=COLORS["bg_card"][1],
+            button_fg_color=COLORS["accent"][1],
+            button_hover_color=COLORS["accent_hover"][1]
+        )
+        codigo_local = dialogo.get_input()
+        if not codigo_local: sys.exit()
+
+    # --- VENTANA DE CARGA (DISEÑO MEJORADO) ---
+    espera = ctk.CTkToplevel()
+    espera.title("Paiweb")
+    
+    # Dimensiones y centrado
+    ancho_v, alto_v = 340, 160
+    x = int((espera.winfo_screenwidth() / 2) - (ancho_v / 2))
+    y = int((espera.winfo_screenheight() / 2) - (alto_v / 2))
+    
+    espera.geometry(f"{ancho_v}x{alto_v}+{x}+{y}")
+    espera.resizable(False, False)
+    espera.attributes("-topmost", True)
+    espera.configure(fg_color=COLORS["bg_dark"])
+
+    # Contenedor principal para padding interno
+    frame_interno = ctk.CTkFrame(espera, fg_color="transparent")
+    frame_interno.pack(expand=True, fill="both", padx=20, pady=20)
+
+    # Texto de estado
+    lbl_status = ctk.CTkLabel(
+        frame_interno, 
+        text="VERIFICANDO LICENCIA", 
+        font=("Segoe UI", 13, "bold"),
+        text_color=COLORS["accent"]
+    )
+    lbl_status.pack(pady=(0, 10))
+
+    # Barra de progreso estilizada
+    progreso = ctk.CTkProgressBar(
+        frame_interno, 
+        orientation="horizontal",
+        mode="indeterminate",
+        width=260,
+        progress_color=COLORS["accent"],
+        fg_color=COLORS["bg_input"]
+    )
+    progreso.pack(pady=10)
+    progreso.start()
+
+    # Subtexto informativo
+    ctk.CTkLabel(
+        frame_interno, 
+        text="Conectando con el servidor seguro...", 
+        font=("Segoe UI", 10),
+        text_color=COLORS["text_muted"]
+    ).pack()
+
+    espera.update() 
+
+    try:
+        payload = {"key": codigo_local, "program": PROGRAMA_ID}
+        response = requests.post(API_URL, json=payload, timeout=8, allow_redirects=False)
+        
+        try:
+            data = response.json()
+        except:
+            data = {}
+
+        if response.status_code == 200 and data.get('status') == 'success':
+            with open(archivo_licencia, "w") as f:
+                f.write(codigo_local)
+            espera.destroy()
+            return True
+        else:
+            espera.destroy()
+            mensaje = data.get('message', f'Código inválido o vencido (Error: {response.status_code})')
+            messagebox.showerror("Licencia Inválida", mensaje)
+            if os.path.exists(archivo_licencia): 
+                os.remove(archivo_licencia)
+            sys.exit()
+
+    except requests.exceptions.RequestException:
+        espera.destroy()
+        # Si ya había una llave, dejamos pasar (Modo Offline)
+        if os.path.exists(archivo_licencia):
+            return True 
+        
+        messagebox.showerror("Error de Conexión", "Se requiere internet para la primera activación.")
+        sys.exit()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 def index_open():
@@ -862,4 +974,5 @@ def index_open():
     app.mainloop()
 
 if __name__ == "__main__":
-    index_open()
+    if verificar_licencia():
+        index_open()

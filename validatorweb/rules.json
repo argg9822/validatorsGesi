@@ -1,0 +1,107 @@
+{
+  "_listas": {
+    "LOCALIDADES_VALIDAS": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],
+    "LOCALIDADES_VALIDAS_NAME": ["Usaquén","Chapinero","Santa Fe","San Cristóbal","Usme","Tunjuelito","Bosa","Kennedy","Fontibón","Engativá","Suba","Barrios Unidos","Teusaquillo","Los Mártires","Antonio Nariño","Puente Aranda","La Candelaria","Rafael Uribe Uribe","Ciudad Bolívar","Sumapaz"],
+    "ZONA_VALIDA": ["1","2","1- Urbana","2- Rural","1-Urbana","2-Rural"],
+    "TIPO_DOC_VALIDO": ["1","2","3","4","5","6","7","8","9","10","11","12","13","14"],
+    "TIPO_INSTITUCION_VALIDO": ["1. NNA Trabajadores/riesgo","2. GOTI","3. Trabajadores economia informal","6. ASP"]
+  },
+  "formats": [
+    {
+      "id": "ssc",
+      "nombre": "Sesiones Colectivas",
+      "code": "SSC",
+      "desc": "Registro de sesiones colectivas para todos los entornos",
+      "entornos": ["laboral","educativo","comunitario","institucional"],
+      "rules": {
+        "Fecha_intervencion": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "fecha", "desc": "Fecha de intervención" },
+        "Ficha_fic": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "numero", "desc": "Número de ficha" },
+        "Localidad_fic": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS", "desc": "Localidad de la ficha" },
+        ".Nombre de la Institución / Establecimiento educativo.": { "obligatorio": ["institucional"], "opcional": ["laboral","comunitario"], "tipo": "texto", "desc": "Nombre institución/establecimiento" },
+        ".Lugar de la actividad.": { "obligatorio": ["educativo","laboral","comunitario"], "opcional": ["institucional"], "tipo": "texto", "desc": "Lugar de la actividad" },
+        ".Actividad económica.": {
+          "obligatorio": ["laboral"], "opcional": ["educativo","institucional","comunitario"], "tipo": "texto", "desc": "Actividad económica",
+          "exceptoSi": { "campo": ".Tipo de Institución o Establecimiento educativo o Tipo de colectivo.", "valor": "1. NNA Trabajadores/riesgo" }
+        },
+        ".Tipo de Institución o Establecimiento educativo o Tipo de colectivo.": { "obligatorio": ["educativo","institucional","laboral"], "opcional": ["comunitario"], "valores": "$TIPO_INSTITUCION_VALIDO", "tipo": "texto", "desc": "Tipo de institución/colectivo" },
+        ".Barra futbolera.": {
+          "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": ["1","4","5","6","8","9","10","No aplica"], "desc": "Barra futbolera",
+          "excepcionPorEntorno": { "comunitario": { "prohibido": "No aplica", "mensaje": "Debe seleccionar una barra real para el entorno Comunitario" } }
+        },
+        ".Nombre del Grupo.": { "obligatorio": ["comunitario","educativo"], "opcional": ["institucional","laboral"], "tipo": "texto", "desc": "Nombre del grupo" },
+        ".Zona.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": "$ZONA_VALIDA", "desc": "Zona (1-Urbana, 2-Rural)" },
+        ".Localidad.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS_NAME", "desc": "Localidad" },
+        ".UPZ/UPR.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "UPZ/UPR" },
+        ".Sector catastral.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Sector catastral" },
+        ".Barrio.": { "tipo": "texto", "desc": "Barrio", "dependencia": { "campo": ".Zona.", "valores": ["1","1-Urbana","1- Urbana"], "mensaje": "El Barrio es obligatorio cuando la Zona es Urbana" } },
+        ".Manzana del cuidado.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": ["Si","No"], "desc": "Manzana del cuidado" },
+        "Numero de Manzana del cuidado": { "tipo": "numero", "desc": "Número de manzana del cuidado", "dependencia": { "campo": ".Manzana del cuidado.", "valores": ["Si"], "mensaje": "Si marcó \"Si\" en Manzana del cuidado, el número es obligatorio" } },
+        ".Vereda.": { "tipo": "texto", "desc": "Vereda", "dependencia": { "campo": ".Zona.", "valores": ["2","2-Rural","2- Rural"], "mensaje": "La Vereda es obligatoria cuando la Zona es Rural" } },
+        ".Coordenada X.": { "tipo": "numero", "desc": "Coordenada X", "dependencia": { "campo": ".Zona.", "valores": ["2","2-Rural","2- Rural"], "mensaje": "La Coordenada X es obligatoria cuando la Zona es Rural" } },
+        ".Coordenada Y.": { "tipo": "numero", "desc": "Coordenada Y", "dependencia": { "campo": ".Zona.", "valores": ["2","2-Rural","2- Rural"], "mensaje": "La Coordenada Y es obligatoria cuando la Zona es Rural" } },
+        ".Tipo de Ruralidad.": { "tipo": "texto", "desc": "Tipo de ruralidad", "dependencia": { "campo": ".Zona.", "valores": ["2","2-Rural","2- Rural"], "mensaje": "El Tipo de Ruralidad es obligatorio cuando la Zona es Rural" } },
+        ".Modalidad de la Sesión.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": ["Diurna","Nocturna","Diurna mañana","Diurna tarde","Nocturna","Extendida /completa","Fin de semana","No aplica"], "desc": "Modalidad de la sesión" },
+        ".Fecha de sesión.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "fecha_sesion", "desc": "Fecha de sesión", "maxHoy": true, "comparar": { "campoRef": "Fecha_intervencion", "operacion": ">=", "mensaje": "La fecha de sesión no puede ser anterior a la de intervención" } },
+        ".Número de Sesión.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "rango", "min": 1, "max": 50, "desc": "Número de sesión (1-50)" },
+        ".Línea Operativa.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Línea operativa" },
+        ".Componente.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Componente" },
+        ".Proceso.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Proceso" },
+        ".Tema.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Tema" },
+        ".Hombres.": { "dependencia": { "campo": ".Componente.", "valores": ["272","273","274"], "mensaje": "El número de hombres es obligatorio cuando el componente es 272, 273 o 274" }, "tipo": "numero", "desc": "Número de hombres" },
+        ".Mujeres.": { "dependencia": { "campo": ".Componente.", "valores": ["272","273","274"], "mensaje": "El número de mujeres es obligatorio cuando el componente es 272, 273 o 274" }, "tipo": "numero", "desc": "Número de mujeres" },
+        ".Tipo de documento.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "codigo", "valores": "$TIPO_DOC_VALIDO", "desc": "Tipo de documento" },
+        ".Número de Documento.": { "obligatorio": ["laboral","educativo","comunitario","institucional"], "tipo": "texto_nonempty", "desc": "Número de documento" }
+      }
+    },
+    {
+      "id": "ut",
+      "nombre": "Unidades de Trabajo (UT)",
+      "code": "UT",
+      "desc": "Registro de unidades de trabajo — solo entorno laboral",
+      "entornos": ["laboral"],
+      "rules": {
+        "Fecha_intervencion": { "obligatorio": ["laboral"], "tipo": "fecha", "desc": "Fecha de intervención" },
+        "Ficha_fic": { "obligatorio": ["laboral"], "tipo": "numero", "desc": "Número de ficha" },
+        "Localidad_fic": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS", "desc": "Localidad de la ficha" },
+        ".Zona.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$ZONA_VALIDA", "desc": "Zona" },
+        ".Localidad.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS_NAME", "desc": "Localidad" },
+        ".UPZ/UPR.": { "obligatorio": ["laboral"], "tipo": "texto_nonempty", "desc": "UPZ/UPR" },
+        ".Actividad económica.": { "obligatorio": ["laboral"], "tipo": "texto_nonempty", "desc": "Actividad económica" },
+        ".Tipo de documento.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$TIPO_DOC_VALIDO", "desc": "Tipo de documento" },
+        ".Número de Documento.": { "obligatorio": ["laboral"], "tipo": "texto_nonempty", "desc": "Número de documento" }
+      }
+    },
+    {
+      "id": "finderis_nna",
+      "nombre": "Finderis NNA",
+      "code": "FNNA",
+      "desc": "Formato de seguimiento NNA — entorno laboral",
+      "entornos": ["laboral"],
+      "rules": {
+        "Fecha_intervencion": { "obligatorio": ["laboral"], "tipo": "fecha", "desc": "Fecha de intervención" },
+        "Ficha_fic": { "obligatorio": ["laboral"], "tipo": "numero", "desc": "Número de ficha" },
+        ".Tipo de documento.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$TIPO_DOC_VALIDO", "desc": "Tipo de documento" },
+        ".Número de Documento.": { "obligatorio": ["laboral"], "tipo": "texto_nonempty", "desc": "Número de documento" },
+        ".Zona.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$ZONA_VALIDA", "desc": "Zona" },
+        ".Localidad.": { "obligatorio": ["laboral"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS_NAME", "desc": "Localidad" }
+      }
+    },
+    {
+      "id": "hxb",
+      "nombre": "Hábitos por el Barrio (HXB)",
+      "code": "HXB",
+      "desc": "Formato de intervención comunitaria barrial",
+      "entornos": ["comunitario"],
+      "rules": {
+        "Fecha_intervencion": { "obligatorio": ["comunitario"], "tipo": "fecha", "desc": "Fecha de intervención" },
+        "Ficha_fic": { "obligatorio": ["comunitario"], "tipo": "numero", "desc": "Número de ficha" },
+        ".Zona.": { "obligatorio": ["comunitario"], "tipo": "codigo", "valores": "$ZONA_VALIDA", "desc": "Zona" },
+        ".Localidad.": { "obligatorio": ["comunitario"], "tipo": "codigo", "valores": "$LOCALIDADES_VALIDAS_NAME", "desc": "Localidad" },
+        ".Barrio.": { "obligatorio": ["comunitario"], "tipo": "texto_nonempty", "desc": "Barrio" },
+        ".Nombre del Grupo.": { "obligatorio": ["comunitario"], "tipo": "texto_nonempty", "desc": "Nombre del grupo" },
+        ".Tipo de documento.": { "obligatorio": ["comunitario"], "tipo": "codigo", "valores": "$TIPO_DOC_VALIDO", "desc": "Tipo de documento" },
+        ".Número de Documento.": { "obligatorio": ["comunitario"], "tipo": "texto_nonempty", "desc": "Número de documento" }
+      }
+    }
+  ]
+}
