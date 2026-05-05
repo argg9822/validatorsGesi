@@ -35,7 +35,7 @@ class OPENUI(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
 
-        self.title("GESI - Automatización de Historias Clínicas")
+        self.title("GESI - Validador sesiones")
         self.geometry("1000x750")
         
         # CAMBIO 2: Usar self directamente para configurar (ya no existe self.root)
@@ -176,7 +176,7 @@ class OPENUI(ctk.CTkToplevel):
             self.btn_action.configure(state="normal")
 
     def next_step(self):
-        self.log("Navegando al módulo de Historias Clínicas...")
+        self.log("Navegando al módulo de comunitario")
         self.wait_for_element(By.XPATH, '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
 
         try:
