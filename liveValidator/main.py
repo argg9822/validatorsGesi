@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl import Workbook
 from datetime import datetime, date
 import time
 
@@ -423,8 +424,15 @@ def exportarReporte():
             c2.fill = PatternFill("solid", fgColor=color)
 
     nombre = f"reporte_validacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    wb.save(nombre)
-    selfLocal.log(f"\n{'─'*50}\n📋 {nombre}\n   ✅ OK: {n_ok}  ❌ Error: {n_error}  ⚠️ Inc: {n_inc}  — No enc: {n_noenc}")
+    # Preguntar dónde guardar el archivo
+    from tkinter import filedialog
+    save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", initialfile=nombre,
+                                             filetypes=[("Archivos de Excel", "*.xlsx")])
+    if save_path:
+        wb.save(save_path)
+        selfLocal.log(f"\n{'─'*50}\n📋 {save_path}\n   ✅ OK: {n_ok}  ❌ Error: {n_error}  ⚠️ Inc: {n_inc}  — No enc: {n_noenc}")
+    else:
+        selfLocal.log("\n❌ Guardado cancelado. El reporte no se ha guardado.")
 
 
 # ── ejecución ─────────────────────────────────────────────────────────────────
