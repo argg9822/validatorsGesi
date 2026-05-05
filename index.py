@@ -65,9 +65,9 @@ def abrir_validador():
     def start_server():
         global server_instance
         try:
-            handler = partial(SimpleHTTPRequestHandler, directory=web_dir)
+            os.chdir(web_dir)  # 🔥 CLAVE
 
-            server_instance = ThreadingHTTPServer(("127.0.0.1", port), handler)
+            server_instance = ThreadingHTTPServer(("127.0.0.1", port), SimpleHTTPRequestHandler)
             print(f"✅ Servidor corriendo en http://127.0.0.1:{port}")
             server_instance.serve_forever()
         except Exception as e:
