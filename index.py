@@ -30,55 +30,21 @@ import Updater as updater
 import subprocess
 
 import threading
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 
 import socket
 
-def get_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        return s.getsockname()[1]
 
-def get_base_path():
-    if getattr(sys, 'frozen', False):
-        return os.path.dirname(sys.executable)  # ✅ CORRECTO PARA TU CASO
-    return os.path.dirname(os.path.abspath(__file__))
+
+
 
 server_instance = None
 
 
 
 def abrir_validador():
-    global server_instance
-
-    base_dir = get_base_path()
-    web_dir = os.path.join(base_dir, "validatorweb")
-    index_file = os.path.join(web_dir, "index.html")
-
-    print("BASE DIR:", base_dir)
-    print("WEB DIR:", web_dir)
-
-    if not os.path.exists(index_file):
-        print("❌ No se encontró index.html")
-        return
-
-    port = get_free_port()
-
-    def start_server():
-        global server_instance
-        try:
-            handler = partial(SimpleHTTPRequestHandler, directory=web_dir)
-            server_instance = ThreadingHTTPServer(("127.0.0.1", port), handler)
-            server_instance.serve_forever()
-        except Exception as e:
-            print("❌ Error servidor:", e)
-
-    threading.Thread(target=start_server, daemon=True).start()
-
-    time.sleep(2)
-
-    webbrowser.open(f"http://127.0.0.1:{port}/index.html")
+    webbrowser.open("https://www.trakio.pro/validator")
+    
 
 # ── Paleta de colores ─────────────────────────────────────────────────────────
 # Definición de colores que soportan ambos temas
