@@ -12,6 +12,7 @@ from liveValidator.validadores.validarTipoDocumento import validarTipoDocumento
 from liveValidator.validadores.validarSexoGenero import validarSexoGenero      # próximo validador
 from liveValidator.validadores.validarOcupacion import validarOcupacion
 from liveValidator.validadores.validarPoblacionDiferencial import validarPoblacionDiferencial
+from liveValidator.validadores.validarDocumentos import validarDocumentos
 # from liveValidator.validadores.validar_etnia import validar as validarEtnia           # próximo validador
 
 # ── IDs de los campos ─────────────────────────────────────────────────────────
@@ -27,12 +28,16 @@ ID_ESPACIO_FIC      = "Espacio_fic"
 ID_SEXO             = "valorControl19389"
 ID_CATEGORIA_DISC   = "valorControl19399"
 ID_POBLACION_DIFER  = "valorControl19397"
+ID_NUM_DOC       = "valorControl19388"   # número de documento
+ID_PRIMER_NOMBRE = "valorControl19385"   # primer nombre
+ID_PRIMER_APELL  = "valorControl19386"   # primer apellido
 ID_USUARIO_XPATH = "/html/body/div/div/main/div/div/div/div[2]/div[2]/div[1]/table/tbody/tr/td[9]"
 
 FICHAS = []  # lista global de fichas a procesar
 PAGES_PER_ROW = 20
 
 reporte = []   # lista global de registros
+reporte_documentos = [] 
 
 
 # ── utilidades de fecha ───────────────────────────────────────────────────────
@@ -208,7 +213,7 @@ def registrarError(ficha: str, page_num: int, digitador: str, campo: str,
 
 # ── validación por página ─────────────────────────────────────────────────────
 
-def validarPaginaActual(ficha: str, page_num: int, digitador: str):
+def validarPaginaActual(ficha: str, page_num: int, digitador: str, documentos_ficha: list):
     """
     Lee todos los campos necesarios y llama a cada validador.
     Cada validador puede agregar 0 o más errores al reporte.
@@ -220,6 +225,21 @@ def validarPaginaActual(ficha: str, page_num: int, digitador: str):
     fecha_int_str      = leerValorOculto(ID_FECHA_INT)
     nacionalidad_value = leerValueElemento(ID_NACIONALIDAD)
     nacionalidad_texto = leerTextoElemento(ID_NACIONALIDAD)
+    num_doc        = leerTextoElemento(ID_NUM_DOC)
+    primer_nombre  = leerTextoElemento(ID_PRIMER_NOMBRE)
+    primer_apell   = leerTextoElemento(ID_PRIMER_APELL)
+    
+    from liveValidator.validadores.validarTipoDocumento import extraerCodigoDocumento
+    codigo_doc = extraerCodigoDocumento(tipo_doc_raw)
+    documentos_ficha.append({
+        "ficha":           ficha,
+        "pagina":          page_num,
+        "tipo_doc":        codigo_doc,
+        "num_doc":         num_doc,
+        "primer_nombre":   primer_nombre,
+        "primer_apellido": primer_apell,
+        "fecha_nac":       fecha_nac_str,
+    })
 
     errores_pagina = []
 
@@ -334,16 +354,22 @@ def procesarFicha(ficha: str):
 
     total_paginas = contarPaginas()
     selfLocal.log(f"   📄 Páginas detectadas: {total_paginas}")
-
-    validarPaginaActual(ficha, 1, digitador)
+    
+    documentos_ficha = []
+    
+    validarPaginaActual(ficha, 1, digitador, documentos_ficha)
 
     for page_num in range(2, total_paginas + 1):
         selfLocal.log(f"   🔎 Navegando a página {page_num}...")
         if not navegarAPagina(page_num):
             selfLocal.log(f"   ❌ No se pudo navegar a página {page_num}.")
             continue
-        validarPaginaActual(ficha, page_num, digitador)
+        validarPaginaActual(ficha, page_num, digitador, documentos_ficha)
 
+    if documentos_ficha:
+            resultados_docs = validarDocumentos(driver, documentos_ficha)
+            reporte_documentos.extend(resultados_docs)
+            
     waitElement(
         '//*[@id="main_body"]/div/div/main/div/div/div/div[1]/div/div[2]/table/tbody/tr/td/form/button',
         click=True, find_by="xpath"
@@ -422,6 +448,42 @@ def exportarReporte():
         if color:
             c1.fill = PatternFill("solid", fgColor=color)
             c2.fill = PatternFill("solid", fgColor=color)
+    
+    # ── Hoja 2: validación de documentos externos ─────────────────────────────
+    ws2 = wb.create_sheet("Validación documentos")
+    headers2    = ["Ficha", "Página", "Número doc", "Fuente",
+                "Consultado", "Coincide", "Detalle discrepancias"]
+    col_widths2 = [16, 7, 16, 14, 11, 10, 65]
+
+    for col, (h, w) in enumerate(zip(headers2, col_widths2), 1):
+        cell = ws2.cell(row=1, column=col, value=h)
+        cell.fill      = PatternFill("solid", fgColor="1F3864")
+        cell.font      = Font(color="FFFFFF", bold=True, size=11)
+        cell.alignment = center
+        cell.border    = border
+        ws2.column_dimensions[cell.column_letter].width = w
+
+    for row_idx, res in enumerate(reporte_documentos, 2):
+        coincide = res.get("coincide")
+        if coincide is True:
+            fill2 = PatternFill("solid", fgColor="E2EFDA")   # verde
+        elif coincide is False:
+            fill2 = PatternFill("solid", fgColor="FDDCDC")   # rojo
+        else:
+            fill2 = PatternFill("solid", fgColor="FFF2CC")   # amarillo (no consultado)
+
+        valores2 = [
+            res.get("ficha"),     res.get("pagina"),
+            res.get("num_doc"),   res.get("fuente"),
+            "Sí" if res.get("consultado") else "No",
+            "Sí" if coincide is True else ("No" if coincide is False else "N/A"),
+            res.get("detalle", ""),
+        ]
+        for col, val in enumerate(valores2, 1):
+            cell = ws2.cell(row=row_idx, column=col, value=val)
+            cell.fill      = fill2
+            cell.border    = border
+            cell.alignment = center if col in (2, 5, 6) else left
 
     nombre = f"reporte_validacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     # Preguntar dónde guardar el archivo

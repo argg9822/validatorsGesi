@@ -58,37 +58,140 @@ class OPENUI(ctk.CTkToplevel):
         self._build_main_panel()
 
     def _build_sidebar(self):
-        # CAMBIO 3: Los widgets se anclan a 'self', no a 'self.root'
         self.sidebar = ctk.CTkFrame(self, width=320, fg_color=COLORS["bg_card"], corner_radius=0)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
-        
-        ctk.CTkLabel(self.sidebar, text="🔑 PANEL DE CONTROL", 
-                     font=ctk.CTkFont("Segoe UI", 18, "bold")).pack(pady=(30, 20))
+
+        ctk.CTkLabel(self.sidebar, text="Credenciales GESIForm",
+                    font=ctk.CTkFont("Segoe UI", 18, "bold")).pack(pady=(30, 20))
 
         self.user_var = ctk.StringVar()
         self.pass_var = ctk.StringVar()
-        
-        ctk.CTkLabel(self.sidebar, text="Usuario GESI", text_color=COLORS["text_dim"]).pack(anchor="w", padx=25)
+
+        ctk.CTkLabel(self.sidebar, text="Usuario", text_color=COLORS["text_dim"]).pack(anchor="w", padx=25)
         self.entry_user = ctk.CTkEntry(self.sidebar, textvariable=self.user_var, height=35, fg_color=COLORS["bg_input"])
         self.entry_user.pack(fill="x", padx=25, pady=(0, 10))
 
         ctk.CTkLabel(self.sidebar, text="Contraseña", text_color=COLORS["text_dim"]).pack(anchor="w", padx=25)
         self.entry_pass = ctk.CTkEntry(self.sidebar, textvariable=self.pass_var, show="*", height=35, fg_color=COLORS["bg_input"])
         self.entry_pass.pack(fill="x", padx=25, pady=(0, 20))
+        
+        # ── Captcha ───────────────────────────────────────────────────────────────
+        self.btn_captcha = ctk.CTkButton(
+            self.sidebar,
+            text="Confirmar Captcha ✅",
+            fg_color=COLORS["blue_btn"],
+            state="disabled",
+            command=lambda: self.captcha_listo.set(),
+        )
+        self.btn_captcha.pack(fill="x", padx=25, pady=15)
 
         ctk.CTkFrame(self.sidebar, height=2, fg_color=COLORS["border"]).pack(fill="x", padx=20, pady=10)
 
-        self.btn_captcha = ctk.CTkButton(self.sidebar, text="Confirmar Captcha ✅", 
-                                        fg_color=COLORS["blue_btn"], state="disabled",
-                                        command=lambda: self.captcha_listo.set())
-        self.btn_captcha.pack(fill="x", padx=25, pady=15)
+        # ── Entorno ───────────────────────────────────────────────────────────────
+        ctk.CTkLabel(self.sidebar, text="ENTORNO",
+                    font=ctk.CTkFont("Segoe UI", 12, "bold"),
+                    text_color=COLORS["text_dim"]).pack(anchor="w", padx=25, pady=(10, 6))
+
+        self.entorno_var = ctk.StringVar(value="")   # vacío = ninguno seleccionado aún
+
+        ENTORNOS = [
+            ("🏭  Laboral",       "Laboral"),
+            ("🎓  Educativo",     "Educativo"),
+            ("🏘️  Comunitario",   "Comunitario"),
+            ("🏥  Institucional", "Institucional"),
+        ]
+
+        self._entorno_btns = {}
+        entorno_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        entorno_frame.pack(fill="x", padx=25, pady=(0, 6))
+
+        for label, valor in ENTORNOS:
+            btn = ctk.CTkButton(
+                entorno_frame,
+                text=label,
+                height=34,
+                fg_color=COLORS["bg_input"],
+                text_color=COLORS["text_dim"],
+                hover_color=COLORS["border"],
+                command=lambda v=valor: self._seleccionar_entorno(v),
+            )
+            btn.pack(fill="x", pady=3)
+            self._entorno_btns[valor] = btn
+
+        ctk.CTkFrame(self.sidebar, height=2, fg_color=COLORS["border"]).pack(fill="x", padx=20, pady=10)
+
+        # ── Opciones adicionales ──────────────────────────────────────────────────
+        ctk.CTkLabel(self.sidebar, text="OPCIONES",
+                    font=ctk.CTkFont("Segoe UI", 12, "bold"),
+                    text_color=COLORS["text_dim"]).pack(anchor="w", padx=25, pady=(0, 6))
+
+        self.solo_calidad_var    = ctk.BooleanVar(value=False)
+        self.solo_comprobador_var = ctk.BooleanVar(value=False)
+
+        self.chk_calidad = ctk.CTkCheckBox(
+            self.sidebar,
+            text="Solo calidad",
+            variable=self.solo_calidad_var,
+            fg_color=COLORS["blue_btn"],
+            hover_color=COLORS["border"],
+            command=self._on_opcion_calidad,
+        )
+        self.chk_calidad.pack(anchor="w", padx=25, pady=(0, 8))
+
+        self.chk_comprobador = ctk.CTkCheckBox(
+            self.sidebar,
+            text="Solo comprobador",
+            variable=self.solo_comprobador_var,
+            fg_color=COLORS["blue_btn"],
+            hover_color=COLORS["border"],
+            command=self._on_opcion_comprobador,
+        )
+        self.chk_comprobador.pack(anchor="w", padx=25, pady=(0, 10))
+
+    # ── Helpers de estado ─────────────────────────────────────────────────────────
+
+    def _seleccionar_entorno(self, valor: str):
+        """
+        Resalta el botón del entorno elegido y apaga los demás.
+        self.entorno_var queda con el valor seleccionado.
+        Si se pulsa el mismo entorno que ya estaba activo, lo deselecciona.
+        """
+        if self.entorno_var.get() == valor:
+            # Deseleccionar
+            self.entorno_var.set("")
+            self._entorno_btns[valor].configure(
+                fg_color=COLORS["bg_input"],
+                text_color=COLORS["text_dim"],
+            )
+            return
+
+        # Apagar todos
+        for v, btn in self._entorno_btns.items():
+            btn.configure(fg_color=COLORS["bg_input"], text_color=COLORS["text_dim"])
+
+        # Encender el seleccionado
+        self.entorno_var.set(valor)
+        self._entorno_btns[valor].configure(
+            fg_color=COLORS["blue_btn"],
+            text_color="#FFFFFF",
+        )
+
+    def _on_opcion_calidad(self):
+        """Solo calidad y Solo comprobador son mutuamente excluyentes."""
+        if self.solo_calidad_var.get():
+            self.solo_comprobador_var.set(False)
+
+    def _on_opcion_comprobador(self):
+        """Solo comprobador y Solo calidad son mutuamente excluyentes."""
+        if self.solo_comprobador_var.get():
+            self.solo_calidad_var.set(False)
 
     def _build_main_panel(self):
         # CAMBIO 4: Anclar a 'self'
         self.main_view = ctk.CTkFrame(self, fg_color="transparent")
         self.main_view.grid(row=0, column=1, sticky="nsew", padx=25, pady=25)
 
-        self.btn_file = ctk.CTkButton(self.main_view, text="📂 Seleccionar Archivo de Excel", 
+        self.btn_file = ctk.CTkButton(self.main_view, text="📂 Seleccionar archivo de excel", 
                                      fg_color=COLORS["bg_card"], height=45, 
                                      command=self.seleccionar_archivo)
         self.btn_file.pack(fill="x", pady=(0, 10))
