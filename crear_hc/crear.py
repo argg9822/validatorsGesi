@@ -107,10 +107,9 @@ class GesiApp(ctk.CTkToplevel):
 
         ctk.CTkLabel(
             header,
-            text="AUTOMATIZACIÓN",
+            text="A U T O M A T I Z A C I Ó N",
             font=ctk.CTkFont("Consolas", 9, "bold"),
-            text_color=COLORS["gold"],
-            letter_spacing=4
+            text_color=COLORS["gold"]
         ).pack(pady=(0, 5))
 
         ctk.CTkLabel(
