@@ -7,6 +7,9 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+import os
+import tkinter as tk
+from tkinter import filedialog
 
 from liveValidator.secciones.seccion1 import validarSeccion1
 from liveValidator.secciones.seccion2 import validarSeccion2
@@ -226,6 +229,27 @@ def navegarAPagina(page_num: int) -> bool:
         return True
     except:
         return False
+    
+def _volverAlListado():
+    try:
+        WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH,
+                '//*[@id="main_body"]/div/div/main/div/div/div/div[1]'
+                '/div/div[2]/table/tbody/tr/td/form/button'))
+        ).click()
+    except:
+        pass
+
+def _haySeccion2(timeout: int = 3) -> bool:
+    BASE = ('//*[@id="main_body"]/div/div/main/div/div/div/div[2]/div[3]'
+            '/div/center/table/tbody/tr/td[3]/table/tbody')
+    try:
+        WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.XPATH, f'{BASE}/tr[1]/td[1]/input'))
+        )
+        return True
+    except:
+        return False
 
 # ── Flujo por ficha ───────────────────────────────────────────────────────────
 
@@ -242,15 +266,15 @@ def extraerUsuario() -> str:
 def procesarFicha(ficha: str, xpaths_entorno: dict):
     selfLocal.log(f"\n🗂️  Ficha {ficha}")
 
-    solo_calidad     = selfLocal.solo_calidad_var.get()
-    solo_comprobador = selfLocal.solo_comprobador_var.get()
+    solo_calidad      = selfLocal.solo_calidad_var.get()
+    solo_comprobador  = selfLocal.solo_comprobador_var.get()
 
+    # ── Buscar ficha ──────────────────────────────────────────────────────────
     el_filtro = WebDriverWait(driver, 5).until(
         EC.element_to_be_clickable((By.ID, "valorFiltro"))
     )
     el_filtro.clear()
     el_filtro.send_keys(str(ficha))
-
     WebDriverWait(driver, 5).until(
         EC.element_to_be_clickable((By.ID, "BtnSearchRegs"))
     ).click()
@@ -276,87 +300,82 @@ def procesarFicha(ficha: str, xpaths_entorno: dict):
 
     documentos_ficha = []
 
-    # ── Validación de campos (sección 1 y 2) — se omite en solo_comprobador ──
+    # ── Sección 1 (solo si no es solo_comprobador) ────────────────────────────
     if not solo_comprobador:
-
-        # Sección 1 — ya activa al entrar, no necesita click
         selfLocal.log("   📋 Validando sección 1...")
         errores_s1 = validarSeccion1(driver, ficha, 1, digitador, HELPERS)
         _registrarErroresPagina(ficha, 1, digitador, errores_s1, "Sección 1")
 
-        # Sección 2 — entrar y contar páginas aquí
-        try:
-            WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.ID, xpaths_entorno["seccion_2"]))
-            ).click()
-            time.sleep(1)
-        except Exception as e:
-            selfLocal.log(f"   ❌ No se pudo entrar a sección 2: {e}")
-            return
+    # ── Entrar a sección 2 ────────────────────────────────────────────────────
+    try:
+        WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.ID, xpaths_entorno["seccion_2"]))
+        ).click()
+        time.sleep(1)
+    except Exception as e:
+        selfLocal.log(f"   ❌ No se pudo entrar a sección 2: {e}")
+        _volverAlListado()
+        return
 
-        total_paginas = contarPaginas()
-        selfLocal.log(f"   📄 Páginas en sección 2: {total_paginas}")
+    # ── Verificar si hay sección 2 (paginación rápida) ───────────────────────
+    if not _haySeccion2(timeout=3):
+        espacio_fic = leerValueElemento("Espacio_fic")
 
-        for page_num in range(1, total_paginas + 1):
-            if page_num > 1:
-                selfLocal.log(f"   🔎 Navegando a página {page_num}...")
-                if not navegarAPagina(page_num):
-                    selfLocal.log(f"   ❌ No se pudo navegar a página {page_num}.")
-                    continue
+        if espacio_fic == "04":
+            selfLocal.log(f"   ℹ️  Ficha {ficha}: sin sección 2 (entorno comunitario — OK)")
+            reporte.append({
+                "ficha": ficha, "pagina": "-", "digitador": digitador,
+                "seccion": "Sección 2", "campo": "", "valor": "",
+                "error": "",
+                "corregido": "No aplica",
+                "estado": "OK — sin sección 2 (comunitario)",
+            })
+        else:
+            selfLocal.log(f"   ❌ Ficha {ficha}: sin sección 2 (entorno {espacio_fic})")
+            reporte.append({
+                "ficha": ficha, "pagina": "-", "digitador": digitador,
+                "seccion": "Sección 2",
+                "campo": "Paginación",
+                "valor": f"Espacio_fic={espacio_fic}",
+                "error": f"La ficha no tiene sección 2 pero el entorno no es comunitario (Espacio_fic={espacio_fic})",
+                "corregido": "No aplica",
+                "estado": "Error",
+            })
 
+        _volverAlListado()
+        return
+
+    # ── Hay sección 2 — contar páginas y recorrerlas ──────────────────────────
+    total_paginas = contarPaginas()
+    selfLocal.log(f"   📄 Páginas en sección 2: {total_paginas}")
+
+    for page_num in range(1, total_paginas + 1):
+        if page_num > 1:
+            selfLocal.log(f"   🔎 Navegando a página {page_num}...")
+            if not navegarAPagina(page_num):
+                selfLocal.log(f"   ❌ No se pudo navegar a página {page_num}.")
+                continue
+
+        if solo_comprobador:
+            # Solo acumular documentos, sin validar campos
+            _acumularDocumentos(driver, ficha, page_num, documentos_ficha)
+        else:
             selfLocal.log(f"   📋 Validando sección 2, página {page_num}...")
             errores_s2 = validarSeccion2(driver, ficha, page_num, digitador,
                                          documentos_ficha, HELPERS)
             _registrarErroresPagina(ficha, page_num, digitador, errores_s2, "Sección 2")
 
-    else:
-        # solo_comprobador: entrar a sección 2 solo para acumular documentos
-        selfLocal.log("   ℹ️  Modo 'Solo comprobador': recopilando documentos...")
-        try:
-            WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.ID, xpaths_entorno["seccion_2"]))
-            ).click()
-            time.sleep(1)
-        except Exception as e:
-            selfLocal.log(f"   ❌ No se pudo entrar a sección 2: {e}")
-            return
-
-        total_paginas = contarPaginas()
-        selfLocal.log(f"   📄 Páginas detectadas: {total_paginas}")
-
-        for page_num in range(1, total_paginas + 1):
-            if page_num > 1:
-                if not navegarAPagina(page_num):
-                    continue
-            # Solo acumula documentos, no valida campos
-            _acumularDocumentos(driver, ficha, page_num, documentos_ficha)
-
-    # ── Validación de documentos externos ────────────────────────────────────
-    if solo_comprobador:
-        if documentos_ficha:
-            selfLocal.log("   🔍 Modo 'Solo comprobador': validando documentos externos...")
-            resultados_docs = validarDocumentos(driver, documentos_ficha,
-                                                solo_comprobador=False)
-            reporte_documentos.extend(resultados_docs)
-    elif solo_calidad:
+    # ── Validación de documentos externos ─────────────────────────────────────
+    if solo_calidad:
         selfLocal.log("   ℹ️  Modo 'Solo calidad': omitiendo validación de documentos externos.")
-    else:
-        if documentos_ficha:
-            selfLocal.log("   🔍 Validando documentos externos...")
-            resultados_docs = validarDocumentos(driver, documentos_ficha,
-                                                solo_comprobador=False)
-            reporte_documentos.extend(resultados_docs)
+    elif documentos_ficha:
+        modo = "'Solo comprobador'" if solo_comprobador else "normal"
+        selfLocal.log(f"   🔍 Validando documentos externos (modo {modo})...")
+        resultados_docs = validarDocumentos(driver, documentos_ficha, solo_comprobador=False)
+        reporte_documentos.extend(resultados_docs)
 
     # ── Volver al listado ─────────────────────────────────────────────────────
-    try:
-        WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH,
-                '//*[@id="main_body"]/div/div/main/div/div/div/div[1]'
-                '/div/div[2]/table/tbody/tr/td/form/button'))
-        ).click()
-    except:
-        pass
-
+    _volverAlListado()
     selfLocal.log(f"   🚪 Ficha {ficha} completada.")
 
 # ── Navegación al entorno ─────────────────────────────────────────────────────
@@ -380,6 +399,36 @@ def enterEnvironmentAndFormat():
 
 # ── Reporte Excel ─────────────────────────────────────────────────────────────
 
+def _pedirRutaGuardado() -> str:
+    """
+    Abre un diálogo para que el usuario elija dónde guardar el reporte.
+    Retorna la ruta completa con nombre de archivo, o una ruta por defecto
+    en el escritorio si el usuario cancela.
+    """
+    nombre_sugerido = f"reporte_validacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)  # el diálogo aparece encima de todo
+
+    ruta = filedialog.asksaveasfilename(
+        title="Guardar reporte de validación",
+        defaultextension=".xlsx",
+        initialfile=nombre_sugerido,
+        initialdir=os.path.expanduser("~/Desktop"),  # abre en el escritorio por defecto
+        filetypes=[("Archivo Excel", "*.xlsx")],
+    )
+
+    root.destroy()
+
+    if not ruta:
+        # El usuario canceló → guardar en el escritorio con nombre automático
+        ruta = os.path.join(os.path.expanduser("~/Desktop"), nombre_sugerido)
+        selfLocal.log(f"   ℹ️  Diálogo cancelado. Se guardará en: {ruta}")
+
+    return ruta
+
+
 def exportarReporte():
     wb = Workbook()
 
@@ -394,7 +443,7 @@ def exportarReporte():
         "Incompleto":    PatternFill("solid", fgColor="FFF2CC"),
         "No encontrada": PatternFill("solid", fgColor="F2F2F2"),
     }
-    FILL_CORREGIDO = PatternFill("solid", fgColor="FFF2CC")  # amarillo = error corregido
+    FILL_CORREGIDO = PatternFill("solid", fgColor="FFF2CC")
 
     headers    = ["Ficha", "Página", "Digitador", "Campo con error",
                   "Valor registrado", "Error detectado", "Corregido", "Estado"]
@@ -431,7 +480,7 @@ def exportarReporte():
                 cell.border    = border
                 cell.alignment = center if col in (2, 7, 8) else left
 
-    # ── Hoja resumen (todos los errores) ──────────────────────────────────────
+    # ── Hoja resumen ──────────────────────────────────────────────────────────
     ws_all = wb.active
     ws_all.title = "Resumen"
     _escribir_hoja(ws_all, reporte)
@@ -439,11 +488,10 @@ def exportarReporte():
     # ── Una hoja por sección ──────────────────────────────────────────────────
     secciones = sorted({r.get("seccion", "") for r in reporte if r.get("seccion")})
     for sec in secciones:
-        filas_sec = [r for r in reporte if r.get("seccion") == sec]
         ws_sec = wb.create_sheet(sec)
-        _escribir_hoja(ws_sec, filas_sec)
+        _escribir_hoja(ws_sec, [r for r in reporte if r.get("seccion") == sec])
 
-    # ── Hoja validación documentos externos ──────────────────────────────────
+    # ── Hoja validación documentos externos ───────────────────────────────────
     if reporte_documentos:
         ws2 = wb.create_sheet("Validación documentos")
         headers2    = ["Ficha", "Página", "Número doc", "Fuente",
@@ -477,7 +525,7 @@ def exportarReporte():
                 cell.border    = border
                 cell.alignment = center if col in (2, 5, 6) else left
 
-    # ── Resumen numérico al pie de hoja Resumen ───────────────────────────────
+    # ── Resumen numérico ──────────────────────────────────────────────────────
     total   = len(reporte)
     n_ok    = sum(1 for r in reporte if r["estado"] == "OK")
     n_error = sum(1 for r in reporte if r["estado"] == "Error")
@@ -487,12 +535,12 @@ def exportarReporte():
 
     res_row = total + 3
     for i, (label, val, color) in enumerate([
-        ("Total registros",           total,   None),
-        ("Sin errores",               n_ok,    "E2EFDA"),
-        ("Con error",                 n_error, "FDDCDC"),
-        ("Errores corregidos auto",   n_corr,  "FFF2CC"),
-        ("Datos incompletos",         n_inc,   "FFF2CC"),
-        ("Fichas no encontradas",     n_noenc, "F2F2F2"),
+        ("Total registros",         total,   None),
+        ("Sin errores",             n_ok,    "E2EFDA"),
+        ("Con error",               n_error, "FDDCDC"),
+        ("Errores corregidos auto", n_corr,  "FFF2CC"),
+        ("Datos incompletos",       n_inc,   "FFF2CC"),
+        ("Fichas no encontradas",   n_noenc, "F2F2F2"),
     ]):
         c1 = ws_all.cell(row=res_row + i, column=1, value=label)
         c2 = ws_all.cell(row=res_row + i, column=2, value=val)
@@ -501,11 +549,24 @@ def exportarReporte():
             c1.fill = PatternFill("solid", fgColor=color)
             c2.fill = PatternFill("solid", fgColor=color)
 
-    nombre = f"reporte_validacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    wb.save(nombre)
-    selfLocal.log(f"\n📋 Reporte: {nombre}")
-    selfLocal.log(f"   ✅ OK:{n_ok} ❌ Error:{n_error} 🔧 Corregidos:{n_corr} "
-                  f"⚠️ Inc:{n_inc} — No enc:{n_noenc}")
+    # ── Guardar — preguntarle al usuario la ruta ──────────────────────────────
+    ruta = _pedirRutaGuardado()
+
+    try:
+        wb.save(ruta)
+        selfLocal.log(f"\n📋 Reporte guardado en: {ruta}")
+        selfLocal.log(f"   ✅ OK:{n_ok} ❌ Error:{n_error} 🔧 Corregidos:{n_corr} "
+                      f"⚠️ Inc:{n_inc} — No enc:{n_noenc}")
+    except PermissionError:
+        # El archivo puede estar abierto en Excel
+        nombre_alt = _pedirRutaGuardado()
+        try:
+            wb.save(nombre_alt)
+            selfLocal.log(f"\n📋 Reporte guardado en: {nombre_alt}")
+        except Exception as e:
+            selfLocal.log(f"\n❌ No se pudo guardar el reporte: {e}")
+    except Exception as e:
+        selfLocal.log(f"\n❌ Error al guardar el reporte: {e}")
 
 
 # ── Punto de entrada ──────────────────────────────────────────────────────────

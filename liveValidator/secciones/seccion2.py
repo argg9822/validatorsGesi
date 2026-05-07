@@ -79,10 +79,11 @@ def validarSeccion2(driver, ficha: str, page_num: int, digitador: str,
             genero_value, orientacion_value, identidad_value, edad):
         errores.append((f"Género/Orientación/Identidad [{campo_id}]", valor, msg))
 
-    for campo, valor, msg in validarOcupacion(
+    for campo, valor, msg, corregido in validarOcupacion(
+            driver,
             espacio_fic_value, ocupacion_value, ocupacion_texto,
             edad, sexo_value, categoria_disc_val, pob_difer_values):
-        errores.append((campo, valor, msg))
+        errores.append((campo, valor, msg, corregido))
 
     for campo, valor, msg in validarPoblacionDiferencial(
             pob_difer_values, pob_difer_textos,
