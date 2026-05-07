@@ -113,8 +113,8 @@ class OPENUI(ctk.CTkToplevel):
                 "seccion_2": "controlBotonSeccion319"
             },
             "Institucional": {
-                "entorno": "/html/body/div[1]/div/nav/div/div[4]/ul/li[3]/a",
-                "base":    "/html/body/div[1]/div/nav/div/div[4]/ul/li[3]/div/ul/form[10]/li/a",
+                "entorno": "/html/body/div/div/nav/div/div[4]/ul/li[3]/a",
+                "base":    "/html/body/div/div/nav/div/div[4]/ul/li[3]/div/ul/form[10]/li/a",
                 "seccion_1": "controlBotonSeccion314",
                 "seccion_2": "controlBotonSeccion315",
             },
