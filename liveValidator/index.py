@@ -92,7 +92,35 @@ class OPENUI(ctk.CTkToplevel):
                     font=ctk.CTkFont("Segoe UI", 12, "bold"),
                     text_color=COLORS["text_dim"]).pack(anchor="w", padx=25, pady=(10, 6))
 
-        self.entorno_var = ctk.StringVar(value="")   # vacío = ninguno seleccionado aún
+        self.entorno_var = ctk.StringVar(value="")  
+        self.entorno_xpath = {
+            "Laboral": {
+                "entorno": "/html/body/div[1]/div/nav/div/div[4]/ul/li[6]/a",
+                "base":    "/html/body/div[1]/div/nav/div/div[4]/ul/li[6]/div/ul/form[6]/li/a",
+                "seccion_1": "controlBotonSeccion322",
+                "seccion_2": "controlBotonSeccion323"
+            },
+            "Educativo": {
+                "entorno": "/html/body/div[1]/div/nav/div/div[4]/ul/li[5]/a",
+                "base":    "/html/body/div[1]/div/nav/div/div[4]/ul/li[5]/div/ul/form[6]/li/a",
+                "seccion_1": "controlBotonSeccion287",
+                "seccion_2": "controlBotonSeccion288"
+            },
+            "Comunitario": {
+                "entorno": "/html/body/div[1]/div/nav/div/div[4]/ul/li[4]/a",
+                "base":    "/html/body/div[1]/div/nav/div/div[4]/ul/li[4]/div/ul/form[5]/li/a",
+                "seccion_1": "controlBotonSeccion318",
+                "seccion_2": "controlBotonSeccion319"
+            },
+            "Institucional": {
+                "entorno": "/html/body/div[1]/div/nav/div/div[4]/ul/li[3]/a",
+                "base":    "/html/body/div[1]/div/nav/div/div[4]/ul/li[3]/div/ul/form[10]/li/a",
+                "seccion_1": "controlBotonSeccion314",
+                "seccion_2": "controlBotonSeccion315",
+            },
+        }
+        
+        # vacío = ninguno seleccionado aún
 
         ENTORNOS = [
             ("🏭  Laboral",       "Laboral"),

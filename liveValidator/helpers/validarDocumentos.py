@@ -284,22 +284,14 @@ def _consultarComprobador(driver, num_doc: str,
 
 # ── Función principal ─────────────────────────────────────────────────────────
 
-def validarDocumentos(driver, documentos_ficha: list[dict]) -> list[dict]:
+def validarDocumentos(
+    driver,
+    documentos_ficha: list[dict],
+    solo_comprobador: bool = False,
+) -> list[dict]:
     """
-    Por cada documento de la muestra:
-      1. Intenta en Supersalud.
-      2. Solo si Supersalud NO lo encuentra, intenta en el Comprobador.
-
-    Parámetros:
-        driver           : WebDriver compartido con el bot principal
-        documentos_ficha : lista de dicts con claves:
-            ficha, pagina, tipo_doc, num_doc,
-            primer_nombre, primer_apellido, fecha_nac
-
-    Retorna:
-        Lista de dicts con resultado por documento.
+    ...
     """
-    # Filtrar CC/TI/RC y deduplicar por número de documento
     candidatos = [
         d for d in documentos_ficha
         if d.get("tipo_doc", "").upper() in DOCS_A_VALIDAR and d.get("num_doc")
@@ -319,34 +311,40 @@ def validarDocumentos(driver, documentos_ficha: list[dict]) -> list[dict]:
         ficha    = doc["ficha"]
         pagina   = doc["pagina"]
 
-        # Extraer solo primer nombre y primer apellido para comparar
         primer_nombre   = _primerNombre(doc.get("primer_nombre", ""))
         primer_apellido = _primerApellido(doc.get("primer_apellido", ""))
         fecha_nac       = doc.get("fecha_nac", "")
 
         print(f"\n   🔍 Doc {num} ({tipo}) — ficha {ficha} p.{pagina}")
 
-        # ── Paso 1: Supersalud ────────────────────────────────────────────────
-        res = _consultarSupersalud(driver, tipo, num,
-                                   primer_nombre, primer_apellido, fecha_nac)
-        res.update({"ficha": ficha, "pagina": pagina, "num_doc": num})
-
-        if res["encontrado"]:
-            icono = "✅" if res["coincide"] else "❌"
-            print(f"      Supersalud  → {icono} {res['detalle']}")
+        if solo_comprobador:
+            # ── Ir directo al comprobador sin pasar por Supersalud ────────────
+            res = _consultarComprobador(driver, num,
+                                        primer_nombre, primer_apellido, fecha_nac)
+            res.update({"ficha": ficha, "pagina": pagina, "num_doc": num})
+            icono = "✅" if res["coincide"] else ("❌" if res["encontrado"] else "⚠️")
+            print(f"      Comprobador → {icono} {res['detalle']}")
             resultados.append(res)
-            continue   # encontrado en Supersalud, no necesita Comprobador
 
-        # Documento no encontrado en Supersalud
-        print(f"      Supersalud  → ⚠️  {res['detalle']} — consultando Comprobador...")
+        else:
+            # ── Flujo normal: Supersalud primero, Comprobador si no encuentra ─
+            res = _consultarSupersalud(driver, tipo, num,
+                                       primer_nombre, primer_apellido, fecha_nac)
+            res.update({"ficha": ficha, "pagina": pagina, "num_doc": num})
 
-        # ── Paso 2: Comprobador (solo si Supersalud no lo encontró) ──────────
-        res2 = _consultarComprobador(driver, num,
-                                     primer_nombre, primer_apellido, fecha_nac)
-        res2.update({"ficha": ficha, "pagina": pagina, "num_doc": num})
+            if res["encontrado"]:
+                icono = "✅" if res["coincide"] else "❌"
+                print(f"      Supersalud  → {icono} {res['detalle']}")
+                resultados.append(res)
+                continue
 
-        icono = "✅" if res2["coincide"] else ("❌" if res2["encontrado"] else "⚠️")
-        print(f"      Comprobador → {icono} {res2['detalle']}")
-        resultados.append(res2)
+            print(f"      Supersalud  → ⚠️  {res['detalle']} — consultando Comprobador...")
+
+            res2 = _consultarComprobador(driver, num,
+                                         primer_nombre, primer_apellido, fecha_nac)
+            res2.update({"ficha": ficha, "pagina": pagina, "num_doc": num})
+            icono = "✅" if res2["coincide"] else ("❌" if res2["encontrado"] else "⚠️")
+            print(f"      Comprobador → {icono} {res2['detalle']}")
+            resultados.append(res2)
 
     return resultados
