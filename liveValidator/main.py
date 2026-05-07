@@ -527,8 +527,33 @@ def ejecutarValidacion(ui_self):
         return
 
     selfLocal.log(f"📋 Total fichas a procesar: {len(FICHAS)}")
+    validacion_iniciada = True
 
-    for ficha in FICHAS:
-        procesarFicha(ficha, xpaths_entorno)
+    try:
+        for ficha in FICHAS:
+            try:
+                procesarFicha(ficha, xpaths_entorno)
+            except Exception as e:
+                selfLocal.log(f"⚠️  Error inesperado en ficha {ficha}: {e}")
+                reporte.append({
+                    "ficha":     ficha,
+                    "pagina":    "-",
+                    "digitador": "-",
+                    "campo":     "Error inesperado",
+                    "valor":     "-",
+                    "error":     str(e),
+                    "estado":    "Error inesperado",
+                    "edad":      "",
+                    "fecha_nac": "",
+                    "fecha_int": "",
+                })
 
-    exportarReporte()
+    except Exception as e:
+        selfLocal.log(f"💥 Error crítico durante la validación: {e}")
+
+    finally:
+        if validacion_iniciada and (reporte or reporte_documentos):
+            selfLocal.log("💾 Generando reporte con lo procesado hasta ahora...")
+            exportarReporte()
+        elif validacion_iniciada:
+            selfLocal.log("⚠️  No hay datos que reportar (ninguna ficha fue procesada)")
