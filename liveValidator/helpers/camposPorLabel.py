@@ -10,6 +10,8 @@ from selenium.webdriver.support import expected_conditions as EC
 LABELS_SECCION_1 = {
     "barra_futbolera": "Barra futbolera",
     "nombre_grupo":     "Nombre del Grupo",
+    "tipo_institucion": "Tipo de Institución o Establecimiento educativo o Tipo de colectivo",
+    "lugar_actividad":  "Lugar de la actividad",
 }
 
 LABELS_SECCION_2 = {

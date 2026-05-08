@@ -307,7 +307,7 @@ class OPENUI(ctk.CTkToplevel):
             self.btn_action.configure(state="normal")
 
     def next_step(self):
-        self.log("Navegando al módulo de comunitario")
+        # self.log("Navegando al módulo de comunitario")
         self.wait_for_element(By.XPATH, '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
 
         try:

@@ -1,3 +1,4 @@
+# camposPorLabel.py
 from liveValidator.helpers.camposPorLabel import resolverIDs, LABELS_SECCION_2
 from liveValidator.helpers.validarTipoDocumento import validarTipoDocumento, extraerCodigoDocumento
 from liveValidator.helpers.validarSexoGenero import validarSexoGenero

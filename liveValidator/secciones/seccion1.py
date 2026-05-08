@@ -4,7 +4,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from liveValidator.helpers.camposPorLabel import resolverIDs, LABELS_SECCION_1
 from liveValidator.helpers.guardar import guardarCambios
-from liveValidator.helpers.validarNombreGrupo import validarNombreGrupo  # ← nuevo
+from liveValidator.helpers.validarNombreGrupo import validarNombreGrupo
+from liveValidator.helpers.validarLugarActividad import validarLugarActividad
 
 ID_ESPACIO_FIC        = "Espacio_fic"
 BARRA_NO_APLICA_VALUE = "4116"
@@ -74,6 +75,8 @@ def validarSeccion1(driver, ficha: str, page_num: int, digitador: str,
     espacio_fic_value = leerValue(ID_ESPACIO_FIC)
     id_barra          = ids.get("barra_futbolera", "")
     id_nombre_grupo   = ids.get("nombre_grupo", "")
+    id_tipo_inst      = ids.get("tipo_institucion", "")
+    id_lugar          = ids.get("lugar_actividad", "")
 
     errores = []
 
@@ -83,7 +86,14 @@ def validarSeccion1(driver, ficha: str, page_num: int, digitador: str,
 
     # ── Validación 2: nombre del grupo ────────────────────────────────────────
     for r in validarNombreGrupo(
-            driver, id_nombre_grupo, espacio_fic_value, leerTexto, log_fn):
+        driver, id_nombre_grupo, id_tipo_inst,
+        espacio_fic_value, leerTexto, leerValue, log_fn):
+        errores.append(r)
+
+    # ── Validación 3: lugar de la actividad ───────────────────────────────────
+    for r in validarLugarActividad(
+        driver, id_tipo_inst, id_lugar,
+        espacio_fic_value, leerTexto, leerValue, log_fn):
         errores.append(r)
 
     return errores
