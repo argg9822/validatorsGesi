@@ -255,13 +255,18 @@ def _haySeccion2(timeout: int = 3) -> bool:
 
 def extraerUsuario() -> str:
     XPATH = "/html/body/div/div/main/div/div/div/div[2]/div[2]/div[1]/table/tbody/tr/td[9]"
-    try:
-        el = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, XPATH))
-        )
-        return (el.text or "").strip()
-    except:
-        return ""
+    for _ in range(5):
+        try:
+            el = WebDriverWait(driver, 4).until(
+                EC.presence_of_element_located((By.XPATH, XPATH))
+            )
+            texto = (el.text or "").strip()
+            if texto:
+                return texto
+        except Exception:
+            pass
+        time.sleep(0.8)
+    return ""
 
 def procesarFicha(ficha: str, xpaths_entorno: dict):
     selfLocal.log(f"\n🗂️  Ficha {ficha}")
@@ -587,11 +592,16 @@ def ejecutarValidacion(ui_self):
     if not xpaths_entorno:
         return
 
-    selfLocal.log(f"📋 Total fichas a procesar: {len(FICHAS)}")
+    total_fichas = len(FICHAS)
+    selfLocal.log(f"📋 Total fichas a procesar: {total_fichas}")
+    selfLocal.actualizar_progreso(0, total_fichas)
     validacion_iniciada = True
 
     try:
-        for ficha in FICHAS:
+        for idx, ficha in enumerate(FICHAS, 1):
+            if selfLocal.stop_event.is_set():
+                selfLocal.log("⏹ Validación detenida por el usuario.")
+                break
             try:
                 procesarFicha(ficha, xpaths_entorno)
             except Exception as e:
@@ -608,6 +618,7 @@ def ejecutarValidacion(ui_self):
                     "fecha_nac": "",
                     "fecha_int": "",
                 })
+            selfLocal.actualizar_progreso(idx, total_fichas)
 
     except Exception as e:
         selfLocal.log(f"💥 Error crítico durante la validación: {e}")

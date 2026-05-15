@@ -30,7 +30,10 @@ LABELS_SECCION_2 = {
     "primer_apellido":  "Apellidos",
 }
 
-# agrega LABELS_SECCION_3, LABELS_SECCION_4... cuando las necesites
+LABELS_SECCION_3 = {
+    "num_doc": "Número de Documento",
+    # agregar más campos de tamizaje aquí según los labels visibles en el formulario
+}
 
 
 def obtenerIdPorLabel(driver, texto_label: str, timeout: int = 6) -> str:

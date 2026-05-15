@@ -36,6 +36,9 @@ def validarSeccion2(driver, ficha: str, page_num: int, digitador: str,
     genero_value       = leerValue(ids.get("genero", ""))
     orientacion_value  = leerValue(ids.get("orientacion", ""))
     identidad_value    = leerValue(ids.get("identidad_genero", ""))
+    genero_texto       = leerTexto(ids.get("genero", ""))
+    orientacion_texto  = leerTexto(ids.get("orientacion", ""))
+    identidad_texto    = leerTexto(ids.get("identidad_genero", ""))
     sexo_value         = leerValue(ids.get("sexo", ""))
     espacio_fic_value  = leerValue(ID_ESPACIO_FIC)
     ocupacion_value    = leerValue(ids.get("ocupacion", ""))
@@ -76,12 +79,12 @@ def validarSeccion2(driver, ficha: str, page_num: int, digitador: str,
             msg
         ))
 
-    for campo_id, valor, msg in validarSexoGenero(
-            genero_value, orientacion_value, identidad_value, edad):
-        errores.append((f"Género/Orientación/Identidad [{campo_id}]", valor, msg))
+    for campo, valor, msg in validarSexoGenero(
+            genero_value, orientacion_value, identidad_value, edad,
+            genero_texto, orientacion_texto, identidad_texto):
+        errores.append((campo, valor, msg))
 
     for campo, valor, msg, corregido in validarOcupacion(
-            driver,
             espacio_fic_value, ocupacion_value, ocupacion_texto,
             edad, sexo_value, categoria_disc_val, pob_difer_values):
         errores.append((campo, valor, msg, corregido))

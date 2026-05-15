@@ -570,7 +570,7 @@ class App(ctk.CTk):
         ctk.CTkButton(self.env_sidebar, text="Abrir validador", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=abrir_validador).pack(fill="x", padx=10, pady=5)
         
-        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", fg_color=COLORS["accent"], 
+        ctk.CTkButton(self.env_sidebar, text="Validar en GesiForm", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=self.ejecutarcodeA).pack()(fill="x", padx=10, pady=5)
 
         
