@@ -6,6 +6,10 @@ from liveValidator.helpers.camposPorLabel import resolverIDs, LABELS_SECCION_1
 from liveValidator.helpers.guardar import guardarCambios
 from liveValidator.helpers.validarNombreGrupo import validarNombreGrupo
 from liveValidator.helpers.validarLugarActividad import validarLugarActividad
+from liveValidator.helpers.validarCoherenciaSesiones import (
+    sincronizarFechaSesion1,
+    validarCoherenciaSesiones,
+)
 
 ID_ESPACIO_FIC        = "Espacio_fic"
 BARRA_NO_APLICA_VALUE = "4116"
@@ -66,9 +70,10 @@ def validarBarraFutbolera(driver, id_barra: str, espacio_fic_value: str,
 
 def validarSeccion1(driver, ficha: str, page_num: int, digitador: str,
                     helpers: dict) -> list[tuple]:
-    leerValue = helpers["leerValue"]
-    leerTexto = helpers["leerTexto"]
-    log_fn    = helpers.get("log")
+    leerValue  = helpers["leerValue"]
+    leerTexto  = helpers["leerTexto"]
+    leerOculto = helpers["leerOculto"]
+    log_fn     = helpers.get("log")
 
     ids = resolverIDs(driver, LABELS_SECCION_1, log_fn)
 
@@ -94,6 +99,14 @@ def validarSeccion1(driver, ficha: str, page_num: int, digitador: str,
     for r in validarLugarActividad(
         driver, id_tipo_inst, id_lugar,
         espacio_fic_value, leerTexto, leerValue, log_fn):
+        errores.append(r)
+
+    # ── Validación 4a: sincronizar fecha sesión 1 con FechaIntervencion ─────────
+    for r in sincronizarFechaSesion1(driver, ids, leerTexto, leerOculto, log_fn):
+        errores.append(r)
+
+    # ── Validación 4b: coherencia de sesiones (números y fechas en secuencia) ──
+    for r in validarCoherenciaSesiones(ids, leerTexto, log_fn):
         errores.append(r)
 
     return errores
