@@ -49,3 +49,6 @@ extracted/
 # Si usas algún editor como VS Code o PyCharm
 .vscode/
 .idea/
+
+
+*.xlsx
