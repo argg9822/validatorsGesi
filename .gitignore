@@ -11,6 +11,10 @@ __pycache__/
 venv/
 env/
 ENV/
+build/
+dist/
+build_updater/
+dist_updater/
 
 # --- Archivos del Sistema ---
 .DS_Store
@@ -29,6 +33,7 @@ dist/
 # ...PERO obligamos a Git a incluir los ejecutables finales
 !dist/Odin.exe
 !dist/Updater.exe
+
 
 # --- Otros ejecutables e instaladores ---
 # Ignoramos instaladores pesados generados por Inno Setup
