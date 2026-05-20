@@ -21,7 +21,8 @@ GITHUB_BRANCH = "main"
 
 RAW_BASE    = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{GITHUB_BRANCH}"
 VERSION_URL = f"{RAW_BASE}/__version__.py"
-ZIP_URL     = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{GITHUB_BRANCH}.zip"
+# ZIP_URL     = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/archive/refs/heads/{GITHUB_BRANCH}.zip"
+ZIP_URL = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/releases/latest/download/Odin_Update.zip"
 
 if getattr(sys, "frozen", False):
     APP_DIR = Path(sys.executable).parent.resolve()
@@ -293,12 +294,8 @@ def download_and_apply(remote_version: str, progress_callback=None, status_callb
         with zipfile.ZipFile(zip_path, "r") as zf:
             zf.extractall(extract_dir)
 
-        subdirs = [p for p in extract_dir.iterdir() if p.is_dir()]
-        _log(f"Subdirectorios extraídos: {[str(s) for s in subdirs]}")
-        if not subdirs:
-            raise Exception("ZIP vacío o con formato inesperado")
-        source_root = subdirs[0]
-        _log(f"Raíz del source: {source_root}")
+        source_root = extract_dir
+        _log(f"Raíz extraída: {source_root}")
 
         _status("Preparando script de instalación...")
         _progress(80)
@@ -328,46 +325,53 @@ def download_and_apply(remote_version: str, progress_callback=None, status_callb
 
 
 def _create_install_script(src_path: Path, tmp_dir: Path, new_version: str):
-    script_path = APP_DIR / "finish_update.bat"
-    exe_name = "Odin.exe"
 
-    app_dir_str = str(APP_DIR)
-    bat_log = f'"{app_dir_str}\\update_log.txt"'
+    script_path = APP_DIR / "finish_update.bat"
 
     content = f"""@echo off
 chcp 65001 > nul
-title Actualizando Componentes de Odin...
+title Actualizando Odin...
 
-echo [%date% %time%] === INICIO DE ACTUALIZACIÓN DE LÓGICA === >> {bat_log}
+echo ========================================
+echo ACTUALIZANDO ODIN
+echo ========================================
 
-echo [1/4] Cerrando procesos...
-taskkill /IM {exe_name} /T /F >> {bat_log} 2>&1
-timeout /t 3 /nobreak > nul
+echo Cerrando Odin...
+taskkill /IM Odin.exe /T /F > nul 2>&1
 
-echo [2/4] Sincronizando archivos internos y lógica...
-robocopy "{src_path}" "{app_dir_str}" /E /IS /IT /R:3 /W:2 /XF {exe_name} update_log.txt finish_update.bat /XD .git .vscode .github __pycache__ /LOG+:{bat_log} /TEE
+timeout /t 2 /nobreak > nul
+
+echo Copiando nuevos archivos...
+
+robocopy "{src_path}" "{APP_DIR}" /E /MOVE /IS /IT /R:2 /W:1
 
 if %ERRORLEVEL% GEQ 8 (
-    echo [ERROR] Robocopy falló con código %ERRORLEVEL% >> {bat_log}
-    msg * "Error crítico al copiar archivos. Revisa update_log.txt"
+    echo ERROR AL COPIAR ARCHIVOS
+    pause
     exit
 )
 
-echo [3/4] Actualizando registro de versión a {new_version}...
-del /f /q "{app_dir_str}\\version.txt" >> {bat_log} 2>&1
-(echo {new_version})>"{app_dir_str}\\version.txt"
+echo Actualizando version...
 
-echo [4/4] Limpieza de temporales...
-rd /s /q "{tmp_dir}" >> {bat_log} 2>&1
+echo {new_version} > "{APP_DIR}\\version.txt"
 
-echo [OK] Actualización terminada exitosamente. >> {bat_log}
-timeout /t 2 /nobreak > nul
+echo __version__ = "{new_version}" > "{APP_DIR}\\__version__.py"
 
-start "" /D "{app_dir_str}" "{app_dir_str}\\{exe_name}"
+echo Limpiando temporales...
+
+rd /s /q "{tmp_dir}"
+
+timeout /t 1 /nobreak > nul
+
+echo Reiniciando Odin...
+
+start "" "{APP_DIR}\\Odin.exe"
+
+del "%~f0"
 """
+
     with open(script_path, "w", encoding="utf-8") as f:
         f.write(content)
-
 
 def finalize_update():
     script = APP_DIR / "finish_update.bat"

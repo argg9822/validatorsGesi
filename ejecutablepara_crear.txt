@@ -1,0 +1,3 @@
+python -m nuitka --standalone --follow-imports --windows-console-mode=disable --enable-plugin=tk-inter --windows-icon-from-ico=logo.ico --output-dir=build --include-data-dir=img=img --include-data-files=areas.json=areas.json --include-data-files=bases.json=bases.json --include-data-files=version.txt=version.txt --include-package=crear_hc --include-package=crc_princ --include-package=validadores --include-package=validatorweb --include-package=selenium --include-package=webdriver_manager --include-package=pandas --include-package=numpy --include-package=openpyxl --include-package=PIL --include-package=customtkinter Odin.py
+
+pyinstaller --onefile --windowed --icon=logo.ico --add-data "version.txt;." --add-data "__version__.py;." Updater.py

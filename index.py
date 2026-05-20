@@ -291,6 +291,8 @@ class ValidatorCard(ctk.CTkFrame):
 # ═══════════════════════════════════════════════════════════════════════════════
 class App(ctk.CTk):
 
+ 
+
     def _run_crear_hc(self):
         try:
             from crear_hc.crear import GesiApp
@@ -323,7 +325,8 @@ class App(ctk.CTk):
 
         self.destroy()       
             
-    def __init__(self):
+   # 1. Agregamos datos_licencia=None aquí en los argumentos
+    def __init__(self, datos_licencia=None):
         super().__init__()
         self.title(f"Odin  ·  v{__version__}")
         self.geometry("860x680")
@@ -331,6 +334,10 @@ class App(ctk.CTk):
         self.minsize(720, 560)
         self.configure(fg_color=COLORS["bg_dark"])
         self._center_window()
+        
+        # 2. Reemplazamos la línea fija para que guarde los datos reales o un dict vacío por defecto
+        self.datos_licencia = datos_licencia or {}
+        
 
         self.url_api = "https://www.trakio.pro/areas"
         self.areas = self.cargar_areas_api()
@@ -466,6 +473,9 @@ class App(ctk.CTk):
 
         inner = ctk.CTkFrame(card, fg_color="transparent")
         inner.pack(padx=20, pady=20)
+        
+        tiene_permiso_hc = self.datos_licencia.get("hc") is True
+        estado_boton = "normal" if tiene_permiso_hc else "disabled"
 
         ctk.CTkLabel(inner, text="🚀", font=ctk.CTkFont(size=40)).pack()
         ctk.CTkLabel(inner, text="Módulo Crear HC", 
@@ -475,11 +485,12 @@ class App(ctk.CTk):
                      justify="center").pack(pady=(0, 20))
 
         ctk.CTkButton(inner, text="Ejecutar",
-                      fg_color=COLORS["accent2"],
-                      hover_color=COLORS["accent2_hover"],
-                      font=ctk.CTkFont("Segoe UI", 13, "bold"),
-                      height=40, width=280,
-                      command=self._run_crear_hc).pack()
+                    fg_color=COLORS["accent2"],
+                    hover_color=COLORS["accent2_hover"],
+                    font=ctk.CTkFont("Segoe UI", 13, "bold"),
+                    height=40, width=280,
+                    state=estado_boton,
+                    command=self._run_crear_hc).pack()
 
     # ── Página: Inicio ────────────────────────────────────────────────────────
     def _page_home(self):
@@ -521,19 +532,26 @@ class App(ctk.CTk):
                      font=ctk.CTkFont("Segoe UI", 15, "bold"),
                      text_color=COLORS["text_primary"]).pack(anchor="w", padx=28, pady=(28, 8))
 
+        tiene_permiso_hc = self.datos_licencia.get("hc") is True
+        estado_boton = "normal" if tiene_permiso_hc else "disabled"
         
         ctk.CTkButton(frame, text="▶ Creacion en herramienta de control",
-                      fg_color=COLORS["accent"],
-                      hover_color=COLORS["accent2_hover"],
-                      font=ctk.CTkFont("Segoe UI", 13, "bold"),
-                      height=40, width=280,
-                      command=self._run_crear_hc).pack(anchor="w", padx=28, pady=(28, 8))
+                    fg_color=COLORS["accent"],
+                    hover_color=COLORS["accent2_hover"],
+                    font=ctk.CTkFont("Segoe UI", 13, "bold"),
+                    height=40, width=280,
+                    state=estado_boton,
+                    command=self._run_crear_hc).pack(anchor="w", padx=28, pady=(28, 8))
+        
+        tiene_permiso_gesiform = self.datos_licencia.get("gesiform") is True
+        estado_boton_gesiform = "normal" if tiene_permiso_gesiform else "disabled"
 
         ctk.CTkButton(frame, text="▶  Ir a Validadores",
                       fg_color=COLORS["accent"],
                       hover_color=COLORS["accent_hover"],
                       font=ctk.CTkFont("Segoe UI", 13, "bold"),
                       height=42, width=240,
+                      state=estado_boton_gesiform,
                       command=lambda: self._navigate("validators")).pack(anchor="w", padx=28)
     # ── Página: Validadores ───────────────────────────────────────────────────
 
@@ -570,7 +588,10 @@ class App(ctk.CTk):
         ctk.CTkButton(self.env_sidebar, text="Abrir validador", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=abrir_validador).pack(fill="x", padx=10, pady=5)
         
-        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", fg_color=COLORS["accent"], 
+        tiene_permiso_gesiform = self.datos_licencia.get("gesiform") is True
+        estado_boton_gesiform = "normal" if tiene_permiso_gesiform else "disabled"
+
+        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", state=estado_boton_gesiform, fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=self.ejecutarcodeA).pack()(fill="x", padx=10, pady=5)
 
         
@@ -897,7 +918,6 @@ class App(ctk.CTk):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-def index_open():
-    app = App()
+def index_open(datos_licencia=None):
+    app = App(datos_licencia=datos_licencia)
     app.mainloop()
-
