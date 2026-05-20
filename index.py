@@ -588,10 +588,7 @@ class App(ctk.CTk):
         ctk.CTkButton(self.env_sidebar, text="Abrir validador", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=abrir_validador).pack(fill="x", padx=10, pady=5)
         
-        tiene_permiso_gesiform = self.datos_licencia.get("gesiform") is True
-        estado_boton_gesiform = "normal" if tiene_permiso_gesiform else "disabled"
-
-        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", state=estado_boton_gesiform, fg_color=COLORS["accent"], 
+        ctk.CTkButton(self.env_sidebar, text="validar en Gesi|Form", fg_color=COLORS["accent"], 
         hover_color=COLORS["accent_hover"], command=self.ejecutarcodeA).pack()(fill="x", padx=10, pady=5)
 
         

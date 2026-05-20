@@ -10,6 +10,16 @@ from selenium.webdriver.support import expected_conditions as EC
 LABELS_SECCION_1 = {
     "barra_futbolera": "Barra futbolera",
     "nombre_grupo":     "Nombre del Grupo",
+    "tipo_institucion": "Tipo de Institución o Establecimiento educativo o Tipo de colectivo",
+    "lugar_actividad":  "Lugar de la actividad",
+    "num_sesion_1":   "Número de Sesión (c4)",
+    "num_sesion_2":   "Número de Sesión (c24)",
+    "num_sesion_3":   "Número de Sesión (c44)",
+    "num_sesion_4":   "Número de Sesión (c64)",
+    "fecha_sesion_1": "Fecha de sesión (c3)",
+    "fecha_sesion_2": "Fecha de sesión (c23)",
+    "fecha_sesion_3": "Fecha de sesión (c43)",
+    "fecha_sesion_4": "Fecha de sesión (c63)",
 }
 
 LABELS_SECCION_2 = {
@@ -28,7 +38,10 @@ LABELS_SECCION_2 = {
     "primer_apellido":  "Apellidos",
 }
 
-# agrega LABELS_SECCION_3, LABELS_SECCION_4... cuando las necesites
+LABELS_SECCION_3 = {
+    "num_doc": "Número de Documento",
+    # agregar más campos de tamizaje aquí según los labels visibles en el formulario
+}
 
 
 def obtenerIdPorLabel(driver, texto_label: str, timeout: int = 6) -> str:

@@ -13,6 +13,10 @@ DOCS_A_VALIDAR  = {"CC", "TI", "RC"}
 URL_SUPERSALUD  = "https://superargo.supersalud.gov.co/2/formularioWeb/pqrd.php"
 URL_COMPROBADOR = "https://appb.saludcapital.gov.co/comprobadorDeDerechos/Consulta.aspx"
 
+# Handles de pestañas persistentes (se reutilizan entre consultas)
+_supersalud_handle  = None
+_comprobador_handle = None
+
 COMP_USUARIO    = "AMGARCIAZ"
 COMP_PASSWORD   = "Subrednort3"
 
@@ -38,10 +42,30 @@ XPATHS_COMPROBADOR = [
         "nombre":   '/html/body/div/form/div[5]/div/div[2]/div/div/table/tbody/tr[2]/td[5]',
         "fecha":    '/html/body/div/form/div[5]/div/div[2]/div/div/table/tbody/tr[2]/td[7]',
     },
+    {
+        "apellido": '/html/body/div/form/div[5]/div/div[3]/div/div/table/tbody/tr[2]/td[4]',
+        "nombre": '/html/body/div/form/div[5]/div/div[3]/div/div/table/tbody/tr[2]/td[6]',
+        "fecha": '/html/body/div/form/div[5]/div/div[3]/div/div/table/tbody/tr[2]/td[8]',
+    },
+    {
+        "apellido": '/html/body/div/form/div[5]/div/div[5]/div/div/table/tbody/tr[2]/td[5]',
+        "nombre": '/html/body/div/form/div[5]/div/div[3]/div/div/table/tbody/tr[2]/td[6]',
+        "fecha": '/html/body/div/form/div[5]/div/div[5]/div/div/table/tbody/tr[2]/td[9]'
+    }
 ]
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _asegurarPestana(driver, handle):
+    """Cambia a la pestaña si sigue abierta; si no, abre una nueva. Retorna el handle activo."""
+    if handle and handle in driver.window_handles:
+        driver.switch_to.window(handle)
+        return handle, False
+    driver.execute_script("window.open('');")
+    h = driver.window_handles[-1]
+    driver.switch_to.window(h)
+    return h, True
 
 def _wait(driver, ident: str, by=By.ID, timeout: int = 8):
     return WebDriverWait(driver, timeout).until(
@@ -116,6 +140,8 @@ def _compararCampo(campo: str, valor_gesi: str, valor_externo: str) -> tuple[boo
 def _consultarSupersalud(driver, tipo_doc_codigo: str, num_doc: str,
                           primer_nombre_gesi: str, primer_apellido_gesi: str,
                           fecha_nac_gesi: str) -> dict:
+    global _supersalud_handle
+
     resultado = {
         "fuente": "Supersalud", "consultado": False,
         "coincide": None, "detalle": "", "encontrado": False,
@@ -126,8 +152,8 @@ def _consultarSupersalud(driver, tipo_doc_codigo: str, num_doc: str,
         resultado["detalle"] = f"Tipo '{tipo_doc_codigo}' sin mapeo en Supersalud"
         return resultado
 
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[-1])
+    main_handle = driver.current_window_handle
+    _supersalud_handle, _ = _asegurarPestana(driver, _supersalud_handle)
 
     try:
         driver.get(URL_SUPERSALUD)
@@ -182,8 +208,7 @@ def _consultarSupersalud(driver, tipo_doc_codigo: str, num_doc: str,
         resultado["detalle"] = f"Error en Supersalud: {e}"
 
     finally:
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])
+        driver.switch_to.window(main_handle)
 
     return resultado
 
@@ -212,24 +237,36 @@ def _loginComprobador(driver):
 def _consultarComprobador(driver, num_doc: str,
                            primer_nombre_gesi: str, primer_apellido_gesi: str,
                            fecha_nac_gesi: str) -> dict:
-    global _comprobador_logueado
+    global _comprobador_handle, _comprobador_logueado
 
     resultado = {
         "fuente": "Comprobador", "consultado": False,
         "coincide": None, "detalle": "", "encontrado": False,
     }
 
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[-1])
+    main_handle = driver.current_window_handle
+    _comprobador_handle, es_nueva = _asegurarPestana(driver, _comprobador_handle)
+
+    # Si la pestaña se cerró y se abrió una nueva, el login ya no es válido
+    if es_nueva:
+        _comprobador_logueado = False
 
     try:
-        driver.get(URL_COMPROBADOR)
-        time.sleep(2)
-
         if not _comprobador_logueado:
+            driver.get(URL_COMPROBADOR)
+            time.sleep(2)
             _loginComprobador(driver)
 
-        campo_doc = _wait(driver, "MainContent_txtNoId")
+        try:
+            campo_doc = WebDriverWait(driver, 4).until(
+                EC.element_to_be_clickable((By.ID, "MainContent_txtNoId"))
+            )
+        except:
+            # Hay una consulta previa en pantalla — pedir nueva consulta
+            _waitClick(driver, "MainContent_cmdNuevaConsulta")
+            time.sleep(1)
+            campo_doc = _wait(driver, "MainContent_txtNoId")
+
         campo_doc.clear()
         campo_doc.send_keys(num_doc)
         _waitClick(driver, "MainContent_cmdConsultar")
@@ -276,8 +313,7 @@ def _consultarComprobador(driver, num_doc: str,
         resultado["detalle"] = f"Error en Comprobador: {e}"
 
     finally:
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])
+        driver.switch_to.window(main_handle)
 
     return resultado
 

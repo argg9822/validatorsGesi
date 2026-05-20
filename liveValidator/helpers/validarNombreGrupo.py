@@ -3,6 +3,12 @@ import random
 ESPACIO_EDUCATIVO   = "03"
 ESPACIO_COMUNITARIO = "04"
 
+TIPOS_CON_GRADO = {
+    "1633",   # 1 - Jardines
+    "1634",   # 2 - Colegios
+    "1635",   # 3 - Universidades
+}
+
 NOMBRES_EDUCATIVOS = [
     "CUARTO", "QUINTO", "SEXTO", "SEPTIMO",
     "OCTAVO", "NOVENO", "DECIMO",
@@ -13,16 +19,23 @@ NOMBRES_EDUCATIVOS = [
 def validarNombreGrupo(
     driver,
     id_nombre_grupo: str,
+    id_tipo_inst: str,
     espacio_fic_value: str,
     leerTexto,
+    leerValue,
     log_fn=None,
 ) -> list[tuple]:
     """
-    Valida y corrige el campo Nombre del Grupo según el espacio:
+    Espacio 03 (Educativo):
+      - Tipo Jardines/Colegios/Universidades → inserta grado aleatorio si está vacío.
+      - Cualquier otro tipo                  → inserta 'NO APLICA' si está vacío.
+      - Si ya tiene valor                    → no toca nada.
 
-      Espacio 03 (Educativo)  → si está vacío, inserta un grado aleatorio.
-      Espacio 04 (Comunitario)→ si está vacío, inserta "NO APLICA".
-      Otros espacios          → no aplica ninguna regla.
+    Espacio 04 (Comunitario):
+      - Vacío  → inserta 'NO APLICA'.
+      - Lleno  → no toca nada.
+
+    Otros espacios → no aplica ninguna regla.
 
     Retorna lista de tuplas (campo, valor_original, mensaje, corregido).
     """
@@ -32,25 +45,41 @@ def validarNombreGrupo(
     if not id_nombre_grupo:
         return [("Nombre del Grupo", "", "No se pudo detectar el ID del campo", False)]
 
-    errores = []
-
     valor_actual = leerTexto(id_nombre_grupo).strip()
 
-    if valor_actual:
-        return []   # campo ya tiene valor, no hay nada que hacer
+    # ── Espacio comunitario ───────────────────────────────────────────────────
+    if espacio_fic_value == ESPACIO_COMUNITARIO:
+        if valor_actual:
+            return []   # lleno → no tocar
+        corregido = _insertarValor(driver, id_nombre_grupo, "NO APLICA", log_fn)
+        return [(
+            "Nombre del Grupo", "",
+            "Espacio comunitario (04): campo vacío, se asignó 'NO APLICA'",
+            corregido,
+        )]
 
-    # ── Campo vacío → corregir ────────────────────────────────────────────────
-    if espacio_fic_value == ESPACIO_EDUCATIVO:
+    # ── Espacio educativo ─────────────────────────────────────────────────────
+    if valor_actual:
+        return []   # lleno → no tocar
+
+    tipo_inst_value = leerValue(id_tipo_inst).strip() if id_tipo_inst else ""
+    tipo_inst_texto = leerTexto(id_tipo_inst).strip() if id_tipo_inst else ""
+
+    if tipo_inst_value in TIPOS_CON_GRADO:
         valor_nuevo = random.choice(NOMBRES_EDUCATIVOS)
-        motivo      = f"Espacio educativo (03): campo vacío, se asignó '{valor_nuevo}'"
+        motivo = (
+            f"Espacio educativo (03) con '{tipo_inst_texto}': "
+            f"campo vacío, se asignó '{valor_nuevo}'"
+        )
     else:
         valor_nuevo = "NO APLICA"
-        motivo      = "Espacio comunitario (04): campo vacío, se asignó 'NO APLICA'"
+        motivo = (
+            f"Espacio educativo (03) con '{tipo_inst_texto}': "
+            f"campo vacío, se asignó 'NO APLICA'"
+        )
 
     corregido = _insertarValor(driver, id_nombre_grupo, valor_nuevo, log_fn)
-    errores.append(("Nombre del Grupo", "", motivo, corregido))
-
-    return errores
+    return [("Nombre del Grupo", "", motivo, corregido)]
 
 
 def _insertarValor(driver, element_id: str, valor: str, log_fn=None) -> bool:
@@ -65,12 +94,9 @@ def _insertarValor(driver, element_id: str, valor: str, log_fn=None) -> bool:
         )
         el.clear()
         el.send_keys(valor)
-
         if log_fn:
             log_fn(f"      🔧 Nombre del Grupo → '{valor}'")
-
         return guardarCambios(driver, log_fn)
-
     except Exception as e:
         if log_fn:
             log_fn(f"      ❌ Error insertando Nombre del Grupo: {e}")

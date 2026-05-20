@@ -29,47 +29,45 @@ def validarSexoGenero(
     genero_value: str,
     orientacion_value: str,
     identidad_value: str,
-    edad: int
+    edad: int,
+    genero_texto: str = "",
+    orientacion_texto: str = "",
+    identidad_texto: str = "",
 ) -> list[tuple[str, str, str]]:
     """
     Valida que Género, Orientación sexual e Identidad de género sean
     coherentes con la edad del paciente.
 
-    Parámetros:
-        genero_value      : value del <option> seleccionado en Género
-        orientacion_value : value del <option> seleccionado en Orientación sexual
-        identidad_value   : value del <option> seleccionado en Identidad de género
-        edad              : edad calculada en años completos
-
     Retorna:
-        Lista de tuplas (id_campo, valor_registrado, mensaje_error).
+        Lista de tuplas (nombre_campo, texto_visible, mensaje_error).
         Lista vacía si todo está correcto.
     """
-    valores = {
-        "valorControl19390": genero_value,
-        "valorControl19391": orientacion_value,
-        "valorControl19392": identidad_value,
+    entradas = {
+        "valorControl19390": (genero_value,      genero_texto),
+        "valorControl19391": (orientacion_value,  orientacion_texto),
+        "valorControl19392": (identidad_value,    identidad_texto),
     }
 
     errores = []
     menor   = edad < EDAD_MINIMA
 
-    for campo_id, value in valores.items():
-        es_no_aplica   = (value == NO_APLICA_VALUES[campo_id])
-        nombre         = NOMBRE_CAMPO[campo_id]
+    for campo_id, (value, texto) in entradas.items():
+        es_no_aplica = (value == NO_APLICA_VALUES[campo_id])
+        nombre       = NOMBRE_CAMPO[campo_id]
+        display      = texto if texto else value
 
         if menor and not es_no_aplica:
             errores.append((
-                campo_id,
-                value,
+                nombre,
+                display,
                 f"'{nombre}' debe ser 'No aplica' para menores de {EDAD_MINIMA} años "
                 f"(Usuario tiene {edad} años)"
             ))
 
         elif not menor and es_no_aplica:
             errores.append((
-                campo_id,
-                value,
+                nombre,
+                display,
                 f"'{nombre}' no puede ser 'No aplica' para pacientes "
                 f"de {EDAD_MINIMA} años o más (Usuario tiene {edad} años)"
             ))
