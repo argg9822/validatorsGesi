@@ -10,6 +10,7 @@ from liveValidator.helpers.validarCoherenciaSesiones import (
     sincronizarFechaSesion1,
     validarCoherenciaSesiones,
 )
+from liveValidator.helpers.validarComponente import validarComponente
 
 ID_ESPACIO_FIC        = "Espacio_fic"
 BARRA_NO_APLICA_VALUE = "4116"
@@ -107,6 +108,10 @@ def validarSeccion1(driver, ficha: str, page_num: int, digitador: str,
 
     # ── Validación 4b: coherencia de sesiones (números y fechas en secuencia) ──
     for r in validarCoherenciaSesiones(ids, leerTexto, log_fn):
+        errores.append(r)
+
+    # ── Validación 5: componente requiere Hombres/Mujeres/Intersexuales ────────
+    for r in validarComponente(driver, ids, leerTexto, log_fn):
         errores.append(r)
 
     return errores

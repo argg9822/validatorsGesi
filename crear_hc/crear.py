@@ -15,7 +15,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
-# ── Paleta azul cobalto — coherente con Odin/index ────────────────────────────
+# ── Paleta azul cobalto ────────────────────────────────────────────────────────
 C = {
     "bg":           ("#F4F7FB", "#0B1220"),
     "sidebar":      ("#FFFFFF", "#080F1C"),
@@ -38,186 +38,132 @@ C = {
     "log_fg":       ("#1B3A6B", "#4A9EE8"),
 }
 
-# Helper: extrae el valor del modo actual (índice 1 = dark, 0 = light)
-def _c(key):
-    import customtkinter as _ctk
-    idx = 1 if _ctk.get_appearance_mode() == "Dark" else 0
-    v = C[key]
-    return v[idx] if isinstance(v, tuple) else v
-
-
 def _divider(parent, px=0, py=4):
     ctk.CTkFrame(parent, height=1, fg_color=C["divider"],
                  corner_radius=0).pack(fill="x", padx=px, pady=py)
-
 
 def _section_lbl(parent, text):
     ctk.CTkLabel(parent, text=text.upper(),
                  font=ctk.CTkFont("Consolas", 9),
                  text_color=C["text3"]).pack(anchor="w", padx=0, pady=(14, 4))
+
+
 class GesiApp(ctk.CTkFrame):
     def __init__(self, master=None):
         super().__init__(master, fg_color=C["bg"])
 
-        # ── Estado interno ──
-        self.nombres = None
-        self.driver = None
-        self.captcha_listo = threading.Event()
+        # ── Estado interno (sin cambios) ──
+        self.nombres         = None
+        self.driver          = None
+        self.captcha_listo   = threading.Event()
         self.confirmacion_si = threading.Event()
-        self.start_time   = None
+        self.start_time      = None
 
         self._build()
 
-    def _center(self):
-        self.update_idletasks()
-        sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
-        w, h = self.winfo_width(), self.winfo_height()
-        self.geometry(f"{w}x{h}+{(sw-w)//2}+{(sh-h)//2}")
-
-    # ── Layout ────────────────────────────────────────────────────────────────
+    # ── Layout principal ──────────────────────────────────────────────────────
     def _build(self):
-        # Sidebar
-        self.sidebar = ctk.CTkFrame(self, width=210,
-                                    fg_color=C["sidebar"], corner_radius=0)
-        self.sidebar.pack(side="left", fill="y")
-        self.sidebar.pack_propagate(False)
+        # 1. Topbar con logo + credenciales + controles
+        self._build_topbar()
 
         # Divisor
-        ctk.CTkFrame(self, width=1, fg_color=C["border"],
-                     corner_radius=0).pack(side="left", fill="y")
+        ctk.CTkFrame(self, height=1, fg_color=C["border"],
+                     corner_radius=0).pack(fill="x")
 
-        # Columna derecha
-        right = ctk.CTkFrame(self, fg_color=C["bg"], corner_radius=0)
-        right.pack(side="left", fill="both", expand=True)
+        # 2. Área de contenido — ocupa todo el ancho restante
+        self._build_main()
 
-        self._build_sidebar()
-        self._build_topbar(right)
-        self._build_main(right)
+    # ── Topbar horizontal ─────────────────────────────────────────────────────
+    def _build_topbar(self):
+        # Altura fija: pack_propagate(False) impide que los hijos la expandan
+        tb = ctk.CTkFrame(self, fg_color=C["sidebar"],
+                          height=52, corner_radius=0)
+        tb.pack(fill="x")
+        tb.pack_propagate(False)
 
-    # ── Sidebar ───────────────────────────────────────────────────────────────
-    def _build_sidebar(self):
-        sb = self.sidebar
-
-        # Logo compacto
-        logo = ctk.CTkFrame(sb, fg_color="transparent")
-        logo.pack(fill="x", padx=16, pady=(22, 16))
-
-        badge = ctk.CTkFrame(logo, fg_color=C["accent_soft"],
-                              width=34, height=34, corner_radius=7)
-        badge.pack(side="left")
-        badge.pack_propagate(False)
-        ctk.CTkLabel(badge, text="G",
-                     font=ctk.CTkFont("Segoe UI", 16, "bold"),
-                     text_color=C["accent"]).place(relx=0.5, rely=0.5, anchor="center")
-
-        txt = ctk.CTkFrame(logo, fg_color="transparent")
-        txt.pack(side="left", padx=(10, 0))
-        ctk.CTkLabel(txt, text="GESI",
-                     font=ctk.CTkFont("Segoe UI", 14, "bold"),
-                     text_color=C["text1"]).pack(anchor="w")
-        ctk.CTkLabel(txt, text="Crear HC",
-                     font=ctk.CTkFont("Consolas", 9),
+        # ── Credenciales ──────────────────────────────────────────────────────
+        # Usuario
+        u_col = ctk.CTkFrame(tb, fg_color="transparent")
+        u_col.pack(side="left", padx=(16, 8))
+        ctk.CTkLabel(u_col, text="Usuario",
+                     font=ctk.CTkFont("Segoe UI", 9),
                      text_color=C["text3"]).pack(anchor="w")
-
-        _divider(sb, px=12)
-
-        # Credenciales
-        form = ctk.CTkFrame(sb, fg_color="transparent")
-        form.pack(fill="x", padx=14, pady=(4, 0))
-
-        _section_lbl(form, "Credenciales")
-
-        ctk.CTkLabel(form, text="Usuario",
-                     font=ctk.CTkFont("Segoe UI", 10),
-                     text_color=C["text2"]).pack(anchor="w")
         self.user_var = ctk.StringVar()
-        ctk.CTkEntry(form, textvariable=self.user_var,
+        ctk.CTkEntry(u_col, textvariable=self.user_var,
                      placeholder_text="usuario@dominio.com",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
-                     font=ctk.CTkFont("Segoe UI", 11), height=32
-                     ).pack(fill="x", pady=(2, 8))
+                     font=ctk.CTkFont("Segoe UI", 11),
+                     width=180, height=28).pack()
 
-        ctk.CTkLabel(form, text="Contraseña",
-                     font=ctk.CTkFont("Segoe UI", 10),
-                     text_color=C["text2"]).pack(anchor="w")
+        # Contraseña
+        p_col = ctk.CTkFrame(tb, fg_color="transparent")
+        p_col.pack(side="left", padx=(0, 0))
+        ctk.CTkLabel(p_col, text="Contraseña",
+                     font=ctk.CTkFont("Segoe UI", 9),
+                     text_color=C["text3"]).pack(anchor="w")
         self.pass_var = ctk.StringVar()
-        ctk.CTkEntry(form, textvariable=self.pass_var,
+        ctk.CTkEntry(p_col, textvariable=self.pass_var,
                      placeholder_text="••••••••",
                      show="•",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
-                     font=ctk.CTkFont("Segoe UI", 11), height=32
-                     ).pack(fill="x", pady=(2, 0))
+                     font=ctk.CTkFont("Segoe UI", 11),
+                     width=150, height=28).pack()
 
-        _divider(form, py=12)
+        # Divisor vertical
+        ctk.CTkFrame(tb, width=1, fg_color=C["border"],
+                     corner_radius=0).pack(side="left", fill="y",
+                                           padx=14, pady=10)
 
-        # Acciones de control
-        _section_lbl(form, "Control")
+        # ── Botones de control ────────────────────────────────────────────────
+        ctrl = ctk.CTkFrame(tb, fg_color="transparent")
+        ctrl.pack(side="left")
+        ctk.CTkLabel(ctrl, text="Control",
+                     font=ctk.CTkFont("Segoe UI", 9),
+                     text_color=C["text3"]).pack(anchor="w")
+
+        btns = ctk.CTkFrame(ctrl, fg_color="transparent")
+        btns.pack()
 
         self.btn_captcha = ctk.CTkButton(
-            form, text="✔  Confirmar Captcha",
+            btns, text="✔  Confirmar Captcha",
             fg_color=C["btn2"], hover_color=C["btn2_hover"],
             text_color=C["text2"],
             font=ctk.CTkFont("Segoe UI", 11, "bold"),
-            height=34, state="disabled",
+            width=155, height=28, state="disabled",
             command=self.captcha_listo.set)
-        self.btn_captcha.pack(fill="x", pady=(0, 6))
+        self.btn_captcha.pack(side="left", padx=(0, 6))
 
         self.btn_proceso_si = ctk.CTkButton(
-            form, text="▶  Iniciar digitación",
+            btns, text="▶  Iniciar",
             fg_color=C["btn"], hover_color=C["btn_hover"],
             text_color="white",
             font=ctk.CTkFont("Segoe UI", 11, "bold"),
-            height=34, state="disabled",
+            width=100, height=28, state="disabled",
             command=self.confirmacion_si.set)
-        self.btn_proceso_si.pack(fill="x")
+        self.btn_proceso_si.pack(side="left")
 
-        # Spacer
-        ctk.CTkFrame(sb, fg_color="transparent").pack(fill="y", expand=True)
-
-    # ── Topbar ────────────────────────────────────────────────────────────────
-    def _build_topbar(self, parent):
-        tb = ctk.CTkFrame(parent, fg_color=C["sidebar"],
-                          height=48, corner_radius=0)
-        tb.pack(fill="x")
-        tb.pack_propagate(False)
-
-        ctk.CTkFrame(parent, height=1, fg_color=C["border"],
-                     corner_radius=0).pack(fill="x")
-
-        ctk.CTkLabel(tb, text="Automatización GESI",
-                     font=ctk.CTkFont("Segoe UI", 14, "bold"),
-                     text_color=C["text1"]).pack(side="left", padx=20)
-        ctk.CTkLabel(tb, text="  ·  Motor de digitación HC",
-                     font=ctk.CTkFont("Segoe UI", 10),
-                     text_color=C["text3"]).pack(side="left")
-
-        # Badge estado
+        # ── Badge de estado ───────────────────────────────────────────────────
         self._status_badge = ctk.CTkFrame(tb, fg_color=C["accent_soft"],
                                            corner_radius=6)
         self._status_badge.pack(side="right", padx=16)
-        self._status_lbl = ctk.CTkLabel(self._status_badge, text="En espera",
-                                         font=ctk.CTkFont("Consolas", 9),
-                                         text_color=C["accent"])
+        self._status_lbl = ctk.CTkLabel(
+            self._status_badge, text="En espera",
+            font=ctk.CTkFont("Consolas", 9),
+            text_color=C["accent"])
         self._status_lbl.pack(padx=10, pady=4)
 
     # ── Panel principal ───────────────────────────────────────────────────────
-    def _build_main(self, parent):
-        scroll = ctk.CTkScrollableFrame(parent, fg_color="transparent",
+    def _build_main(self):
+        scroll = ctk.CTkScrollableFrame(self, fg_color="transparent",
                                          scrollbar_button_color=C["border"])
         scroll.pack(fill="both", expand=True, padx=20, pady=16)
 
-        # ── Fila 1: Selector de archivo ───────────────────────────────────────
         self._file_card(scroll)
-
-        # ── Fila 2: Progreso ──────────────────────────────────────────────────
         self._progress_card(scroll)
-
-        # ── Fila 3: Log ───────────────────────────────────────────────────────
         self._log_card(scroll)
 
-        # ── Fila 4: Botón iniciar ─────────────────────────────────────────────
         self.btn_action = ctk.CTkButton(
             scroll, text="▶  Inicializar motor de automatización",
             fg_color=C["btn"], hover_color=C["btn_hover"],
@@ -238,7 +184,8 @@ class GesiApp(ctk.CTkFrame):
                      corner_radius=0).pack(side="left", fill="y")
 
         self.btn_file = ctk.CTkButton(
-            card, text="📂  Seleccionar base de datos Excel (.xlsx)",
+            card,
+            text="📂  Seleccionar base de datos Excel (.xlsx)",
             fg_color="transparent", hover_color=C["card2"],
             text_color=C["text2"],
             font=ctk.CTkFont("Segoe UI", 11),
@@ -257,30 +204,32 @@ class GesiApp(ctk.CTkFrame):
                      corner_radius=0).pack(fill="x")
 
         inner = ctk.CTkFrame(card, fg_color="transparent")
-        inner.pack(fill="x", padx=14, pady=12)
+        inner.pack(fill="x", padx=14, pady=10)
 
-        # Fila de métricas
         row = ctk.CTkFrame(inner, fg_color="transparent")
-        row.pack(fill="x", pady=(0, 8))
+        row.pack(fill="x", pady=(0, 6))
 
-        self.lbl_progress = ctk.CTkLabel(row, text="Progreso: 0%",
-                                          font=ctk.CTkFont("Consolas", 10, "bold"),
-                                          text_color=C["text1"])
+        self.lbl_progress = ctk.CTkLabel(
+            row, text="Progreso: 0%",
+            font=ctk.CTkFont("Consolas", 10, "bold"),
+            text_color=C["text1"])
         self.lbl_progress.pack(side="left")
 
-        self.lbl_eta = ctk.CTkLabel(row, text="ETA: --:--:--",
-                                     font=ctk.CTkFont("Consolas", 10),
-                                     text_color=C["text2"])
+        self.lbl_eta = ctk.CTkLabel(
+            row, text="ETA: --:--:--",
+            font=ctk.CTkFont("Consolas", 10),
+            text_color=C["text2"])
         self.lbl_eta.pack(side="right")
 
-        self.progress_bar = ctk.CTkProgressBar(inner,
-                                                fg_color=C["card2"],
-                                                progress_color=C["accent"],
-                                                height=6, corner_radius=3)
+        self.progress_bar = ctk.CTkProgressBar(
+            inner,
+            fg_color=C["card2"],
+            progress_color=C["accent"],
+            height=6, corner_radius=3)
         self.progress_bar.set(0)
         self.progress_bar.pack(fill="x")
 
-    # ── Tarjeta: log ─────────────────────────────────────────────────────────
+    # ── Tarjeta: log ──────────────────────────────────────────────────────────
     def _log_card(self, parent):
         card = ctk.CTkFrame(parent, fg_color=C["card"],
                             border_color=C["border"], border_width=1,
@@ -296,14 +245,15 @@ class GesiApp(ctk.CTkFrame):
                      font=ctk.CTkFont("Consolas", 9),
                      text_color=C["text3"]).pack(side="left")
 
-        self.txt_log = ctk.CTkTextbox(card,
-                                       fg_color=C["log_bg"],
-                                       border_width=0,
-                                       font=ctk.CTkFont("Consolas", 10),
-                                       text_color=C["log_fg"],
-                                       corner_radius=0,
-                                       height=180)
-        self.txt_log.pack(fill="x", padx=0, pady=(0, 0))
+        self.txt_log = ctk.CTkTextbox(
+            card,
+            fg_color=C["log_bg"],
+            border_width=0,
+            font=ctk.CTkFont("Consolas", 10),
+            text_color=C["log_fg"],
+            corner_radius=0,
+            height=200)
+        self.txt_log.pack(fill="x")
         self.txt_log.configure(state="disabled")
 
     # ── Helpers UI ────────────────────────────────────────────────────────────
@@ -324,10 +274,12 @@ class GesiApp(ctk.CTkFrame):
             return
         pct = current / total
         self.progress_bar.set(pct)
-        self.lbl_progress.configure(text=f"Progreso: {int(pct*100)}%  ({current}/{total})")
+        self.lbl_progress.configure(
+            text=f"Progreso: {int(pct*100)}%  ({current}/{total})")
         elapsed = time.time() - self.start_time
         eta_sec = (elapsed / current) * (total - current)
-        self.lbl_eta.configure(text=f"ETA: {str(timedelta(seconds=int(eta_sec)))}")
+        self.lbl_eta.configure(
+            text=f"ETA: {str(timedelta(seconds=int(eta_sec)))}")
 
     # ── Lógica de negocio (sin cambios) ───────────────────────────────────────
     def seleccionar_archivo(self):
@@ -385,8 +337,10 @@ class GesiApp(ctk.CTkFrame):
             self.log("Inyectando credenciales...")
             self.wait_for_element(By.ID, 'usuario').send_keys(self.user_var.get())
             self.wait_for_element(By.ID, 'password').send_keys(self.pass_var.get())
-            codigo = self.wait_for_element(By.ID, 'tokenAcceso').get_attribute('value')
-            self.wait_for_element(By.ID, 'valorCodigoSeguridad').send_keys(codigo)
+            codigo = self.wait_for_element(
+                By.ID, 'tokenAcceso').get_attribute('value')
+            self.wait_for_element(
+                By.ID, 'valorCodigoSeguridad').send_keys(codigo)
 
             self.log("⚠  Resuelve el Captcha y pulsa 'Confirmar Captcha'")
             self._set_status("Esperando Captcha", "accent")
@@ -469,8 +423,8 @@ class GesiApp(ctk.CTkFrame):
             self.btn_action.configure(state="normal")
 
     def DatosCrearSi(self, Datos):
-        Select(self.wait_for_element(By.ID, 'Digitado')
-               ).select_by_visible_text('Si')
+        Select(self.wait_for_element(
+            By.ID, 'Digitado')).select_by_visible_text('Si')
         for field in ['Fecha_entrega_tecnologo',
                       'Fecha_actualizacion',
                       'Fecha_entrega_digitacion']:
@@ -491,8 +445,8 @@ class GesiApp(ctk.CTkFrame):
             el = self.wait_for_element(By.ID, field)
             el.clear(); el.send_keys(Datos[1])
 
-        Select(self.wait_for_element(By.ID, 'Id_perfil')
-               ).select_by_visible_text(str(Datos[5]))
+        Select(self.wait_for_element(
+            By.ID, 'Id_perfil')).select_by_visible_text(str(Datos[5]))
 
         for attempt in range(10):
             try:
@@ -505,8 +459,8 @@ class GesiApp(ctk.CTkFrame):
             except:
                 time.sleep(1)
 
-        Select(self.wait_for_element(By.ID, 'Id_Base')
-               ).select_by_visible_text(str(Datos[4]))
+        Select(self.wait_for_element(
+            By.ID, 'Id_Base')).select_by_visible_text(str(Datos[4]))
 
 
 if __name__ == "__main__":

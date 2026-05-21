@@ -17,6 +17,9 @@ LABELS_NUM_SESION = [
     "Número de Sesión (c44)",
     "Número de Sesión (c64)",
 ]
+
+# Residuo esperado de n % 4 para cada campo (índice 0 = campo 1)
+RESIDUOS_NUM_SESION = (1, 2, 3, 0)
 LABELS_FECHA_SESION = [
     "Fecha de sesión (c3)",
     "Fecha de sesión (c23)",
@@ -164,6 +167,20 @@ def validarCoherenciaSesiones(ids: dict, leerTexto, log_fn=None) -> list[tuple]:
     # ── Números de sesión ─────────────────────────────────────────────────────
     nums, errs_parse = _leerNums(ids, leerTexto, log_fn)
     errores.extend(errs_parse)
+
+    for i, n in enumerate(nums):
+        if n is None:
+            continue
+        esperado = RESIDUOS_NUM_SESION[i]
+        if n % 4 != esperado:
+            validos = ", ".join(str(esperado + 4 * k) for k in range(5))
+            msg = (
+                f"Número de sesión inválido para este campo: {n}. "
+                f"Solo se permiten {validos}…"
+            )
+            if log_fn:
+                log_fn(f"      ⚠️  {LABELS_NUM_SESION[i]}: {n} no es válido para este campo")
+            errores.append((LABELS_NUM_SESION[i], str(n), msg, False))
 
     for i in range(len(nums) - 1):
         a, b = nums[i], nums[i + 1]

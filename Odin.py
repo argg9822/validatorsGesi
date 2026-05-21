@@ -53,7 +53,7 @@ COLORS = {
     "border":       ("#DDDDDD", "#0C2D4A"),
 }
 
-ctk.set_appearance_mode("light")
+ctk.set_appearance_mode("system")
 
 def resource_path(rel):
     try:    base = sys._MEIPASS

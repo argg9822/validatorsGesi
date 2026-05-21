@@ -20,6 +20,23 @@ LABELS_SECCION_1 = {
     "fecha_sesion_2": "Fecha de sesión (c23)",
     "fecha_sesion_3": "Fecha de sesión (c43)",
     "fecha_sesion_4": "Fecha de sesión (c63)",
+    # Componentes y sus campos de género asociados
+    "componente_1":    "Componente (c6)",
+    "componente_2":    "Componente (c26)",
+    "componente_3":    "Componente (c46)",
+    "componente_4":    "Componente (c66)",
+    "hombres_1":       "Hombres (c9)",
+    "mujeres_1":       "Mujeres (c10)",
+    "intersexuales_1": "Intersexuales (c11)",
+    "hombres_2":       "Hombres (c29)",
+    "mujeres_2":       "Mujeres (c30)",
+    "intersexuales_2": "Intersexuales (c31)",
+    "hombres_3":       "Hombres (c49)",
+    "mujeres_3":       "Mujeres (c50)",
+    "intersexuales_3": "Intersexuales (c51)",
+    "hombres_4":       "Hombres (c69)",
+    "mujeres_4":       "Mujeres (c70)",
+    "intersexuales_4": "Intersexuales (c71)",
 }
 
 LABELS_SECCION_2 = {

@@ -291,9 +291,19 @@ class App(ctk.CTk):
     def ejecutarcodeA(self):
         try:
             from liveValidator.index import OPENUI
-            self.nueva_ventana = OPENUI(self)
+            for k, btn in self._nav_btns.items():
+                if k == "validators":
+                    btn.configure(fg_color=COLORS["accent_soft"], text_color=COLORS["accent"])
+                else:
+                    btn.configure(fg_color="transparent", text_color=COLORS["text2"])
+            self._set_topbar("Validadores", "GesiForm — Validación de sesiones")
+            self.content.pack_forget()
+            if self._module_frame and self._module_frame.winfo_exists():
+                self._module_frame.destroy()
+            self._module_frame = OPENUI(self.right_panel)
+            self._module_frame.pack(fill="both", expand=True)
         except Exception as e:
-            messagebox.showerror("Error", f"Fallo al abrir ventana: {e}")
+            messagebox.showerror("Error", f"Fallo al cargar módulo: {e}")
 
     def on_close(self):
         global server_instance
@@ -308,7 +318,7 @@ class App(ctk.CTk):
     def __init__(self, datos_licencia=None):
         super().__init__()
         self.title(f"Odin  ·  v{__version__}")
-        self.geometry("1080x920")
+        self.geometry("1180x920")
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.minsize(780, 520)
         self.configure(fg_color=COLORS["bg"])
@@ -674,7 +684,7 @@ class App(ctk.CTk):
             "Abrir", abrir_validador, icon="🌐")
 
         self._action_row(f,
-            "Gesi|Form",
+            "GesiForm SDS",
             "Validación de sesiones",
             "Abrir", self.ejecutarcodeA,
             state="normal" if tiene_gf else "disabled",
