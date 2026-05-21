@@ -13,11 +13,15 @@ from PIL import Image, ImageTk, ImageDraw
 import requests
 import customtkinter as ctk
 import index
+import __version__
 
 DATOS_LICENCIA = {}
 
 APP_NAME     = "Odin"
-VERSION      = "1.0.1"
+# version optenida del archivo __version__.py, pero formateada para mostrar solo la parte relevante en la interfaz, sin el patch level
+
+VERSION      = __version__.__version__.split('.')
+VERSION      = '.'.join(VERSION)
 AUTHORS      = "Gabriel Monhabell  ·  Aramis Garcia"
 COPYRIGHT    = "© 2024 Trakio"
 TRANSPARENT  = "#00c7fc"
