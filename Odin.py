@@ -1,6 +1,6 @@
 """
 Odin.py – Lanzador Estático de ValidatorsGesi
-Splash Screen estilo Adobe/CorelDraw – sin imagen de fondo, diseño puro.
+Splash Screen estilo Minimalista V3 – barra lateral azul, tipografía grande.
 Este archivo NO se reemplaza durante las actualizaciones.
 """
 
@@ -17,45 +17,43 @@ import __version__
 
 DATOS_LICENCIA = {}
 
-APP_NAME     = "Odin"
-# version optenida del archivo __version__.py, pero formateada para mostrar solo la parte relevante en la interfaz, sin el patch level
+APP_NAME  = "Odin"
+VERSION   = __version__.__version__.split('.')
+VERSION   = '.'.join(VERSION)
+AUTHORS   = "Gabriel Monhabell  ·  Aramis Garcia"
+COPYRIGHT = "© 2024 Trakio"
+TRANSPARENT = "#00c7fc"
 
-VERSION      = __version__.__version__.split('.')
-VERSION      = '.'.join(VERSION)
-AUTHORS      = "Gabriel Monhabell  ·  Aramis Garcia"
-COPYRIGHT    = "© 2024 Trakio"
-TRANSPARENT  = "#00c7fc"
-
+# ── Paleta azul cobalto ────────────────────────────────────────────────────────
 S = {
-    "bg":            "#0C0202",
-    "bg2":           "#130404",
-    "bg3":           "#1C0606",
-    "border_dark":   "#1E0808",
-    "border_mid":    "#3A1010",
-    "border_accent": "#6B2020",
-    "accent":        "#C0392B",
-    "accent_dim":    "#7B241C",
-    "accent_deep":   "#4A0E0E",
-    "accent_bright": "#E74C3C",
-    "accent_light":  "#FF8A80",
-    "white":         "#F0E6E6",
-    "muted":         "#7A5C5C",
-    "dim":           "#3D2525",
+    "bg":            "#030e1d",
+    "bg2":           "#04101f",
+    "bg3":           "#061828",
+    "border_dark":   "#071d38",
+    "border_mid":    "#0C2D4A",
+    "border_accent": "#185FA5",
+    "accent":        "#378ADD",
+    "accent_dim":    "#0C447C",
+    "accent_deep":   "#042C53",
+    "accent_bright": "#85B7EB",
+    "accent_light":  "#B5D4F4",
+    "white":         "#E6F1FB",
+    "muted":         "#185FA5",
+    "dim":           "#071d38",
 }
 
 COLORS = {
-    "bg_dark":       ("#F5F5F5", "#0C0202"),
-    "bg_card":       ("#FFFFFF", "#130404"),
-    "bg_input":      ("#F0F0F0", "#1C0808"),
-    "accent":        ("#A93226", "#C0392B"),
-    "accent_hover":  ("#922B21", "#A93226"),
-    "text_primary":  ("#1A1A1A", "#F0E6E6"),
-    "text_muted":    ("#666666", "#7A5C5C"),
-    "border":        ("#DDDDDD", "#2A0A0A"),
+    "bg_dark":      ("#F5F5F5", "#030e1d"),
+    "bg_card":      ("#FFFFFF", "#04101f"),
+    "bg_input":     ("#F0F0F0", "#061828"),
+    "accent":       ("#185FA5", "#378ADD"),
+    "accent_hover": ("#0C447C", "#185FA5"),
+    "text_primary": ("#1A1A1A", "#E6F1FB"),
+    "text_muted":   ("#666666", "#185FA5"),
+    "border":       ("#DDDDDD", "#0C2D4A"),
 }
 
-ctk.set_appearance_mode("system")
-
+ctk.set_appearance_mode("light")
 
 def resource_path(rel):
     try:    base = sys._MEIPASS
@@ -72,9 +70,9 @@ def _find(filename):
 
 
 class SplashScreen:
-    W  = 580
-    H  = 340
-    R  = 16
+    W  = 680
+    H  = 400
+    R  = 14
     MS = 3200
 
     def __init__(self):
@@ -100,41 +98,34 @@ class SplashScreen:
 
     def _hex_rgb(self, h):
         h = h.lstrip("#")
-        return int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)
+        return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
 
     def _interp(self, c1, c2, t):
-        r1,g1,b1 = self._hex_rgb(c1)
-        r2,g2,b2 = self._hex_rgb(c2)
+        r1, g1, b1 = self._hex_rgb(c1)
+        r2, g2, b2 = self._hex_rgb(c2)
         return (int(r1+(r2-r1)*t), int(g1+(g2-g1)*t), int(b1+(b2-b1)*t))
 
-    def _round_rect(self, x1,y1,x2,y2, r=12, **kw):
-        pts=[x1+r,y1, x2-r,y1, x2,y1, x2,y1+r,
-             x2,y2-r, x2,y2, x2-r,y2, x1+r,y2,
-             x1,y2, x1,y2-r, x1,y1+r, x1,y1]
+    def _round_rect(self, x1, y1, x2, y2, r=12, **kw):
+        pts = [x1+r, y1,  x2-r, y1,  x2, y1,  x2, y1+r,
+               x2, y2-r, x2, y2, x2-r, y2, x1+r, y2,
+               x1, y2,   x1, y2-r, x1, y1+r, x1, y1]
         self.c.create_polygon(pts, smooth=True, **kw)
 
-    def _grad_h(self, x,y,w,h, c1, c2):
-        r1,g1,b1 = self._hex_rgb(c1)
-        r2,g2,b2 = self._hex_rgb(c2)
-        for i in range(w):
-            t = i/max(w-1,1)
-            col = f"#{int(r1+(r2-r1)*t):02x}{int(g1+(g2-g1)*t):02x}{int(b1+(b2-b1)*t):02x}"
-            self.c.create_rectangle(x+i,y,x+i+1,y+h, fill=col, outline="")
-
-    def _grad_v(self, x,y,w,h, c1, c2):
-        r1,g1,b1 = self._hex_rgb(c1)
-        r2,g2,b2 = self._hex_rgb(c2)
+    def _grad_v(self, x, y, w, h, c1, c2):
+        r1, g1, b1 = self._hex_rgb(c1)
+        r2, g2, b2 = self._hex_rgb(c2)
         for j in range(h):
-            t = j/max(h-1,1)
+            t = j / max(h-1, 1)
             col = f"#{int(r1+(r2-r1)*t):02x}{int(g1+(g2-g1)*t):02x}{int(b1+(b2-b1)*t):02x}"
-            self.c.create_rectangle(x,y+j,x+w,y+j+1, fill=col, outline="")
+            self.c.create_rectangle(x, y+j, x+w, y+j+1, fill=col, outline="")
 
-    def _hex_shape(self, cx, cy, r, **kw):
-        pts=[]
-        for i in range(6):
-            a = math.radians(60*i - 30)
-            pts += [cx + r*math.cos(a), cy + r*math.sin(a)]
-        self.c.create_polygon(pts, **kw)
+    def _grad_h(self, x, y, w, h, c1, c2):
+        r1, g1, b1 = self._hex_rgb(c1)
+        r2, g2, b2 = self._hex_rgb(c2)
+        for i in range(w):
+            t = i / max(w-1, 1)
+            col = f"#{int(r1+(r2-r1)*t):02x}{int(g1+(g2-g1)*t):02x}{int(b1+(b2-b1)*t):02x}"
+            self.c.create_rectangle(x+i, y, x+i+1, y+h, fill=col, outline="")
 
     def _build(self):
         W, H = self.W, self.H
@@ -142,162 +133,182 @@ class SplashScreen:
                            bg=TRANSPARENT, highlightthickness=0)
         self.c.pack()
         self._draw_background(W, H)
-        self._draw_left_panel(W, H)
-        self._draw_right_info(W, H)
+        self._draw_left_bar(W, H)
+        self._draw_top_labels(W, H)
+        self._draw_main_title(W, H)
+        self._draw_module_cards(W, H)
         self._draw_bottom_bar(W, H)
         self._draw_decorations(W, H)
 
+    # ── Fondo principal ────────────────────────────────────────────────────────
     def _draw_background(self, W, H):
-        self._round_rect(8,8,W-8,H-8, r=self.R+2, fill="#060000", outline="")
-        self._round_rect(4,4,W-4,H-4, r=self.R,
+        # Sombra exterior
+        self._round_rect(6, 6, W-6, H-6, r=self.R+2,
+                         fill="#010810", outline="")
+        # Marco principal
+        self._round_rect(3, 3, W-3, H-3, r=self.R,
                          fill=S["bg"], outline=S["border_mid"], width=1)
-        self._grad_v(5, 5, 194, H-10, S["bg2"], S["bg3"])
-        self.c.create_line(200,6, 200,H-6, fill=S["border_mid"], width=1)
-        self.c.create_line(197,20, 197,H-20, fill=S["accent_deep"], width=2)
+        # Línea horizontal superior sutil
+        self.c.create_line(4, 68, W-4, 68, fill=S["border_dark"], width=1)
+        # Línea horizontal inferior
+        self.c.create_line(4, H-46, W-4, H-46, fill=S["border_dark"], width=1)
 
-    def _draw_left_panel(self, W, H):
-        cx, cy = 101, H//2 - 8
-        self.c.create_oval(cx-74,cy-74,cx+74,cy+74,
-                           outline=S["border_dark"], width=1, fill="")
-        self.c.create_oval(cx-70,cy-70,cx+70,cy+70,
-                           outline=S["border_accent"], width=1, fill="")
-        self.c.create_oval(cx-62,cy-62,cx+62,cy+62,
-                           fill=S["bg"], outline=S["border_mid"], width=1)
+    # ── Barra vertical izquierda animada ───────────────────────────────────────
+    def _draw_left_bar(self, W, H):
+        bx = 44
+        # Barra estática con degradado vertical
+        self._grad_v(bx, 4, 3, H-8, S["accent_deep"], S["accent"])
+        # Overlay luminoso animado (glide)
+        self._bar_glow_y = 60
+        self._bar_glow = self.c.create_rectangle(
+            bx, self._bar_glow_y, bx+3, self._bar_glow_y+70,
+            fill=S["accent_bright"], outline="")
+        self._animate_glow(H)
 
-        path = _find("intro.png")
-        loaded = False
-        if path:
-            try:
-                img = Image.open(path).convert("RGBA")
-                iw, ih = img.size
-                side = min(iw, ih)
-                img = img.crop(((iw-side)//2,(ih-side)//2,
-                                (iw+side)//2,(ih+side)//2))
-                img.thumbnail((110, 110), Image.LANCZOS)
-                mask = Image.new("L", img.size, 0)
-                d = ImageDraw.Draw(mask)
-                d.ellipse((0,0)+img.size, fill=255)
-                img.putalpha(mask)
-                self._logo_img = ImageTk.PhotoImage(img)
-                self.c.create_image(cx, cy, image=self._logo_img)
-                loaded = True
-            except:
-                pass
+    def _animate_glow(self, H):
+        def _step():
+            self._bar_glow_y += 4
+            if self._bar_glow_y > H - 10:
+                self._bar_glow_y = 4
+            self.c.coords(self._bar_glow,
+                          44, self._bar_glow_y,
+                          47, self._bar_glow_y + 70)
+            self.root.after(30, _step)
+        self.root.after(30, _step)
 
-        if not loaded:
-            self._hex_shape(cx,cy,50, fill=S["bg3"],
-                            outline=S["accent"], width=1)
-            self._hex_shape(cx,cy,32, fill=S["accent_dim"],
-                            outline=S["accent_bright"], width=1)
-            for dx1,dy1,dx2,dy2,lw in [
-                (0,-22,0,22,2),(-14,0,14,0,2),
-                (-9,-14,9,-14,1),(-9,14,9,14,1)]:
-                self.c.create_line(cx+dx1,cy+dy1,cx+dx2,cy+dy2,
-                                   fill=S["white"],width=lw,capstyle=tk.ROUND)
-            self.c.create_oval(cx-4,cy-4,cx+4,cy+4,
-                               fill=S["accent_bright"], outline="")
-
-    def _draw_right_info(self, W, H):
-        x0 = 224
-        lx = W - 26
-
-        name_y = 54
-        self.c.create_text(x0, name_y, text="ODIN",
-                           fill=S["white"], font=("Segoe UI", 46, "bold"),
+    # ── Etiquetas superiores ───────────────────────────────────────────────────
+    def _draw_top_labels(self, W, H):
+        lx = 64
+        self.c.create_text(lx, 28, text="ODIN  ·  TRAKIO PLATFORM",
+                           fill=S["accent_dim"], font=("Consolas", 8),
                            anchor="w")
-        self.c.create_line(x0, name_y+22, lx, name_y+22,
+        self.c.create_text(lx, 46, text="SISTEMA DE AUTOMATIZACIÓN INTELIGENTE",
+                           fill=S["muted"], font=("Consolas", 8),
+                           anchor="w")
+
+    # ── Tipografía gigante ─────────────────────────────────────────────────────
+    def _draw_main_title(self, W, H):
+        lx = 64
+        self.c.create_text(lx, 138, text="ODIN",
+                           fill=S["white"], font=("Segoe UI", 74, "bold"),
+                           anchor="w")
+        self.c.create_text(lx, 210, text=f"Versión  {VERSION}",
+                           fill=S["accent"], font=("Segoe UI", 14),
+                           anchor="w")
+        # Línea decorativa debajo del subtítulo
+        self.c.create_line(lx, 226, lx+280, 226,
                            fill=S["border_mid"], width=1)
-        self.c.create_text(x0, name_y+38,
-                           text="Validators GESI  ·  Trakio Platform",
-                           fill=S["muted"], font=("Segoe UI", 10), anchor="w")
-
-        ver_y = name_y + 76
-        self.c.create_text(x0, ver_y, text=f"Versión {VERSION}",
-                           fill=S["accent"], font=("Segoe UI", 11, "bold"),
+        # Descripción
+        self.c.create_text(lx, 248, text="ValidatorsGesi Launcher",
+                           fill=S["muted"], font=("Segoe UI", 9),
+                           anchor="w")
+        self.c.create_text(lx, 264, text=AUTHORS,
+                           fill=S["white"], font=("Segoe UI", 8),
                            anchor="w")
 
-        dot_y = ver_y + 22
-        for xi in range(x0, lx, 6):
-            self.c.create_rectangle(xi,dot_y,xi+2,dot_y+1,
-                                    fill=S["dim"], outline="")
-
-        infos = [
-            ("Sistema",  "ValidatorsGesi Launcher"),
-            ("Módulo",   "Odin Core v1.0"),
-            ("Build",    "2024.1 — Stable"),
+    # ── Tarjetas de módulos (columna derecha) ──────────────────────────────────
+    def _draw_module_cards(self, W, H):
+        modules = [
+            ("ODIN",      "Validación Excel"),
+            ("GESI",      "Motor digitación"),
+            ("ANÁLISIS",  "Cruce variables"),
+            ("VALIDADOR", "Calidad del dato"),
         ]
-        iy = dot_y + 16
-        for i,(lbl,val) in enumerate(infos):
-            yy = iy + i*20
-            self.c.create_text(x0, yy, text=lbl+":",
-                               fill=S["dim"], font=("Segoe UI", 9), anchor="w")
-            self.c.create_text(x0+70, yy, text=val,
-                               fill=S["muted"], font=("Segoe UI", 9), anchor="w")
+        cx = W - 144   # x inicio de tarjetas
+        cw = 126       # ancho tarjeta
+        ch = 42        # alto tarjeta
+        gap = 8
+        start_y = 78
 
-        self.c.create_text(lx, H-48, text=AUTHORS,
-                           fill=S["dim"], font=("Segoe UI", 8), anchor="e")
+        # Separador vertical entre contenido y tarjetas
+        self.c.create_line(W-170, 68, W-170, H-46,
+                           fill=S["border_dark"], width=1)
 
-        self._lbl_status = self.c.create_text(
-            x0, H-48, text="Iniciando...",
-            fill=S["accent"], font=("Segoe UI", 8, "bold"), anchor="w")
+        # Etiqueta sección
+        self.c.create_text(cx, start_y - 12,
+                           text="MÓDULOS", fill=S["accent_dim"],
+                           font=("Consolas", 7), anchor="w")
 
+        for i, (name, desc) in enumerate(modules):
+            y = start_y + i * (ch + gap)
+            # Última tarjeta resaltada
+            border_col = S["accent"] if i == 3 else S["accent_dim"]
+            border_w   = 1 if i < 3 else 1
+
+            self.c.create_rectangle(cx, y, cx+cw, y+ch,
+                                    fill=S["bg2"],
+                                    outline=border_col, width=border_w)
+            self.c.create_text(cx+10, y+12, text=name,
+                               fill=S["accent_bright"],
+                               font=("Segoe UI", 10, "bold"), anchor="w")
+            self.c.create_text(cx+10, y+28, text=desc,
+                               fill=S["muted"],
+                               font=("Segoe UI", 8), anchor="w")
+
+    # ── Barra inferior: progreso + copyright ───────────────────────────────────
     def _draw_bottom_bar(self, W, H):
-        bh = 34
-        by = H - bh - 4
-        self._round_rect(5,by,W-5,H-5, r=self.R, fill=S["bg2"], outline="")
-        self.c.create_line(5,by,W-5,by, fill=S["border_mid"], width=1)
+        by = H - 44
+        lx = 64
 
-        px, py = 224, by+14
-        pw, ph = W-258, 4
+        # Etiqueta de estado
+        self._lbl_status = self.c.create_text(
+            lx, by + 6, text="Iniciando...",
+            fill=S["accent"], font=("Consolas", 8, "bold"), anchor="w")
 
-        self.c.create_rectangle(px,py,px+pw,py+ph,
+        # Barra de progreso
+        px, py = lx, by + 20
+        pw, ph = W - 210, 2
+
+        self.c.create_rectangle(px, py, px+pw, py+ph,
                                  fill=S["bg3"], outline=S["border_dark"])
         self._prog_rect = self.c.create_rectangle(
-            px,py,px,py+ph, fill=S["accent_dim"], outline="")
+            px, py, px, py+ph, fill=S["accent_dim"], outline="")
         self._prog_dot = self.c.create_oval(
-            px-3,py-1,px+3,py+ph+1,
-            fill=S["accent_bright"], outline="")
+            px-3, py-2, px+3, py+ph+2,
+            fill=S["accent"], outline="")
         self._prog_pct = self.c.create_text(
             px+pw+10, py+ph//2, text="0%",
-            fill=S["accent"], font=("Consolas", 8, "bold"), anchor="w")
+            fill=S["accent_dim"], font=("Consolas", 8, "bold"), anchor="w")
 
         self._bar = (px, py, pw, ph)
 
-        self.c.create_text(14, by+bh//2, text=COPYRIGHT,
-                           fill=S["dim"], font=("Segoe UI", 8), anchor="w")
+        # Copyright
+        self.c.create_text(W-14, by+28, text=COPYRIGHT,
+                           fill=S["dim"], font=("Segoe UI", 7), anchor="e")
 
+    # ── Decoraciones finales ───────────────────────────────────────────────────
     def _draw_decorations(self, W, H):
-        self._grad_h(5,4, W-10,3, S["accent_dim"], S["accent_bright"])
+        # Franja superior con degradado horizontal
+        self._grad_h(4, 4, W-8, 2, S["accent_dim"], S["accent"])
 
-        m, s = 8, 12
-        col  = S["accent_dim"]
-        for (ax,ay,bx,by_) in [
-            (m,m+s,m,m), (m,m,m+s,m),
-            (W-m,m+s,W-m,m), (W-m,m,W-m-s,m),
-            (m,H-m-s,m,H-m), (m,H-m,m+s,H-m),
-            (W-m,H-m-s,W-m,H-m), (W-m,H-m,W-m-s,H-m),
-        ]:
-            self.c.create_line(ax,ay,bx,by_, fill=col, width=1, capstyle=tk.ROUND)
+        # Esquinas HUD
+        m, s = 8, 10
+        col = S["accent_dim"]
+        corners = [
+            (m, m+s, m, m), (m, m, m+s, m),
+            (W-m, m+s, W-m, m), (W-m, m, W-m-s, m),
+            (m, H-m-s, m, H-m), (m, H-m, m+s, H-m),
+            (W-m, H-m-s, W-m, H-m), (W-m, H-m, W-m-s, H-m),
+        ]
+        for ax, ay, bx, by_ in corners:
+            self.c.create_line(ax, ay, bx, by_,
+                               fill=col, width=1, capstyle=tk.ROUND)
 
-        dcy = 12
-        self.c.create_polygon(200,dcy-6,206,dcy,200,dcy+6,194,dcy,
-                               fill=S["accent_dim"],
-                               outline=S["accent"], width=1)
-
+    # ── Animación de progreso ──────────────────────────────────────────────────
     def _update_progress(self, frac):
-        px,py,pw,ph = self._bar
-        fw  = int(pw*frac)
-        dot = px+fw
-        r,g,b = self._interp(S["accent_dim"], S["accent_bright"], frac)
-        col   = f"#{r:02x}{g:02x}{b:02x}"
-        self.c.coords(self._prog_rect, px,py,px+fw,py+ph)
+        px, py, pw, ph = self._bar
+        fw  = int(pw * frac)
+        dot = px + fw
+        r, g, b = self._interp(S["accent_dim"], S["accent_bright"], frac)
+        col = f"#{r:02x}{g:02x}{b:02x}"
+        self.c.coords(self._prog_rect, px, py, px+fw, py+ph)
         self.c.itemconfig(self._prog_rect, fill=col)
-        self.c.coords(self._prog_dot, dot-3,py-1,dot+3,py+ph+1)
+        self.c.coords(self._prog_dot, dot-3, py-2, dot+3, py+ph+2)
         self.c.itemconfig(self._prog_pct, text=f"{int(frac*100)}%")
-        if frac < 0.3:   status="Iniciando núcleo..."
-        elif frac < 0.6: status="Cargando módulos..."
-        elif frac < 0.85:status="Verificando licencia..."
-        else:            status="Listo"
+        if frac < 0.3:    status = "Iniciando núcleo..."
+        elif frac < 0.6:  status = "Cargando módulos..."
+        elif frac < 0.85: status = "Verificando licencia..."
+        else:             status = "Listo"
         self.c.itemconfig(self._lbl_status, text=status)
         self.c.update_idletasks()
 
@@ -317,17 +328,16 @@ class SplashScreen:
         self.root.mainloop()
 
 
+# ── Lógica de apertura principal ───────────────────────────────────────────────
 def _open_main_logic():
     try:
         import index
         if hasattr(index, "index_open"):
-            # imprimir DATOS_LICENCIA para verificar que se está pasando correctamente
             print("Abriendo aplicación principal con datos de licencia:", DATOS_LICENCIA)
-            # Pasamos la variable DATOS_LICENCIA como argumento a la función de apertura
             index.index_open(DATOS_LICENCIA)
     except Exception as e:
         import traceback
-        with open(os.path.join(BASE_DIR,"error_log.txt"),"a",encoding="utf-8") as f:
+        with open(os.path.join(BASE_DIR, "error_log.txt"), "a", encoding="utf-8") as f:
             f.write(traceback.format_exc())
         messagebox.showerror("Error", f"No se pudo iniciar el sistema:\n\n{e}")
 
@@ -360,46 +370,41 @@ def verificar_licencia():
 
     esp = ctk.CTkToplevel()
     esp.title("Odin")
-    aw,ah = 340,160
+    aw, ah = 340, 160
     esp.geometry(f"{aw}x{ah}+{(esp.winfo_screenwidth()-aw)//2}+{(esp.winfo_screenheight()-ah)//2}")
-    esp.resizable(False,False)
-    esp.attributes("-topmost",True)
+    esp.resizable(False, False)
+    esp.attributes("-topmost", True)
     esp.configure(fg_color=COLORS["bg_dark"][1])
-    fi = ctk.CTkFrame(esp,fg_color="transparent")
-    fi.pack(expand=True,fill="both",padx=20,pady=20)
-    ctk.CTkLabel(fi,text="VERIFICANDO LICENCIA",
-                 font=("Segoe UI",13,"bold"),
-                 text_color=COLORS["accent"][1]).pack(pady=(0,10))
-    pg = ctk.CTkProgressBar(fi,orientation="horizontal",mode="indeterminate",
-                             width=260,progress_color=COLORS["accent"][1],
+    fi = ctk.CTkFrame(esp, fg_color="transparent")
+    fi.pack(expand=True, fill="both", padx=20, pady=20)
+    ctk.CTkLabel(fi, text="VERIFICANDO LICENCIA",
+                 font=("Segoe UI", 13, "bold"),
+                 text_color=COLORS["accent"][1]).pack(pady=(0, 10))
+    pg = ctk.CTkProgressBar(fi, orientation="horizontal", mode="indeterminate",
+                             width=260, progress_color=COLORS["accent"][1],
                              fg_color=COLORS["bg_input"][1])
     pg.pack(pady=10); pg.start()
-    ctk.CTkLabel(fi,text="Conectando con el servidor seguro...",
-                 font=("Segoe UI",10),
+    ctk.CTkLabel(fi, text="Conectando con el servidor seguro...",
+                 font=("Segoe UI", 10),
                  text_color=COLORS["text_muted"][1]).pack()
     esp.update()
 
     try:
         resp = requests.post(API_URL,
-                             json={"key":codigo,"program":PROGRAMA_ID},
-                             timeout=8,allow_redirects=False)
-        try:    data=resp.json()
-        except: data={}
-        if resp.status_code==200 and data.get("status")=="success":
-            with open(lic,"w") as f: f.write(codigo)
-            # Guardamos la respuesta del servidor en nuestra variable global
+                             json={"key": codigo, "program": PROGRAMA_ID},
+                             timeout=8, allow_redirects=False)
+        try:    data = resp.json()
+        except: data = {}
+        if resp.status_code == 200 and data.get("status") == "success":
+            with open(lic, "w") as f: f.write(codigo)
             global DATOS_LICENCIA
-            # imprimir en terminal para verificar que se obtiene la información correcta
             print("Datos de licencia obtenidos:", data)
             DATOS_LICENCIA = data
-
             esp.destroy(); _root.destroy(); return True
-            
-        
         else:
             esp.destroy()
             messagebox.showerror("Licencia Inválida",
-                data.get("message",f"Código inválido (Error: {resp.status_code})"))
+                data.get("message", f"Código inválido (Error: {resp.status_code})"))
             if os.path.exists(lic): os.remove(lic)
             _root.destroy(); sys.exit()
     except requests.exceptions.RequestException:
@@ -408,15 +413,13 @@ def verificar_licencia():
         messagebox.showerror("Error de Conexión",
                              "Se requiere internet para la primera activación.")
         _root.destroy(); sys.exit()
-        
-   
 
 
 def main():
     try:
         SplashScreen().run()
     except Exception as e:
-        messagebox.showerror("Fatal Error",f"Error al iniciar el lanzador: {e}")
+        messagebox.showerror("Fatal Error", f"Error al iniciar el lanzador: {e}")
 
 
 if __name__ == "__main__":
