@@ -82,19 +82,48 @@ class GesiApp(ctk.CTkFrame):
         tb.pack_propagate(False)
 
         # ── Credenciales ──────────────────────────────────────────────────────
+        self._saved_user, self._saved_pass = "", ""
+        try:
+            from credentials_store import cargar_credenciales, credenciales_guardadas
+            if credenciales_guardadas():
+                self._saved_user, self._saved_pass = cargar_credenciales()
+        except Exception:
+            pass
+
+        _tiene_guardadas = bool(self._saved_user)
+        self._usar_guardadas = ctk.BooleanVar(value=_tiene_guardadas)
+
+        if _tiene_guardadas:
+            tog = ctk.CTkFrame(tb, fg_color="transparent")
+            tog.pack(side="left", padx=(16, 8))
+            ctk.CTkLabel(tog, text="Credenciales",
+                         font=ctk.CTkFont("Segoe UI", 9),
+                         text_color=C["text3"]).pack(anchor="w")
+            ctk.CTkSwitch(tog, text="Guardadas",
+                          variable=self._usar_guardadas,
+                          fg_color=C["card2"], progress_color=C["btn"],
+                          button_color=C["accent"], button_hover_color=C["btn_hover"],
+                          font=ctk.CTkFont("Segoe UI", 9),
+                          text_color=C["text2"],
+                          width=36, height=18,
+                          command=self._toggle_credenciales).pack()
+
         # Usuario
         u_col = ctk.CTkFrame(tb, fg_color="transparent")
-        u_col.pack(side="left", padx=(16, 8))
+        u_col.pack(side="left", padx=((0 if _tiene_guardadas else 16), 8))
         ctk.CTkLabel(u_col, text="Usuario",
                      font=ctk.CTkFont("Segoe UI", 9),
                      text_color=C["text3"]).pack(anchor="w")
-        self.user_var = ctk.StringVar()
-        ctk.CTkEntry(u_col, textvariable=self.user_var,
+        self.user_var = ctk.StringVar(value=self._saved_user if _tiene_guardadas else "")
+        self._entry_user = ctk.CTkEntry(u_col, textvariable=self.user_var,
                      placeholder_text="usuario@dominio.com",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
                      font=ctk.CTkFont("Segoe UI", 11),
-                     width=180, height=28).pack()
+                     width=180, height=28)
+        self._entry_user.pack()
+        if _tiene_guardadas:
+            self._entry_user.configure(state="disabled")
 
         # Contraseña
         p_col = ctk.CTkFrame(tb, fg_color="transparent")
@@ -102,14 +131,17 @@ class GesiApp(ctk.CTkFrame):
         ctk.CTkLabel(p_col, text="Contraseña",
                      font=ctk.CTkFont("Segoe UI", 9),
                      text_color=C["text3"]).pack(anchor="w")
-        self.pass_var = ctk.StringVar()
-        ctk.CTkEntry(p_col, textvariable=self.pass_var,
+        self.pass_var = ctk.StringVar(value=self._saved_pass if _tiene_guardadas else "")
+        self._entry_pass = ctk.CTkEntry(p_col, textvariable=self.pass_var,
                      placeholder_text="••••••••",
                      show="•",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
                      font=ctk.CTkFont("Segoe UI", 11),
-                     width=150, height=28).pack()
+                     width=150, height=28)
+        self._entry_pass.pack()
+        if _tiene_guardadas:
+            self._entry_pass.configure(state="disabled")
 
         # Divisor vertical
         ctk.CTkFrame(tb, width=1, fg_color=C["border"],
@@ -257,6 +289,18 @@ class GesiApp(ctk.CTkFrame):
         self.txt_log.configure(state="disabled")
 
     # ── Helpers UI ────────────────────────────────────────────────────────────
+    def _toggle_credenciales(self):
+        if self._usar_guardadas.get():
+            self.user_var.set(self._saved_user)
+            self.pass_var.set(self._saved_pass)
+            self._entry_user.configure(state="disabled")
+            self._entry_pass.configure(state="disabled")
+        else:
+            self.user_var.set("")
+            self.pass_var.set("")
+            self._entry_user.configure(state="normal")
+            self._entry_pass.configure(state="normal")
+
     def _set_status(self, text, color_key="accent"):
         self._status_lbl.configure(text=text, text_color=C[color_key])
 

@@ -155,8 +155,9 @@ def sincronizarFechaSesion1(driver, ids: dict, leerTexto, leerOculto,
 
 def validarCoherenciaSesiones(ids: dict, leerTexto, log_fn=None) -> list[tuple]:
     """
-    Valida que los números de sesión y las fechas de sesión estén en orden
-    estrictamente ascendente entre los 4 campos de sesión de la página actual.
+    Valida que los números de sesión estén en orden estrictamente ascendente
+    y que las fechas de sesión no sean decrecientes (iguales está permitido)
+    entre los 4 campos de sesión de la página actual.
 
     Ignora los campos vacíos o sin ID; solo compara pares donde ambos tienen valor.
 
@@ -203,15 +204,15 @@ def validarCoherenciaSesiones(ids: dict, leerTexto, log_fn=None) -> list[tuple]:
         a, b = fechas[i], fechas[i + 1]
         if a is None or b is None:
             continue
-        if a >= b:
+        if a > b:
             fmt_a = a.strftime(FORMATOS_FECHA[0])
             fmt_b = b.strftime(FORMATOS_FECHA[0])
             msg = (
                 f"Fecha fuera de secuencia: "
-                f"campo {i + 2} ({fmt_b}) debe ser posterior a campo {i + 1} ({fmt_a})"
+                f"campo {i + 2} ({fmt_b}) no puede ser anterior a campo {i + 1} ({fmt_a})"
             )
             if log_fn:
-                log_fn(f"      ⚠️  {LABELS_FECHA_SESION[i + 1]}: {fmt_b} ≤ {fmt_a}")
+                log_fn(f"      ⚠️  {LABELS_FECHA_SESION[i + 1]}: {fmt_b} < {fmt_a}")
             errores.append((LABELS_FECHA_SESION[i + 1], fmt_b, msg, False))
 
     return errores

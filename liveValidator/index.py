@@ -130,17 +130,37 @@ class OPENUI(ctk.CTkFrame):
                      font=ctk.CTkFont("Segoe UI", 16, "bold"),
                      text_color=C["accent"]).place(relx=0.5, rely=0.5, anchor="center")
 
-        ttl = ctk.CTkFrame(tb, fg_color="transparent")
-        ttl.pack(side="left", padx=(8, 0))
-        ctk.CTkLabel(ttl, text="GesiForm",
-                     font=ctk.CTkFont("Segoe UI", 12, "bold"),
-                     text_color=C["text1"]).pack(anchor="w")
-        ctk.CTkLabel(ttl, text="Validación de sesiones",
-                     font=ctk.CTkFont("Consolas", 8),
-                     text_color=C["text3"]).pack(anchor="w")
 
         ctk.CTkFrame(tb, width=1, fg_color=C["border"],
                      corner_radius=0).pack(side="left", fill="y", padx=14, pady=10)
+
+        # Cargar credenciales guardadas
+        self._saved_user, self._saved_pass = "", ""
+        try:
+            from credentials_store import cargar_credenciales, credenciales_guardadas
+            if credenciales_guardadas():
+                self._saved_user, self._saved_pass = cargar_credenciales()
+        except Exception:
+            pass
+
+        _tiene_guardadas = bool(self._saved_user)
+        self._usar_guardadas = ctk.BooleanVar(value=_tiene_guardadas)
+
+        # Switch "Guardadas" — solo visible cuando hay credenciales almacenadas
+        if _tiene_guardadas:
+            tog = ctk.CTkFrame(tb, fg_color="transparent")
+            tog.pack(side="left", padx=(0, 8))
+            ctk.CTkLabel(tog, text="Credenciales",
+                         font=ctk.CTkFont("Segoe UI", 9),
+                         text_color=C["text3"]).pack(anchor="w")
+            ctk.CTkSwitch(tog, text="Guardadas",
+                          variable=self._usar_guardadas,
+                          fg_color=C["card2"], progress_color=C["btn"],
+                          button_color=C["accent"], button_hover_color=C["btn_hover"],
+                          font=ctk.CTkFont("Segoe UI", 9),
+                          text_color=C["text2"],
+                          width=36, height=18,
+                          command=self._toggle_credenciales).pack()
 
         # Usuario
         u = ctk.CTkFrame(tb, fg_color="transparent")
@@ -148,13 +168,16 @@ class OPENUI(ctk.CTkFrame):
         ctk.CTkLabel(u, text="Usuario",
                      font=ctk.CTkFont("Segoe UI", 9),
                      text_color=C["text3"]).pack(anchor="w")
-        self.user_var = ctk.StringVar()
-        ctk.CTkEntry(u, textvariable=self.user_var,
+        self.user_var = ctk.StringVar(value=self._saved_user if _tiene_guardadas else "")
+        self._entry_user = ctk.CTkEntry(u, textvariable=self.user_var,
                      placeholder_text="usuario@dominio.com",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
                      font=ctk.CTkFont("Segoe UI", 11),
-                     width=180, height=28).pack()
+                     width=180, height=28)
+        self._entry_user.pack()
+        if _tiene_guardadas:
+            self._entry_user.configure(state="disabled")
 
         # Contraseña
         p = ctk.CTkFrame(tb, fg_color="transparent")
@@ -162,13 +185,16 @@ class OPENUI(ctk.CTkFrame):
         ctk.CTkLabel(p, text="Contraseña",
                      font=ctk.CTkFont("Segoe UI", 9),
                      text_color=C["text3"]).pack(anchor="w")
-        self.pass_var = ctk.StringVar()
-        ctk.CTkEntry(p, textvariable=self.pass_var,
+        self.pass_var = ctk.StringVar(value=self._saved_pass if _tiene_guardadas else "")
+        self._entry_pass = ctk.CTkEntry(p, textvariable=self.pass_var,
                      placeholder_text="••••••••", show="•",
                      fg_color=C["card2"], border_color=C["border"],
                      text_color=C["text1"],
                      font=ctk.CTkFont("Segoe UI", 11),
-                     width=150, height=28).pack()
+                     width=150, height=28)
+        self._entry_pass.pack()
+        if _tiene_guardadas:
+            self._entry_pass.configure(state="disabled")
 
         ctk.CTkFrame(tb, width=1, fg_color=C["border"],
                      corner_radius=0).pack(side="left", fill="y", padx=14, pady=10)
@@ -338,6 +364,18 @@ class OPENUI(ctk.CTkFrame):
         self.btn_stop.pack(side="left", ipadx=12)
 
     # ── Helpers de estado ─────────────────────────────────────────────────────
+    def _toggle_credenciales(self):
+        if self._usar_guardadas.get():
+            self.user_var.set(self._saved_user)
+            self.pass_var.set(self._saved_pass)
+            self._entry_user.configure(state="disabled")
+            self._entry_pass.configure(state="disabled")
+        else:
+            self.user_var.set("")
+            self.pass_var.set("")
+            self._entry_user.configure(state="normal")
+            self._entry_pass.configure(state="normal")
+
     def _seleccionar_entorno(self, valor: str):
         if self.entorno_var.get() == valor:
             self.entorno_var.set("")

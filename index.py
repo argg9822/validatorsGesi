@@ -277,7 +277,7 @@ class App(ctk.CTk):
                     btn.configure(fg_color=COLORS["accent_soft"], text_color=COLORS["accent"])
                 else:
                     btn.configure(fg_color="transparent", text_color=COLORS["text2"])
-            self._set_topbar("Ejecutar HC", "GESI — Intelligence Automation System")
+            self._set_topbar("", "GESI — Intelligence Automation System")
             # Ocultar el scrollable frame y destruir módulo previo si existe
             self.content.pack_forget()
             if self._module_frame and self._module_frame.winfo_exists():
@@ -318,7 +318,7 @@ class App(ctk.CTk):
     def __init__(self, datos_licencia=None):
         super().__init__()
         self.title(f"Odin  ·  v{__version__}")
-        self.geometry("1180x920")
+        self.geometry("1600x900")
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.minsize(780, 520)
         self.configure(fg_color=COLORS["bg"])
@@ -695,6 +695,76 @@ class App(ctk.CTk):
         self._set_topbar("Configuración")
         f = self.content
 
+        # Credenciales GesiForm
+        _section(f, "Credenciales GesiForm")
+        cred_card = ctk.CTkFrame(f, fg_color=COLORS["card"],
+                                  border_color=COLORS["border"], border_width=1,
+                                  corner_radius=8)
+        cred_card.pack(fill="x", padx=20, pady=(0, 4))
+        ctk.CTkFrame(cred_card, height=2, fg_color=COLORS["accent"],
+                     corner_radius=0).pack(fill="x")
+        cb = ctk.CTkFrame(cred_card, fg_color="transparent")
+        cb.pack(fill="x", padx=14, pady=12)
+
+        ctk.CTkLabel(cb, text="Usuario y contraseña para iniciar sesión en GesiForm. "
+                              "Se almacenan cifrados con tu cuenta de Windows.",
+                     font=ctk.CTkFont("Segoe UI", 10),
+                     text_color=COLORS["text2"],
+                     wraplength=560, justify="left").pack(anchor="w", pady=(0, 10))
+
+        fields = ctk.CTkFrame(cb, fg_color="transparent")
+        fields.pack(fill="x")
+        fields.columnconfigure(0, weight=1)
+        fields.columnconfigure(1, weight=1)
+
+        # Fila usuario
+        u_frame = ctk.CTkFrame(fields, fg_color="transparent")
+        u_frame.grid(row=0, column=0, sticky="ew", padx=(0, 6), pady=(0, 6))
+        ctk.CTkLabel(u_frame, text="Usuario",
+                     font=ctk.CTkFont("Segoe UI", 10),
+                     text_color=COLORS["text3"]).pack(anchor="w")
+        self._cfg_user_var = ctk.StringVar()
+        ctk.CTkEntry(u_frame, textvariable=self._cfg_user_var,
+                     placeholder_text="usuario@dominio.com",
+                     fg_color=COLORS["card2"], border_color=COLORS["border"],
+                     text_color=COLORS["text1"],
+                     font=ctk.CTkFont("Segoe UI", 11), height=32).pack(fill="x")
+
+        # Fila contraseña
+        p_frame = ctk.CTkFrame(fields, fg_color="transparent")
+        p_frame.grid(row=0, column=1, sticky="ew", padx=(6, 0), pady=(0, 6))
+        ctk.CTkLabel(p_frame, text="Contraseña",
+                     font=ctk.CTkFont("Segoe UI", 10),
+                     text_color=COLORS["text3"]).pack(anchor="w")
+        self._cfg_pass_var = ctk.StringVar()
+        ctk.CTkEntry(p_frame, textvariable=self._cfg_pass_var,
+                     placeholder_text="••••••••", show="•",
+                     fg_color=COLORS["card2"], border_color=COLORS["border"],
+                     text_color=COLORS["text1"],
+                     font=ctk.CTkFont("Segoe UI", 11), height=32).pack(fill="x")
+
+        # Cargar credenciales guardadas
+        try:
+            from credentials_store import cargar_credenciales
+            _u, _p = cargar_credenciales()
+            self._cfg_user_var.set(_u)
+            self._cfg_pass_var.set(_p)
+        except Exception:
+            pass
+
+        # Fila botón + estado
+        btn_row = ctk.CTkFrame(cb, fg_color="transparent")
+        btn_row.pack(fill="x", pady=(4, 0))
+        self._cred_status_lbl = ctk.CTkLabel(btn_row, text="",
+                                              font=ctk.CTkFont("Segoe UI", 10),
+                                              text_color=COLORS["success"])
+        self._cred_status_lbl.pack(side="left")
+        ctk.CTkButton(btn_row, text="Guardar credenciales",
+                      fg_color=COLORS["btn"], hover_color=COLORS["btn_hover"],
+                      font=ctk.CTkFont("Segoe UI", 11, "bold"),
+                      height=32, width=170,
+                      command=self._guardar_credenciales).pack(side="right")
+
         # Actualización
         _section(f, "Actualizaciones")
         upd = ctk.CTkFrame(f, fg_color=COLORS["card"],
@@ -710,7 +780,7 @@ class App(ctk.CTk):
         ctk.CTkLabel(li, text=f"Versión instalada: v{__version__}",
                      font=ctk.CTkFont("Consolas", 11),
                      text_color=COLORS["text1"]).pack(anchor="w")
-        ctk.CTkLabel(li, text="Actualizaciones desde GitHub, sin reinstalar.",
+        ctk.CTkLabel(li, text="Actualizaciones, sin reinstalar.",
                      font=ctk.CTkFont("Segoe UI", 10),
                      text_color=COLORS["text2"]).pack(anchor="w", pady=(3, 0))
         ctk.CTkButton(ub, text="Verificar",
@@ -759,6 +829,21 @@ class App(ctk.CTk):
             ctk.CTkLabel(pill, text=name,
                          font=ctk.CTkFont("Segoe UI", 10, "bold"),
                          text_color="white" if active else COLORS["text3"]).pack(padx=10, pady=5)
+
+    def _guardar_credenciales(self):
+        try:
+            from credentials_store import guardar_credenciales
+            guardar_credenciales(
+                self._cfg_user_var.get().strip(),
+                self._cfg_pass_var.get()
+            )
+            self._cred_status_lbl.configure(
+                text="Credenciales guardadas correctamente",
+                text_color=COLORS["success"])
+        except Exception as e:
+            self._cred_status_lbl.configure(
+                text=f"Error al guardar: {e}",
+                text_color=COLORS["danger"])
 
     # ── API / lógica (sin cambios) ────────────────────────────────────────────
     def cargar_areas_api(self):

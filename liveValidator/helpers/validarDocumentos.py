@@ -30,6 +30,10 @@ TIPO_DOC_SUPERSALUD = {
     "PT":  "13",
 }
 
+XPATH_COMPROBADOR_NO_ENCONTRADO = (
+    "/html/body/div/form/div[5]/div/div[1]/div/div/div/div[2]/div/div[8]/div/span"
+)
+
 # XPaths del comprobador — se prueban en orden hasta encontrar datos
 XPATHS_COMPROBADOR = [
     {
@@ -271,6 +275,14 @@ def _consultarComprobador(driver, num_doc: str,
         campo_doc.send_keys(num_doc)
         _waitClick(driver, "MainContent_cmdConsultar")
         time.sleep(2)
+
+        # Salida rápida si el comprobador informa que no encontró el documento
+        els = driver.find_elements(By.XPATH, XPATH_COMPROBADOR_NO_ENCONTRADO)
+        if els and els[0].is_displayed() and els[0].text.strip():
+            resultado["detalle"]    = "Documento no encontrado en el Comprobador"
+            resultado["consultado"] = True
+            resultado["encontrado"] = False
+            return resultado
 
         # Intentar leer datos probando cada conjunto de XPaths
         apellido_ext = nombre_ext = fecha_ext = ""

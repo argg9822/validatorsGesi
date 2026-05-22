@@ -86,6 +86,8 @@ def validarComponente(driver, ids: dict, leerTexto, log_fn=None) -> list[tuple]:
     """
     Para cada uno de los 4 grupos de componente:
       - Extrae el número del texto visible de la opción seleccionada.
+      - Si ese número NO es 272, 273 ni 274:
+          · Hombres, Mujeres e Intersexuales deben estar vacíos; si tienen valor → error.
       - Si ese número es 272, 273 o 274:
           · Hombres y Mujeres deben tener dato numérico (sin autocorrección).
           · Intersexuales vacío + Hombres y Mujeres numéricos → se corrige a '0'.
@@ -102,19 +104,12 @@ def validarComponente(driver, ids: dict, leerTexto, log_fn=None) -> list[tuple]:
             continue
 
         texto_comp = leerTexto(id_comp).strip()
-        if _numero_componente(texto_comp) not in NUMEROS_CON_REQUISITO:
-            continue
+        numero_comp = _numero_componente(texto_comp)
 
         sc_h, sc_m, sc_i = grupo["sufijos"]
         label_h = f"Hombres ({sc_h})"
         label_m = f"Mujeres ({sc_m})"
         label_i = f"Intersexuales ({sc_i})"
-
-        if log_fn:
-            log_fn(
-                f"      🔍 {grupo['label_comp']}: '{texto_comp}' "
-                f"→ requiere {label_h} / {label_m} / {label_i}"
-            )
 
         id_h = ids.get(grupo["hombres"], "")
         id_m = ids.get(grupo["mujeres"], "")
@@ -123,6 +118,25 @@ def validarComponente(driver, ids: dict, leerTexto, log_fn=None) -> list[tuple]:
         raw_h = leerTexto(id_h).strip() if id_h else ""
         raw_m = leerTexto(id_m).strip() if id_m else ""
         raw_i = leerTexto(id_i).strip() if id_i else ""
+
+        if numero_comp not in NUMEROS_CON_REQUISITO:
+            if texto_comp:
+                for label, raw in [(label_h, raw_h), (label_m, raw_m), (label_i, raw_i)]:
+                    if raw:
+                        msg = (
+                            f"Componente '{texto_comp}' no requiere dato en '{label}' "
+                            f"pero tiene: '{raw}'"
+                        )
+                        if log_fn:
+                            log_fn(f"      ⚠️  {label}: '{raw}' — debe estar vacío para este componente")
+                        errores.append((label, raw, msg, False))
+            continue
+
+        if log_fn:
+            log_fn(
+                f"      🔍 {grupo['label_comp']}: '{texto_comp}' "
+                f"→ requiere {label_h} / {label_m} / {label_i}"
+            )
 
         hombres_ok  = bool(raw_h) and _es_numerico(raw_h)
         mujeres_ok  = bool(raw_m) and _es_numerico(raw_m)
