@@ -469,8 +469,8 @@ class GesiApp(ctk.CTkFrame):
                     '/html/body/div[2]/div/div[3]/button[1]').click()
                 self.wait_for_element(By.XPATH,
                     '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
-                self.wait_for_element(By.XPATH,
-                    '/html/body/div[2]/div/div[3]/button[1]').click()
+                self.wait_and_click(By.XPATH,
+                    '/html/body/div[2]/div/div[6]/button[1]')
                 self.update_metrics(i, total_filas)
 
             self.log("✅  Todos los registros procesados.", True)
