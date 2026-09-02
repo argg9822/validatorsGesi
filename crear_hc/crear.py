@@ -437,7 +437,6 @@ class GesiApp(ctk.CTkFrame):
             self.wait_and_click(By.XPATH,
                 '/html/body/div[2]/div/div[6]/button[1]')
 
-
             self.log("Sistema listo. Pulsa 'Iniciar digitación' para comenzar.")
             self._set_status("Listo para iniciar", "success")
             self.btn_proceso_si.configure(state="normal")
