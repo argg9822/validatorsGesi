@@ -10,7 +10,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import (
+    TimeoutException, NoSuchElementException,
+    StaleElementReferenceException, ElementClickInterceptedException)
 
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
@@ -346,6 +348,20 @@ class GesiApp(ctk.CTkFrame):
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((by, value)))
 
+    def wait_and_click(self, by, value, timeout=15, retries=3):
+        last_exc = None
+        for _ in range(retries):
+            try:
+                el = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((by, value)))
+                el.click()
+                return
+            except (TimeoutException, StaleElementReferenceException,
+                    ElementClickInterceptedException) as e:
+                last_exc = e
+                time.sleep(1)
+        raise last_exc
+
     def start_thread(self):
         if not self.nombres:
             return messagebox.showwarning("Sistema", "Carga un archivo Excel primero.")
@@ -416,10 +432,11 @@ class GesiApp(ctk.CTkFrame):
                 '/html/body/div/div/nav/div/div[4]/ul/li[7]/div/ul/li[1]/a').click()
             time.sleep(2)
             self.wait_for_element(By.XPATH,
-                '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click()
+                '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click() 
             time.sleep(1)
-            self.wait_for_element(By.XPATH,
-                '/html/body/div[2]/div/div[6]/button[1]').click() 
+            self.wait_and_click(By.XPATH,
+                '/html/body/div[2]/div/div[6]/button[1]')
+
 
             self.log("Sistema listo. Pulsa 'Iniciar digitación' para comenzar.")
             self._set_status("Listo para iniciar", "success")
