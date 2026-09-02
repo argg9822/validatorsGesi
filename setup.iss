@@ -3,7 +3,7 @@
 ; ═══════════════════════════════════════════════════════════════════════
 
 #define MyAppName        "Odin"
-#define MyAppVersion     "1.0.1"
+#define MyAppVersion     "1.0.2"
 #define MyAppPublisher   "Gabriel Monhabell - Aramis Garcia"
 #define MyAppURL         "https://github.com/argg9822/validatorsGesi"
 #define MyAppExeName     "Odin.exe"
