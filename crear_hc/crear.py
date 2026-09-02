@@ -466,7 +466,7 @@ class GesiApp(ctk.CTkFrame):
                 self.log(f"Fila {i}/{total_filas}: Ficha {ficha_val}")
                 self.DatosCrearSi(datos)
                 self.wait_for_element(By.XPATH,
-                    '/html/body/div[2]/div/div[3]/button[1]').click()
+                    '/html/body/div[2]/div/div[6]/button[1]').click()
                 self.wait_for_element(By.XPATH,
                     '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
                 self.wait_and_click(By.XPATH,
