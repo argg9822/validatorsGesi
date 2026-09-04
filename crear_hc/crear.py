@@ -348,6 +348,16 @@ class GesiApp(ctk.CTkFrame):
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((by, value)))
 
+    def wait_option_available(self, select_id, text, timeout=10):
+        def _has_option(driver):
+            try:
+                select_el = driver.find_element(By.ID, select_id)
+                return any(o.text.strip() == text
+                           for o in select_el.find_elements(By.TAG_NAME, 'option'))
+            except (NoSuchElementException, StaleElementReferenceException):
+                return False
+        WebDriverWait(self.driver, timeout, poll_frequency=0.2).until(_has_option)
+
     def wait_and_click(self, by, value, timeout=15, retries=3):
         last_exc = None
         for _ in range(retries):
@@ -512,12 +522,11 @@ class GesiApp(ctk.CTkFrame):
             try:
                 esp = Select(self.wait_for_element(By.ID, 'Espacio_fic'))
                 esp.select_by_visible_text('1 -Hogar')
-                time.sleep(1)
+                self.wait_option_available('Espacio_fic', str(Datos[3]))
                 esp.select_by_visible_text(str(Datos[3]))
-                time.sleep(1)
                 break
-            except:
-                time.sleep(1)
+            except Exception:
+                time.sleep(0.3)
 
         Select(self.wait_for_element(
             By.ID, 'Id_Base')).select_by_visible_text(str(Datos[4]))
