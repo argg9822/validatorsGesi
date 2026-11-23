@@ -305,6 +305,24 @@ class App(ctk.CTk):
         except Exception as e:
             messagebox.showerror("Error", f"Fallo al cargar módulo: {e}")
 
+    def abrir_calidad(self):
+        """Módulo Calidad del dato GESI (validación de exportes + correo + reporte SDS)."""
+        try:
+            from calidad_gesi.ui import CalidadUI
+            for k, btn in self._nav_btns.items():
+                if k == "validators":
+                    btn.configure(fg_color=COLORS["accent_soft"], text_color=COLORS["accent"])
+                else:
+                    btn.configure(fg_color="transparent", text_color=COLORS["text2"])
+            self._set_topbar("Calidad del dato GESI", "Exportes GESI · correo SDS · instructivos")
+            self.content.pack_forget()
+            if self._module_frame and self._module_frame.winfo_exists():
+                self._module_frame.destroy()
+            self._module_frame = CalidadUI(self.right_panel)
+            self._module_frame.pack(fill="both", expand=True)
+        except Exception as e:
+            messagebox.showerror("Error", f"Fallo al cargar módulo: {e}")
+
     def on_close(self):
         global server_instance
         if server_instance:
@@ -689,6 +707,11 @@ class App(ctk.CTk):
             "Abrir", self.ejecutarcodeA,
             state="normal" if tiene_gf else "disabled",
             icon="📋")
+
+        self._action_row(f,
+            "Calidad del dato GESI",
+            "Valida varios exportes, trae el último correo de calidad y compara con el reporte SDS",
+            "Abrir", self.abrir_calidad, icon="🔎")
 
     # ── Página: Configuración ─────────────────────────────────────────────────
     def _page_settings(self):

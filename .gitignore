@@ -57,3 +57,8 @@ extracted/
 
 
 *.xlsx
+
+# --- Calidad GESI: credenciales de Gmail y adjuntos descargados (datos personales) ---
+.gmail_calidad
+output/correo_calidad/
+output/calidad/
