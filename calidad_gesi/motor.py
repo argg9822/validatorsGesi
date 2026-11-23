@@ -303,7 +303,10 @@ def _(c, r, b):
 def _(c, r, b):
     if c.can < 0: return []
     v, out = norm(r[c.can]), []
-    if not v: return [E_(c.can, 'Canalización vacía')]
+    if not v:
+        # Si la canalización va en el bloque de cierre, solo es obligatoria cuando hay cierre
+        if es_de_cierre(b, c.can) and not cierre_diligenciado(b, r, c.can): return []
+        return [E_(c.can, 'Canalización vacía')]
     if v == 'SI':
         if c.modal >= 0 and not r[c.modal]: out.append(E_(c.modal, 'Canalización "Si" sin modalidad'))
         if c.porque >= 0 and r[c.porque]: out.append(E_(c.porque, 'Canalización "Si" pero tiene motivo de no canalización'))
@@ -431,9 +434,12 @@ def _(c, r, b):
 def _(c, r, b):
     e, i = _find(b.N, ['¿ACTUALMENTE ESTUDIA?']), _find(b.N, ['INSTITUCION O JARDIN DONDE ACTUALMENTE ESTUDIA'])
     if e < 0 or i < 0: return []
+    # Si la institución no está en el listado, el nombre se escribe en la columna "OTRO" que está al lado
+    o = i + 1 if i + 1 < len(b.N) and b.N[i + 1] in ('OTRO', 'OTRA', '¿CUAL?', 'CUAL') else -1
+    tiene = bool(r[i].strip()) or (o >= 0 and r[o].strip() not in ('', '0'))
     v = norm(r[e])
-    if v == 'NO' and r[i].strip(): return [E_(i, 'No está estudiando pero tiene institución registrada')]
-    if v == 'SI' and not r[i].strip(): return [E_(i, 'Estudia pero no tiene institución registrada')]
+    if v == 'NO' and tiene: return [E_(i if r[i].strip() else o, 'No está estudiando pero tiene institución registrada')]
+    if v == 'SI' and not tiene: return [E_(i, 'Estudia pero no tiene institución (ni en el listado ni en "Otro")')]
     return []
 
 @regla('SDS_SEGUIMIENTOS', 'Fechas de seguimiento fuera de orden', 'SDS')
@@ -495,6 +501,30 @@ def _(c, r, b):
         if r[i].strip(): return [E_(i, 'Respondió "No menstrúa" pero tiene respuestas dependientes diligenciadas')]
     return []
 
+CIERRE = re.compile(r'CIERRE|RESULTADOS DE LA INTERVENCION|FINALIZA|TERMINA EL PROCESO')
+
+def _es_titulo(b, i):
+    """Columna que funciona como título de grupo: 'Sub-Sección =>' o una columna marcador
+    (p. ej. 'CIERRE PROCESO') que nunca trae datos."""
+    if b.N[i].startswith('SUB-SECCION'): return True
+    if not hasattr(b, '_vacias'):
+        b._vacias = {j for j in range(len(b.N)) if not any(r[j].strip() for r in b.rows)}
+    return i in b._vacias and bool(CIERRE.search(b.N[i]))
+
+def subseccion_de(b, col):
+    """(inicio, fin, nombre) del grupo (subsección o bloque de cierre) que contiene la columna."""
+    ini = max((i for i in range(col) if _es_titulo(b, i)), default=0)
+    fin = next((i for i in range(col + 1, len(b.N)) if _es_titulo(b, i)), len(b.N))
+    return ini, fin, b.N[ini]
+
+def es_de_cierre(b, col):
+    return bool(CIERRE.search(subseccion_de(b, col)[2]))
+
+def cierre_diligenciado(b, r, col):
+    """True si alguna otra variable de la subsección de cierre tiene dato (hubo cierre)."""
+    ini, fin, _ = subseccion_de(b, col)
+    return any(r[i].strip() for i in range(ini + 1, fin) if i != col)
+
 @regla('INSTR_OBLIG', 'Variable obligatoria según instructivo sin dato', 'Instructivo')
 def _(c, r, b):
     L = _INS['oblig'].get(ni(b.seccion))
@@ -504,7 +534,13 @@ def _(c, r, b):
         k = ni(h)
         if k not in L or k in vistos: continue
         vistos.add(k)
-        if not r[i].strip(): out.append(E_(i, 'Sin dato: el instructivo la define como OBLIGATORIA'))
+        if r[i].strip(): continue
+        # Variables del cierre: solo obligatorias si la ficha ya tiene cierre
+        if es_de_cierre(b, i):
+            if cierre_diligenciado(b, r, i):
+                out.append(E_(i, 'Sin dato: la ficha tiene cierre y el instructivo la define como OBLIGATORIA'))
+            continue
+        out.append(E_(i, 'Sin dato: el instructivo la define como OBLIGATORIA'))
     return out
 
 REGLAS_INFO = [{'id': R['id'], 'nombre': R['nombre'], 'grupo': R['grupo']} for R in REGLAS] + \
