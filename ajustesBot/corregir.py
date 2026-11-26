@@ -8,6 +8,20 @@ from openpyxl import load_workbook
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+
+
+def crear_driver_chrome(options):
+    """Crea el driver de Chrome usando Selenium Manager (detecta la version
+    instalada de Chrome y descarga el ChromeDriver correcto). Si falla,
+    recurre a webdriver_manager como respaldo."""
+    try:
+        return webdriver.Chrome(options=options)
+    except Exception as e_sm:
+        try:
+            return webdriver.Chrome(
+                service=Service(ChromeDriverManager().install()), options=options)
+        except Exception:
+            raise e_sm
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -164,7 +178,7 @@ class GesiApp(ctk.CTkToplevel):
         try:
             options = webdriver.ChromeOptions()
             options.add_argument('--start-maximized')
-            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            self.driver = crear_driver_chrome(options)
             self.driver.get("https://gesiapps.saludcapital.gov.co/GESI_sistemas/login")
             
             self.log("🔑 Enviando credenciales...")
