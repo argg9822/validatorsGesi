@@ -527,14 +527,12 @@ class GesiApp(ctk.CTkFrame):
                     if not self.cerrar_modal_si_hay():
                         raise
                     self.DatosCrearSi(datos)
-                # Confirmación de guardado (obligatoria). wait_and_click espera
-                # a que sea clicable, evitando fallos por la animación del modal.
-                self.wait_and_click(By.XPATH,
-                    '/html/body/div[2]/div/div[6]/button[1]')
+                # La confirmación de guardado ya NO es obligatoria (la página
+                # la quitó). Se revisa al instante y, si aparece tarde y tapa
+                # el botón de la tabla, wait_and_click la cierra y reintenta.
+                self.cerrar_modal_si_hay()
                 self.wait_and_click(By.XPATH,
                     '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input')
-                # (El modal opcional ya no se espera aquí: se revisa al
-                # inicio de la siguiente fila, en DatosCrearSi, sin esperas.)
                 self.log(f"   ↳ guardada en {time.time() - t0:.1f} s")
                 self.update_metrics(i, total_filas)
 
