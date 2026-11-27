@@ -358,33 +358,61 @@ class GesiApp(ctk.CTkFrame):
             except Exception as e:
                 self.log(f"Error al cargar Excel: {e}")
 
+    # Frecuencia con la que se revisa si un elemento ya está listo.
+    # Selenium usa 0.5 s por defecto; con 0.1 s reacciona casi al instante.
+    POLL = 0.1
+
     def wait_for_element(self, by, value, timeout=15):
-        return WebDriverWait(self.driver, timeout).until(
+        return WebDriverWait(self.driver, timeout, poll_frequency=self.POLL).until(
             EC.presence_of_element_located((by, value)))
+
+    # Revisa las opciones del <select> dentro del navegador en una sola
+    # llamada (antes se leía opción por opción, una llamada por cada una).
+    _JS_HAS_OPTION = """
+        const sel = document.getElementById(arguments[0]);
+        if (!sel) return false;
+        return Array.from(sel.options).some(o => o.text.trim() === arguments[1]);
+    """
 
     def wait_option_available(self, select_id, text, timeout=10):
         def _has_option(driver):
             try:
-                select_el = driver.find_element(By.ID, select_id)
-                return any(o.text.strip() == text
-                           for o in select_el.find_elements(By.TAG_NAME, 'option'))
-            except (NoSuchElementException, StaleElementReferenceException):
+                return driver.execute_script(self._JS_HAS_OPTION, select_id, text)
+            except Exception:
                 return False
-        WebDriverWait(self.driver, timeout, poll_frequency=0.2).until(_has_option)
+        WebDriverWait(self.driver, timeout, poll_frequency=self.POLL).until(_has_option)
 
     def wait_and_click(self, by, value, timeout=15, retries=3):
         last_exc = None
         for _ in range(retries):
             try:
-                el = WebDriverWait(self.driver, timeout).until(
+                el = WebDriverWait(self.driver, timeout, poll_frequency=self.POLL).until(
                     EC.element_to_be_clickable((by, value)))
                 el.click()
                 return
             except (TimeoutException, StaleElementReferenceException,
                     ElementClickInterceptedException) as e:
                 last_exc = e
-                time.sleep(1)
+                # Si algo tapó el clic, puede ser la ventana opcional
+                if isinstance(e, ElementClickInterceptedException):
+                    self.cerrar_modal_si_hay()
+                time.sleep(0.3)
         raise last_exc
+
+    MODAL_OPCIONAL = '/html/body/div[2]/div/div[6]/button[1]'
+
+    def cerrar_modal_si_hay(self):
+        """Revisión instantánea (0 s de espera): si la ventana emergente
+        opcional está visible la cierra; si no está, no pierde tiempo."""
+        try:
+            for btn in self.driver.find_elements(By.XPATH, self.MODAL_OPCIONAL):
+                if btn.is_displayed():
+                    btn.click()
+                    self.log("   ↳ ventana emergente cerrada")
+                    return True
+        except Exception:
+            pass
+        return False
 
     def start_thread(self):
         if not self.nombres:
@@ -402,6 +430,9 @@ class GesiApp(ctk.CTkFrame):
             options.add_argument('--start-maximized')
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option('useAutomationExtension', False)
+            # 'eager': continúa cuando el HTML está listo, sin esperar
+            # imágenes ni estilos (acelera cada guardado que recarga la página).
+            options.page_load_strategy = 'eager'
             self.driver = crear_driver_chrome(options)
 
             self.driver.get("https://gesiapps.saludcapital.gov.co/GESI_sistemas/login")
@@ -445,20 +476,19 @@ class GesiApp(ctk.CTkFrame):
     def next_step(self):
         try:
             self.log("Navegando al módulo de Historias Clínicas...")
-            self.wait_for_element(By.XPATH,
-                '/html/body/section/div/div/form/div/div/div[7]/div/div/button').click()
-            time.sleep(4)
-            self.wait_for_element(By.XPATH,
-                '/html/body/div/div/nav/div/div[4]/ul/li[7]').click()
-            time.sleep(1)
-            self.wait_for_element(By.XPATH,
-                '/html/body/div/div/nav/div/div[4]/ul/li[7]/div/ul/li[1]/a').click()
-            time.sleep(2)
-            self.wait_for_element(By.XPATH,
-                '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input').click() 
-            time.sleep(1)
+            # En vez de pausas fijas (time.sleep), se espera a que cada
+            # elemento esté listo para clic: avanza apenas la página responde.
             self.wait_and_click(By.XPATH,
-                '/html/body/div[2]/div/div[6]/button[1]')
+                '/html/body/section/div/div/form/div/div/div[7]/div/div/button')
+            self.wait_and_click(By.XPATH,
+                '/html/body/div/div/nav/div/div[4]/ul/li[7]', timeout=30)
+            self.wait_and_click(By.XPATH,
+                '/html/body/div/div/nav/div/div[4]/ul/li[7]/div/ul/li[1]/a')
+            self.wait_and_click(By.XPATH,
+                '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[7]/input', timeout=30)
+
+            # Modal opcional: revisión instantánea, sin esperar
+            self.cerrar_modal_si_hay()
 
             self.log("Sistema listo. Pulsa 'Iniciar digitación' para comenzar.")
             self._set_status("Listo para iniciar", "success")
@@ -487,13 +517,25 @@ class GesiApp(ctk.CTkFrame):
                          fila[2].value, fila[3].value,
                          fila[4].value, fila[5].value]
                 self.log(f"Fila {i}/{total_filas}: Ficha {ficha_val}")
-                self.DatosCrearSi(datos)
-                self.wait_for_element(By.XPATH,
-                    '/html/body/div[2]/div/div[6]/button[1]').click()
-                self.wait_for_element(By.XPATH,
-                    '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input').click()
+                t0 = time.time()
+                self.cerrar_modal_si_hay()   # instantáneo si no hay ventana
+                try:
+                    self.DatosCrearSi(datos)
+                except ElementClickInterceptedException:
+                    # La ventana opcional apareció tarde y tapó el formulario:
+                    # se cierra y se vuelve a llenar la fila desde cero.
+                    if not self.cerrar_modal_si_hay():
+                        raise
+                    self.DatosCrearSi(datos)
+                # Confirmación de guardado (obligatoria). wait_and_click espera
+                # a que sea clicable, evitando fallos por la animación del modal.
                 self.wait_and_click(By.XPATH,
                     '/html/body/div[2]/div/div[6]/button[1]')
+                self.wait_and_click(By.XPATH,
+                    '/html/body/div/div/main/div/div/div/div[1]/div/div/table/tbody/tr/td[5]/input')
+                # (El modal opcional ya no se espera aquí: se revisa al
+                # inicio de la siguiente fila, en DatosCrearSi, sin esperas.)
+                self.log(f"   ↳ guardada en {time.time() - t0:.1f} s")
                 self.update_metrics(i, total_filas)
 
             self.log("✅  Todos los registros procesados.", True)
@@ -511,8 +553,10 @@ class GesiApp(ctk.CTkFrame):
         for field in ['Fecha_entrega_tecnologo',
                       'Fecha_actualizacion',
                       'Fecha_entrega_digitacion']:
-            self.wait_for_element(By.ID, field).send_keys(Datos[1])
-        self.wait_for_element(By.ID, 'Nro_actualizacion').send_keys('1')
+            el = self.wait_for_element(By.ID, field)
+            el.clear(); el.send_keys(Datos[1])   # clear: evita texto duplicado si se reintenta
+        el = self.wait_for_element(By.ID, 'Nro_actualizacion')
+        el.clear(); el.send_keys('1')
         self.llenar(Datos)
         self.wait_for_element(By.XPATH,
             '/html/body/div/div/main/div/div/div/div[2]/form/div[12]/div/center/input').click()
